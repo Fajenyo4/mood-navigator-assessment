@@ -76,7 +76,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          // Remove email redirect to bypass confirmation
+          emailRedirectTo: `${window.location.origin}/`
         }
       });
       if (error) throw error;
