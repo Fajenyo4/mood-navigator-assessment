@@ -1,12 +1,9 @@
 
 import React, { useState } from 'react';
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
 import { questions } from '@/types/assessment';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Smile, Meh, Frown } from "lucide-react";
+import QuestionDisplay from './assessment/QuestionDisplay';
+import ResultsDialog from './assessment/ResultsDialog';
+import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/assessmentScoring';
 
 const Assessment = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -21,161 +18,37 @@ const Assessment = () => {
   }>({ mood: "", redirectUrl: "", icon: null });
 
   const calculateScores = () => {
-    const depression = ((answers[3] || 0) + (answers[5] || 0) + (answers[10] || 0) + 
-                       (answers[13] || 0) + (answers[16] || 0) + (answers[17] || 0) + 
-                       (answers[21] || 0)) * 2;
+    const scores = calculateDassScores(answers);
+    
+    const depressionLevel = determineLevel(scores.depression, 'depression');
+    const anxietyLevel = determineLevel(scores.anxiety, 'anxiety');
+    const stressLevel = determineLevel(scores.stress, 'stress');
+    const satisfactionLevel = determineLevel(scores.lifeSatisfaction, 'satisfaction');
 
-    const anxiety = ((answers[2] || 0) + (answers[4] || 0) + (answers[7] || 0) + 
-                    (answers[9] || 0) + (answers[15] || 0) + (answers[19] || 0) + 
-                    (answers[20] || 0)) * 2;
+    console.log("Depression:", scores.depression, "Level:", depressionLevel);
+    console.log("Anxiety:", scores.anxiety, "Level:", anxietyLevel);
+    console.log("Stress:", scores.stress, "Level:", stressLevel);
+    console.log("Life Satisfaction:", scores.lifeSatisfaction, "Level:", satisfactionLevel);
+    console.log("Overall Mood:", scores.overallMood);
 
-    const stress = ((answers[1] || 0) + (answers[6] || 0) + (answers[8] || 0) + 
-                   (answers[11] || 0) + (answers[12] || 0) + (answers[14] || 0) + 
-                   (answers[18] || 0)) * 2;
+    const moodResult = determineMoodResult(
+      depressionLevel,
+      anxietyLevel,
+      stressLevel,
+      satisfactionLevel,
+      scores.overallMood
+    );
 
-    const lifeSatisfaction = (answers[22] || 0) + (answers[23] || 0) + (answers[24] || 0) + 
-                            (answers[25] || 0) + (answers[26] || 0);
-
-    const overallMood = (answers[27] || 0) + (answers[28] || 0);
-
-    return determineStatus(depression, anxiety, stress, lifeSatisfaction, overallMood);
-  };
-
-  const determineStatus = (
-    depression: number, 
-    anxiety: number, 
-    stress: number, 
-    lifeSatisfaction: number,
-    overallMood: number
-  ) => {
-    let depressionLevel = "";
-    if (depression >= 28) {
-      depressionLevel = "Extremely Severe";
-    } else if (depression >= 21) {
-      depressionLevel = "Severe";
-    } else if (depression >= 14) {
-      depressionLevel = "Moderate";
-    } else if (depression >= 10) {
-      depressionLevel = "Mild";
-    } else {
-      depressionLevel = "Normal";
-    }
-
-    let anxietyLevel = "";
-    if (anxiety >= 20) {
-      anxietyLevel = "Extremely Severe";
-    } else if (anxiety >= 15) {
-      anxietyLevel = "Severe";
-    } else if (anxiety >= 10) {
-      anxietyLevel = "Moderate";
-    } else if (anxiety >= 8) {
-      anxietyLevel = "Mild";
-    } else {
-      anxietyLevel = "Normal";
-    }
-
-    let stressLevel = "";
-    if (stress >= 34) {
-      stressLevel = "Extremely Severe";
-    } else if (stress >= 26) {
-      stressLevel = "Severe";
-    } else if (stress >= 19) {
-      stressLevel = "Moderate";
-    } else if (stress >= 15) {
-      stressLevel = "Mild";
-    } else {
-      stressLevel = "Normal";
-    }
-
-    let satisfactionLevel = "";
-    if (lifeSatisfaction <= 9) {
-      satisfactionLevel = "Extremely Dissatisfied";
-    } else if (lifeSatisfaction <= 14) {
-      satisfactionLevel = "Dissatisfied";
-    } else if (lifeSatisfaction <= 19) {
-      satisfactionLevel = "Slightly Dissatisfied";
-    } else if (lifeSatisfaction <= 25) {
-      satisfactionLevel = "Neutral";
-    } else if (lifeSatisfaction <= 29) {
-      satisfactionLevel = "Slightly Satisfied";
-    } else if (lifeSatisfaction <= 34) {
-      satisfactionLevel = "Satisfied";
-    } else {
-      satisfactionLevel = "Extremely Satisfied";
-    }
-
-    // Log the scores and levels to help debug the mood calculation
-    console.log("Depression:", depression, "Level:", depressionLevel);
-    console.log("Anxiety:", anxiety, "Level:", anxietyLevel);
-    console.log("Stress:", stress, "Level:", stressLevel);
-    console.log("Life Satisfaction:", lifeSatisfaction, "Level:", satisfactionLevel);
-    console.log("Overall Mood:", overallMood);
-
-    let mood = "";
-    let redirectUrl = "";
-    let icon = null;
-
-    // Corrected mood determination logic
-    if (
-      depressionLevel === "Extremely Severe" || 
-      anxietyLevel === "Extremely Severe" || 
-      stressLevel === "Extremely Severe"
-    ) {
-      mood = "Severe Psychological Distress";
-      redirectUrl = "https://www.micancapital.au/courses-en";
-      icon = <Frown className="w-12 h-12 text-red-500" />;
-    } 
-    else if (
-      depressionLevel === "Severe" || 
-      anxietyLevel === "Severe" || 
-      stressLevel === "Severe"
-    ) {
-      mood = "Psychological Distress";
-      redirectUrl = "https://www.micancapital.au/courses-en";
-      icon = <Frown className="w-12 h-12 text-orange-500" />;
-    } 
-    else if (
-      depressionLevel === "Moderate" || 
-      anxietyLevel === "Moderate" || 
-      stressLevel === "Moderate" || 
-      satisfactionLevel === "Dissatisfied" || 
-      satisfactionLevel === "Extremely Dissatisfied"
-    ) {
-      mood = "Moderate Subhealth";
-      redirectUrl = "https://www.micancapital.au/courses-en";
-      icon = <Meh className="w-12 h-12 text-yellow-500" />;
-    } 
-    else if (
-      depressionLevel === "Mild" || 
-      anxietyLevel === "Mild" || 
-      stressLevel === "Mild" || 
-      satisfactionLevel === "Slightly Dissatisfied"
-    ) {
-      mood = "Mild Subhealth";
-      redirectUrl = "https://www.micancapital.au/courses-en";
-      icon = <Meh className="w-12 h-12 text-blue-500" />;
-    } 
-    else if (overallMood <= 2) {
-      mood = "Low Mood";
-      redirectUrl = "https://www.micancapital.au/courses-en";
-      icon = <Meh className="w-12 h-12 text-purple-500" />;
-    } 
-    else {
-      mood = "Healthy";
-      redirectUrl = "https://www.micancapital.au/courses-en";
-      icon = <Smile className="w-12 h-12 text-green-500" />;
-    }
-
-    setResult({ mood, redirectUrl, icon });
+    setResult(moodResult);
     setShowResults(true);
     
     setTimeout(() => {
-      window.location.href = redirectUrl;
+      window.location.href = moodResult.redirectUrl;
     }, 5000);
   };
 
   const handleAnswer = (value: string) => {
-    setSelectedOption(value); // Store the selected option
+    setSelectedOption(value);
     
     const numericValue = questions[currentQuestion].type === 'life-satisfaction' 
       ? questions[currentQuestion].options.indexOf(value) 
@@ -190,8 +63,8 @@ const Assessment = () => {
       setTimeout(() => {
         setCurrentQuestion(currentQuestion + 1);
         setProgress(((currentQuestion + 1) / questions.length) * 100);
-        setSelectedOption(""); // Reset selected option for next question
-      }, 300); // Short delay to show the selection before moving to next question
+        setSelectedOption("");
+      }, 300);
     } else {
       calculateScores();
     }
@@ -202,54 +75,23 @@ const Assessment = () => {
   };
 
   return (
-    <>
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
-        <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-8">
-          <Progress value={progress} className="mb-8" />
-          
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-              Question {currentQuestion + 1} of {questions.length}
-            </h2>
-            <p className="text-lg text-gray-700">{questions[currentQuestion].text}</p>
-          </div>
-
-          <RadioGroup
-            onValueChange={handleAnswer}
-            className="space-y-4"
-            name={`question-${currentQuestion}`}
-            value={selectedOption} // Use the selectedOption state to show selected value
-          >
-            {questions[currentQuestion].options.map((option, index) => (
-              <div key={index} className="flex items-center space-x-3">
-                <RadioGroupItem value={option} id={`q${currentQuestion}-${index}`} />
-                <Label htmlFor={`q${currentQuestion}-${index}`} className="text-gray-700">
-                  {option}
-                </Label>
-              </div>
-            ))}
-          </RadioGroup>
-        </div>
-      </div>
-
-      <Dialog open={showResults} onOpenChange={setShowResults}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-center">Assessment Results</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col items-center space-y-4 py-4">
-            {result.icon}
-            <p className="text-xl font-semibold text-center">{result.mood}</p>
-            <p className="text-sm text-gray-500 text-center">
-              Redirecting in 5 seconds...
-            </p>
-            <Button onClick={handleManualRedirect} className="mt-4">
-              Redirect Now
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
+      <QuestionDisplay
+        currentQuestion={currentQuestion}
+        totalQuestions={questions.length}
+        progress={progress}
+        question={questions[currentQuestion]}
+        selectedOption={selectedOption}
+        onAnswer={handleAnswer}
+      />
+      
+      <ResultsDialog
+        open={showResults}
+        onOpenChange={setShowResults}
+        result={result}
+        onManualRedirect={handleManualRedirect}
+      />
+    </div>
   );
 };
 
