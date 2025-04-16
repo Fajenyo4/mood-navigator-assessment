@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { questions } from '@/types/assessment';
 import QuestionDisplay from './assessment/QuestionDisplay';
@@ -7,7 +6,7 @@ import {
   calculateDassScores, 
   determineLevel, 
   determineMoodResult, 
-  getAdditionalCourses, 
+  getAdditionalCourses,
   MoodResult 
 } from '@/utils/assessmentScoring';
 
@@ -33,12 +32,6 @@ const Assessment = () => {
     const anxietyLevel = determineLevel(scores.anxiety, 'anxiety');
     const stressLevel = determineLevel(scores.stress, 'stress');
     const satisfactionLevel = determineLevel(scores.lifeSatisfaction, 'satisfaction');
-    
-    console.log("Depression:", scores.depression, "Level:", depressionLevel.level);
-    console.log("Anxiety:", scores.anxiety, "Level:", anxietyLevel.level);
-    console.log("Stress:", scores.stress, "Level:", stressLevel.level);
-    console.log("Life Satisfaction:", scores.lifeSatisfaction, "Level:", satisfactionLevel.level);
-    console.log("Overall Mood:", scores.overallMood);
 
     const moodResult = determineMoodResult(
       depressionLevel,
@@ -55,7 +48,7 @@ const Assessment = () => {
     setShowResults(true);
     
     setTimeout(() => {
-      window.location.href = moodResult.redirectUrl;
+      window.location.href = "https://www.micancapital.au/courses-en";
     }, 5000);
   };
 
