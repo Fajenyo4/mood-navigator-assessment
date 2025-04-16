@@ -44,6 +44,18 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
     }
   };
 
+  const renderMessage = () => {
+    return result.message.split('\n').map((line, index) => (
+      <p key={index} className="text-sm text-gray-700 text-center mb-2">{line}</p>
+    ));
+  };
+
+  const renderCourseRecommendations = () => {
+    return result.courseRecommendation.split('\n').map((course, index) => (
+      <p key={index} className="text-sm text-blue-600 text-center">{course}</p>
+    ));
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -53,8 +65,12 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
         <div className="flex flex-col items-center space-y-4 py-4">
           {renderIcon()}
           <p className="text-xl font-semibold text-center">{result.mood}</p>
-          <p className="text-sm text-gray-700 text-center">{result.message}</p>
-          <p className="text-sm text-blue-600 text-center">{result.courseRecommendation}</p>
+          <div className="space-y-2">
+            {renderMessage()}
+          </div>
+          <div className="space-y-1">
+            {renderCourseRecommendations()}
+          </div>
           <p className="text-sm text-gray-500 text-center">
             Redirecting in 5 seconds...
           </p>

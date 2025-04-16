@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { questions } from '@/types/assessment';
 import QuestionDisplay from './assessment/QuestionDisplay';
 import ResultsDialog from './assessment/ResultsDialog';
-import { calculateDassScores, determineLevel, determineMoodResult, MoodResult } from '@/utils/assessmentScoring';
+import { calculateDassScores, determineLevel, determineMoodResult, getAdditionalCourses } from '@/utils/assessmentScoring';
 
 const Assessment = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -27,7 +26,7 @@ const Assessment = () => {
     const anxietyLevel = determineLevel(scores.anxiety, 'anxiety');
     const stressLevel = determineLevel(scores.stress, 'stress');
     const satisfactionLevel = determineLevel(scores.lifeSatisfaction, 'satisfaction');
-
+    
     console.log("Depression:", scores.depression, "Level:", depressionLevel.level);
     console.log("Anxiety:", scores.anxiety, "Level:", anxietyLevel.level);
     console.log("Stress:", scores.stress, "Level:", stressLevel.level);
@@ -41,6 +40,9 @@ const Assessment = () => {
       satisfactionLevel,
       scores.overallMood
     );
+
+    const additionalCourses = getAdditionalCourses(answers);
+    moodResult.courseRecommendation = [moodResult.courseRecommendation, ...additionalCourses].join('\n');
 
     setResult(moodResult);
     setShowResults(true);

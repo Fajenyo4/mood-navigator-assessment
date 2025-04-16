@@ -1,4 +1,3 @@
-
 import { Smile, Meh, Frown } from "lucide-react";
 
 export interface AssessmentResult {
@@ -58,13 +57,77 @@ export const determineLevel = (score: number, type: 'depression' | 'anxiety' | '
         score,
         level: "Severe",
         message: "You have severe depression",
-        courseRecommendation: "Course: [Cantonese] Emotional Depression"
+        courseRecommendation: "Course: [Cantonese] Depression"
       };
       return {
         score,
         level: "Very Severe",
         message: "You have very severe depression",
-        courseRecommendation: "Course: [Cantonese] Emotional Depression"
+        courseRecommendation: "Course: [Cantonese] Moodiness"
+      };
+    
+    case 'anxiety':
+      if (score < 11) return {
+        score,
+        level: "Normal",
+        message: "No anxiety",
+        courseRecommendation: "Course: [Cantonese] Brain, Mind, Life"
+      };
+      if (score < 14) return {
+        score,
+        level: "Mild",
+        message: "Have mild anxiety",
+        courseRecommendation: "Course: [Cantonese] Anxiety Panic"
+      };
+      if (score < 21) return {
+        score,
+        level: "Moderate",
+        message: "Have moderate anxiety",
+        courseRecommendation: "Course: [Cantonese] Anxiety Panic"
+      };
+      if (score < 28) return {
+        score,
+        level: "Severe",
+        message: "Have severe anxiety",
+        courseRecommendation: "Course: [Cantonese] Anxiety Panic"
+      };
+      return {
+        score,
+        level: "Very Severe",
+        message: "Have very severe anxiety",
+        courseRecommendation: "Course: [Cantonese] Anxiety Panic"
+      };
+    
+    case 'stress':
+      if (score < 17) return {
+        score,
+        level: "Normal",
+        message: "No stress problem",
+        courseRecommendation: "Course: [Cantonese] Brain, Mind, Life"
+      };
+      if (score < 21) return {
+        score,
+        level: "Mild",
+        message: "There is a mild stress condition",
+        courseRecommendation: "Course: 'Stress'! Increase your stress tolerance!"
+      };
+      if (score < 29) return {
+        score,
+        level: "Moderate",
+        message: "With moderate stress",
+        courseRecommendation: "Course: 'Stress'! Enhance stress resistance!"
+      };
+      if (score < 38) return {
+        score,
+        level: "Severe",
+        message: "There is severe stress",
+        courseRecommendation: "Course: 'Stress'! Increase stress tolerance!"
+      };
+      return {
+        score,
+        level: "Very Severe",
+        message: "There is a very serious stress condition",
+        courseRecommendation: "Course: 'Stress'! Increase your stress tolerance!"
       };
     
     case 'satisfaction':
@@ -97,70 +160,6 @@ export const determineLevel = (score: number, type: 'depression' | 'anxiety' | '
         level: "Very Satisfied",
         message: "Feel very satisfied with life",
         courseRecommendation: "Course: [Cantonese] Brain, Mind, Life"
-      };
-    
-    case 'anxiety':
-      if (score < 11) return {
-        score,
-        level: "Normal",
-        message: "Normal anxiety levels",
-        courseRecommendation: "Course: [Cantonese] Brain, Mind, Life"
-      };
-      if (score < 14) return {
-        score,
-        level: "Mild",
-        message: "Mild anxiety levels",
-        courseRecommendation: "Course: [Cantonese] Emotional Depression"
-      };
-      if (score < 21) return {
-        score,
-        level: "Moderate",
-        message: "Moderate anxiety levels",
-        courseRecommendation: "Course: [Cantonese] Emotional Depression"
-      };
-      if (score < 28) return {
-        score,
-        level: "Severe",
-        message: "Severe anxiety levels",
-        courseRecommendation: "Course: [Cantonese] Emotional Depression"
-      };
-      return {
-        score,
-        level: "Very Severe",
-        message: "Very severe anxiety levels",
-        courseRecommendation: "Course: [Cantonese] Emotional Depression"
-      };
-    
-    case 'stress':
-      if (score < 17) return {
-        score,
-        level: "Normal",
-        message: "Normal stress levels",
-        courseRecommendation: "Course: [Cantonese] Brain, Mind, Life"
-      };
-      if (score < 21) return {
-        score,
-        level: "Mild",
-        message: "Mild stress levels",
-        courseRecommendation: "Course: [Cantonese] Emotional Depression"
-      };
-      if (score < 29) return {
-        score,
-        level: "Moderate",
-        message: "Moderate stress levels",
-        courseRecommendation: "Course: [Cantonese] Emotional Depression"
-      };
-      if (score < 38) return {
-        score,
-        level: "Severe",
-        message: "Severe stress levels",
-        courseRecommendation: "Course: [Cantonese] Emotional Depression"
-      };
-      return {
-        score,
-        level: "Very Severe",
-        message: "Very severe stress levels",
-        courseRecommendation: "Course: [Cantonese] Emotional Depression"
       };
     
     default:
@@ -201,6 +200,22 @@ const getDassSeverity = (depressionLevel: AssessmentResult, anxietyLevel: Assess
   return levels[maxSeverity];
 };
 
+export const getAdditionalCourses = (answers: { [key: number]: number }): string[] => {
+  const additionalCourses: string[] = [];
+  
+  // Parent course recommendation
+  if (answers[27] === 1) {
+    additionalCourses.push("Course: [Cantonese] The Way of Parenthood");
+  }
+  
+  // Helper course recommendation
+  if (answers[28] === 1) {
+    additionalCourses.push("Course: [Cantonese] Brain, Psychology, Life, Self-worth, Anxiety, Panic, Depression");
+  }
+  
+  return additionalCourses;
+};
+
 export const determineMoodResult = (
   depressionLevel: AssessmentResult,
   anxietyLevel: AssessmentResult,
@@ -218,11 +233,11 @@ export const determineMoodResult = (
   ) {
     return {
       mood: "Mental Disturbance",
-      message: "You are a very unhappy person. Your mental health is in the 'Mental Disturbance' state.",
+      message: `Are you happy?\nYour psychological assessment shows that you are a very unhappy person. Your mental health is in a state of 'psychological distress'.\n${satisfactionLevel.message}. ${anxietyLevel.message}. ${stressLevel.message}.`,
       redirectUrl: "https://www.micancapital.au/courses-en",
       iconType: "frown",
       iconColor: "text-red-500",
-      courseRecommendation: "Course: [Cantonese] Emotional Depression"
+      courseRecommendation: depressionLevel.courseRecommendation
     };
   }
 
