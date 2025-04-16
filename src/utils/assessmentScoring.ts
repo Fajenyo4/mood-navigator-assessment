@@ -25,34 +25,32 @@ export const calculateDassScores = (answers: { [key: number]: number }) => {
 export const determineLevel = (score: number, type: 'depression' | 'anxiety' | 'stress' | 'satisfaction') => {
   switch (type) {
     case 'depression':
-      if (score >= 28) return "Extremely Severe";
-      if (score >= 21) return "Severe";
-      if (score >= 14) return "Moderate";
-      if (score >= 10) return "Mild";
-      return "Normal";
+      if (score < 10) return "Normal";
+      if (score < 14) return "Mild";
+      if (score < 21) return "Moderate";
+      if (score < 28) return "Severe";
+      return "Very Severe";
     
     case 'anxiety':
-      if (score >= 20) return "Extremely Severe";
-      if (score >= 15) return "Severe";
-      if (score >= 10) return "Moderate";
-      if (score >= 8) return "Mild";
-      return "Normal";
+      if (score < 11) return "Normal";
+      if (score < 14) return "Mild";
+      if (score < 21) return "Moderate";
+      if (score < 28) return "Severe";
+      return "Very Severe";
     
     case 'stress':
-      if (score >= 34) return "Extremely Severe";
-      if (score >= 26) return "Severe";
-      if (score >= 19) return "Moderate";
-      if (score >= 15) return "Mild";
-      return "Normal";
+      if (score < 17) return "Normal";
+      if (score < 21) return "Mild";
+      if (score < 29) return "Moderate";
+      if (score < 38) return "Severe";
+      return "Very Severe";
     
     case 'satisfaction':
-      if (score <= 9) return "Extremely Dissatisfied";
-      if (score <= 14) return "Dissatisfied";
-      if (score <= 19) return "Slightly Dissatisfied";
-      if (score <= 25) return "Neutral";
-      if (score <= 29) return "Slightly Satisfied";
-      if (score <= 34) return "Satisfied";
-      return "Extremely Satisfied";
+      if (score < 14) return "Very Dissatisfied";
+      if (score < 20) return "Dissatisfied";
+      if (score < 27) return "Neutral";
+      if (score < 33) return "Satisfied";
+      return "Very Satisfied";
     
     default:
       return "Normal";
@@ -66,6 +64,25 @@ export type MoodResult = {
   iconColor: string;
 };
 
+const getDassSeverity = (depressionLevel: string, anxietyLevel: string, stressLevel: string): string => {
+  const levels = ["Normal", "Mild", "Moderate", "Severe", "Very Severe"];
+  const severityMap = {
+    "Normal": 0,
+    "Mild": 1,
+    "Moderate": 2,
+    "Severe": 3,
+    "Very Severe": 4
+  };
+
+  const maxSeverity = Math.max(
+    severityMap[depressionLevel],
+    severityMap[anxietyLevel],
+    severityMap[stressLevel]
+  );
+
+  return levels[maxSeverity];
+};
+
 export const determineMoodResult = (
   depressionLevel: string,
   anxietyLevel: string,
@@ -73,74 +90,75 @@ export const determineMoodResult = (
   satisfactionLevel: string,
   overallMood: number
 ): MoodResult => {
+  const dassSeverity = getDassSeverity(depressionLevel, anxietyLevel, stressLevel);
+  const isLowSatisfaction = satisfactionLevel === "Very Dissatisfied" || satisfactionLevel === "Dissatisfied";
+
   if (
-    depressionLevel === "Extremely Severe" || 
-    anxietyLevel === "Extremely Severe" || 
-    stressLevel === "Extremely Severe"
+    dassSeverity === "Severe" || 
+    dassSeverity === "Very Severe" ||
+    (dassSeverity === "Moderate" && isLowSatisfaction)
   ) {
     return {
-      mood: "Severe Psychological Distress",
+      mood: "Mental Disturbance",
       redirectUrl: "https://www.micancapital.au/courses-en",
       iconType: "frown",
       iconColor: "text-red-500"
     };
-  } 
-  
+  }
+
   if (
-    depressionLevel === "Severe" || 
-    anxietyLevel === "Severe" || 
-    stressLevel === "Severe"
+    dassSeverity === "Moderate" ||
+    (dassSeverity === "Mild" && isLowSatisfaction)
   ) {
     return {
-      mood: "Psychological Distress",
-      redirectUrl: "https://www.micancapital.au/courses-en",
-      iconType: "frown",
-      iconColor: "text-orange-500"
-    };
-  } 
-  
-  if (
-    depressionLevel === "Moderate" || 
-    anxietyLevel === "Moderate" || 
-    stressLevel === "Moderate" || 
-    satisfactionLevel === "Dissatisfied" || 
-    satisfactionLevel === "Extremely Dissatisfied"
-  ) {
-    return {
-      mood: "Moderate Subhealth",
+      mood: "Lower-Middle Sub-Health Status",
       redirectUrl: "https://www.micancapital.au/courses-en",
       iconType: "meh",
       iconColor: "text-yellow-500"
     };
-  } 
-  
+  }
+
   if (
-    depressionLevel === "Mild" || 
-    anxietyLevel === "Mild" || 
-    stressLevel === "Mild" || 
-    satisfactionLevel === "Slightly Dissatisfied"
+    dassSeverity === "Mild" ||
+    (dassSeverity === "Normal" && isLowSatisfaction)
   ) {
     return {
-      mood: "Mild Subhealth",
+      mood: "Sub-Health Status Medium",
       redirectUrl: "https://www.micancapital.au/courses-en",
       iconType: "meh",
       iconColor: "text-blue-500"
     };
-  } 
-  
-  if (overallMood <= 2) {
+  }
+
+  if (
+    dassSeverity === "Normal" && 
+    satisfactionLevel === "Neutral"
+  ) {
     return {
-      mood: "Low Mood",
+      mood: "Upper Asian Health State",
       redirectUrl: "https://www.micancapital.au/courses-en",
       iconType: "meh",
       iconColor: "text-purple-500"
     };
-  } 
-  
+  }
+
+  if (
+    dassSeverity === "Normal" && 
+    (satisfactionLevel === "Satisfied" || satisfactionLevel === "Very Satisfied")
+  ) {
+    return {
+      mood: "Healthy",
+      redirectUrl: "https://www.micancapital.au/courses-en",
+      iconType: "smile",
+      iconColor: "text-green-500"
+    };
+  }
+
+  // Default fallback
   return {
-    mood: "Healthy",
+    mood: "Sub-Health Status Medium",
     redirectUrl: "https://www.micancapital.au/courses-en",
-    iconType: "smile",
-    iconColor: "text-green-500"
+    iconType: "meh",
+    iconColor: "text-blue-500"
   };
 };
