@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 const Assessment = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<{ [key: number]: number }>({});
+  const [textAnswers, setTextAnswers] = useState<{ [key: number]: string }>({});
   const [progress, setProgress] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string>("");
@@ -60,14 +61,14 @@ const Assessment = () => {
       setResult(moodResult);
       setShowResults(true);
       
-      // Save the assessment results to Supabase
+      // Save the assessment results to Supabase with both numeric and text answers
       if (user) {
         try {
           await saveAssessmentResult(
             user.id,
             user.user_metadata?.name || user.email || '',
             user.email || '',
-            answers,
+            { numeric: answers, text: textAnswers }, // Store both numeric and text answers
             moodResult.mood
           );
           console.log('Assessment results saved successfully');
@@ -104,8 +105,12 @@ const Assessment = () => {
 
     console.log(`Question ${currentQuestion + 1}: Answer "${value}" -> Numeric value: ${numericValue}`);
 
+    // Store both numeric value and text answer
     const newAnswers = { ...answers, [currentQuestion + 1]: numericValue };
+    const newTextAnswers = { ...textAnswers, [currentQuestion + 1]: value };
+    
     setAnswers(newAnswers);
+    setTextAnswers(newTextAnswers);
     
     if (currentQuestion < questions.length - 1) {
       setTimeout(() => {
