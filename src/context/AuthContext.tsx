@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Provider } from '@supabase/supabase-js';
 import { toast } from '@/hooks/use-toast';
@@ -76,7 +75,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         password,
         options: {
-          // Remove email redirect to bypass confirmation
+          data: {
+            email_confirmed: true
+          },
           emailRedirectTo: `${window.location.origin}/`
         }
       });
