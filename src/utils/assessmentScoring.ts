@@ -1,4 +1,3 @@
-
 export interface AssessmentResult {
   score: number;
   level: string;
@@ -254,7 +253,7 @@ export const determineMoodResult = (
   return {
     mood: moodStatus,
     message: moodMessage,
-    redirectUrl: "https://www.micancapital.au/courses-en",
+    redirectUrl: "https://www.micancapital.au/courses-en", // Explicit URL for all courses
     iconType,
     iconColor,
     depressionResult: depressionLevel,

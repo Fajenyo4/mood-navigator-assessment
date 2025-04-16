@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { questions } from '@/types/assessment';
 import QuestionDisplay from './assessment/QuestionDisplay';
@@ -81,7 +80,7 @@ const Assessment = () => {
       
       setTimeout(() => {
         window.location.href = "https://www.micancapital.au/courses-en";
-      }, 10000); // Changed from 15000 to 10000 milliseconds
+      }, 10000);
     } catch (error) {
       console.error('Error calculating assessment results:', error);
       toast.error('An error occurred while processing your assessment');
