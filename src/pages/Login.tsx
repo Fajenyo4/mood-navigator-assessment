@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { useToast } from '@/components/ui/use-toast';
-import { Loader2, Mail, Github } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2, Mail, Github, LogIn } from 'lucide-react';
 
 const Login = () => {
   const { signIn, signUp, user, loading: authLoading } = useAuth();
@@ -54,7 +54,7 @@ const Login = () => {
       console.error('Auth error:', error);
       toast({
         variant: "destructive",
-        title: "Error",
+        title: "Authentication Failed",
         description: error instanceof Error ? error.message : "Authentication failed. Please try again.",
       });
     } finally {
@@ -66,13 +66,13 @@ const Login = () => {
     setIsLoading(true);
     try {
       await signIn(provider);
-      // No navigation needed here as OAuth will redirect
+      // OAuth will redirect the user, no need to navigate here
     } catch (error) {
       console.error('Social auth error:', error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: error instanceof Error ? error.message : "Authentication failed. Please try again.",
+        title: "Social Login Failed",
+        description: error instanceof Error ? error.message : "Social login failed. Please try again.",
       });
       setIsLoading(false);
     }
@@ -107,6 +107,7 @@ const Login = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
+                autoComplete="email"
               />
               <Input
                 type="password"
@@ -115,6 +116,7 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
+                autoComplete={isSignUp ? "new-password" : "current-password"}
               />
             </div>
             <div className="space-y-2">
@@ -129,7 +131,10 @@ const Login = () => {
                     {isSignUp ? 'Creating Account...' : 'Logging In...'}
                   </>
                 ) : (
-                  isSignUp ? 'Create Account' : 'Login'
+                  <>
+                    <LogIn className="mr-2 h-4 w-4" />
+                    {isSignUp ? 'Create Account' : 'Login'}
+                  </>
                 )}
               </Button>
               
@@ -147,7 +152,7 @@ const Login = () => {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full"
+                className="w-full mb-2"
                 onClick={() => handleSocialSignIn('google')}
                 disabled={isLoading}
               >
