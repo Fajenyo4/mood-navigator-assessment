@@ -7,8 +7,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Smile, Meh, Frown, ExternalLink } from 'lucide-react';
+import { Smile, Meh, Frown, ExternalLink, History } from 'lucide-react';
 import AssessmentChart from './AssessmentChart';
+import { Link } from 'react-router-dom';
 
 interface ResultsDialogProps {
   open: boolean;
@@ -121,13 +122,26 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
           <div className="text-sm text-gray-500 text-center mt-4">
             <p>Your results have been saved. Redirecting to courses in 10 seconds...</p>
           </div>
-          <Button 
-            onClick={onManualRedirect} 
-            className="mt-6 w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700"
-          >
-            <ExternalLink className="w-4 h-4" />
-            <span>Go to Mican Capital Courses</span>
-          </Button>
+          
+          <div className="flex flex-col gap-3 w-full">
+            <Button 
+              onClick={onManualRedirect} 
+              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span>Go to Mican Capital Courses</span>
+            </Button>
+            
+            <Link to="/history" className="w-full">
+              <Button 
+                variant="outline" 
+                className="w-full flex items-center justify-center gap-2"
+              >
+                <History className="w-4 h-4" />
+                <span>View Assessment History</span>
+              </Button>
+            </Link>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

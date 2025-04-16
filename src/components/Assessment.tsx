@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { questions } from '@/types/assessment';
 import QuestionDisplay from './assessment/QuestionDisplay';
@@ -11,6 +12,7 @@ import {
 import { saveAssessmentResult } from '@/services/assessment';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 
 const Assessment = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -88,6 +90,7 @@ const Assessment = () => {
             moodResult.mood
           );
           console.log('Assessment results saved successfully');
+          toast.success('Assessment results saved successfully');
         } catch (error) {
           console.error('Error saving assessment results:', error);
           toast.error('Failed to save your assessment results');
@@ -160,6 +163,15 @@ const Assessment = () => {
         result={result}
         onManualRedirect={handleManualRedirect}
       />
+
+      <div className="mt-8">
+        <Link 
+          to="/history" 
+          className="text-blue-600 hover:text-blue-800 transition-colors text-sm"
+        >
+          View your assessment history
+        </Link>
+      </div>
     </div>
   );
 };

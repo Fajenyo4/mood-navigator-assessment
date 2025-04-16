@@ -45,7 +45,7 @@ export const getAssessmentResults = async (userId: string) => {
     }
     
     console.log('Assessment results fetched:', data);
-    return data;
+    return data || [];
   } catch (error) {
     console.error('Error in getAssessmentResults:', error);
     throw error;
