@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Mail, Github, LogIn, Google } from 'lucide-react';
+import { Loader2, Mail, Github, LogIn } from 'lucide-react';
 
 const Login = () => {
   const { signIn, signUp, user, loading: authLoading } = useAuth();
@@ -18,7 +17,6 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Redirect if user is already logged in
   useEffect(() => {
     if (user && !authLoading) {
       navigate('/');
@@ -159,7 +157,7 @@ const Login = () => {
                 {isLoading ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
-                  <Google className="mr-2 h-4 w-4" /> 
+                  <Mail className="mr-2 h-4 w-4" />
                 )}
                 Continue with Google
               </Button>
