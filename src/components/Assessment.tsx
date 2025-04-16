@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -47,72 +46,78 @@ const Assessment = () => {
   const [progress, setProgress] = useState(0);
 
   const calculateScores = () => {
-    // Depression score
     const depression = ((answers[3] || 0) + (answers[5] || 0) + (answers[10] || 0) + 
                        (answers[13] || 0) + (answers[16] || 0) + (answers[17] || 0) + 
                        (answers[21] || 0)) * 2;
 
-    // Anxiety score
     const anxiety = ((answers[2] || 0) + (answers[4] || 0) + (answers[7] || 0) + 
                     (answers[9] || 0) + (answers[15] || 0) + (answers[19] || 0) + 
                     (answers[20] || 0)) * 2;
 
-    // Stress score
     const stress = ((answers[1] || 0) + (answers[6] || 0) + (answers[8] || 0) + 
                    (answers[11] || 0) + (answers[12] || 0) + (answers[14] || 0) + 
                    (answers[18] || 0)) * 2;
 
-    // Life satisfaction score
-    const lifesatisfaction = (answers[22] || 0) + (answers[23] || 0) + (answers[24] || 0) + 
+    const lifeSatisfaction = (answers[22] || 0) + (answers[23] || 0) + (answers[24] || 0) + 
                             (answers[25] || 0) + (answers[26] || 0);
 
-    return determineStatus(depression, anxiety, stress, lifesatisfaction);
+    const overallMood = (answers[27] || 0) + (answers[28] || 0);
+
+    return determineStatus(depression, anxiety, stress, lifeSatisfaction, overallMood);
   };
 
-  const determineStatus = (depression: number, anxiety: number, stress: number, lifesatisfaction: number) => {
-    // Depression level
-    let depressionLevel = depression < 10 ? "Normal" :
-                         depression < 14 ? "Mild" :
-                         depression < 21 ? "Moderate" :
-                         depression < 28 ? "Severe" : "Very Severe";
+  const determineStatus = (
+    depression: number, 
+    anxiety: number, 
+    stress: number, 
+    lifeSatisfaction: number,
+    overallMood: number
+  ) => {
+    const depressionLevel = depression <= 9 ? "Normal" :
+                          depression <= 13 ? "Mild" :
+                          depression <= 20 ? "Moderate" :
+                          depression <= 27 ? "Severe" : "Extremely Severe";
 
-    // Anxiety level
-    let anxietyLevel = anxiety < 11 ? "Normal" :
-                      anxiety < 14 ? "Mild" :
-                      anxiety < 21 ? "Moderate" :
-                      anxiety < 28 ? "Severe" : "Very Severe";
+    const anxietyLevel = anxiety <= 7 ? "Normal" :
+                        anxiety <= 9 ? "Mild" :
+                        anxiety <= 14 ? "Moderate" :
+                        anxiety <= 19 ? "Severe" : "Extremely Severe";
 
-    // Stress level
-    let stressLevel = stress < 17 ? "Normal" :
-                     stress < 21 ? "Mild" :
-                     stress < 29 ? "Moderate" :
-                     stress < 38 ? "Severe" : "Very Severe";
+    const stressLevel = stress <= 14 ? "Normal" :
+                       stress <= 18 ? "Mild" :
+                       stress <= 25 ? "Moderate" :
+                       stress <= 33 ? "Severe" : "Extremely Severe";
 
-    // Life satisfaction level
-    let satisfactionLevel = lifesatisfaction < 14 ? "Very dissatisfied" :
-                          lifesatisfaction < 20 ? "Dissatisfied" :
-                          lifesatisfaction < 27 ? "Neutral" :
-                          lifesatisfaction < 33 ? "Satisfied" : "Very Satisfied";
+    const satisfactionLevel = lifeSatisfaction <= 9 ? "Extremely Dissatisfied" :
+                            lifeSatisfaction <= 14 ? "Dissatisfied" :
+                            lifeSatisfaction <= 19 ? "Slightly Dissatisfied" :
+                            lifeSatisfaction <= 25 ? "Neutral" :
+                            lifeSatisfaction <= 29 ? "Satisfied" : "Extremely Satisfied";
 
-    // Determine overall class
-    const levels = [depressionLevel, anxietyLevel, stressLevel];
-    const severityOrder = ["Normal", "Mild", "Moderate", "Severe", "Very Severe"];
-    const maxSeverity = levels.reduce((max, level) => {
-      return severityOrder.indexOf(level) > severityOrder.indexOf(max) ? level : max;
-    });
-
-    // Determine mental health status
-    if ((maxSeverity === "Severe" || maxSeverity === "Very Severe") ||
-        (maxSeverity === "Moderate" && ["Dissatisfied", "Very dissatisfied"].includes(satisfactionLevel))) {
-      window.location.href = "https://example.com/psychological-disturbance";
-    } else if (maxSeverity === "Moderate" ||
-              (maxSeverity === "Mild" && ["Dissatisfied", "Very dissatisfied"].includes(satisfactionLevel))) {
-      window.location.href = "https://example.com/medium-low-subhealth";
-    } else if (maxSeverity === "Mild" ||
-              (maxSeverity === "Normal" && ["Dissatisfied", "Very dissatisfied"].includes(satisfactionLevel))) {
+    if (depressionLevel === "Extremely Severe" || anxietyLevel === "Extremely Severe" || stressLevel === "Extremely Severe") {
+      window.location.href = "https://example.com/severe-psychological-distress";
+    } else if (
+      ["Severe", "Extremely Severe"].includes(depressionLevel) ||
+      ["Severe", "Extremely Severe"].includes(anxietyLevel) ||
+      ["Severe", "Extremely Severe"].includes(stressLevel)
+    ) {
+      window.location.href = "https://example.com/psychological-distress";
+    } else if (
+      depressionLevel === "Moderate" ||
+      anxietyLevel === "Moderate" ||
+      stressLevel === "Moderate" ||
+      ["Dissatisfied", "Extremely Dissatisfied"].includes(satisfactionLevel)
+    ) {
       window.location.href = "https://example.com/moderate-subhealth";
-    } else if (maxSeverity === "Normal" && satisfactionLevel === "Neutral") {
-      window.location.href = "https://example.com/medium-high-subhealth";
+    } else if (
+      depressionLevel === "Mild" ||
+      anxietyLevel === "Mild" ||
+      stressLevel === "Mild" ||
+      satisfactionLevel === "Slightly Dissatisfied"
+    ) {
+      window.location.href = "https://example.com/mild-subhealth";
+    } else if (overallMood <= 2) {
+      window.location.href = "https://example.com/low-mood";
     } else {
       window.location.href = "https://example.com/healthy";
     }
