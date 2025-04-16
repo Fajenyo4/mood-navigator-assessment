@@ -1,5 +1,11 @@
-
 import { Smile, Meh, Frown } from "lucide-react";
+
+export interface AssessmentResult {
+  score: number;
+  level: string;
+  message: string;
+  courseRecommendation: string;
+}
 
 export const calculateDassScores = (answers: { [key: number]: number }) => {
   // Depression calculation (q3, q5, q10, q13, q16, q17, q21)
@@ -26,14 +32,71 @@ export const calculateDassScores = (answers: { [key: number]: number }) => {
   return { depression, anxiety, stress, lifeSatisfaction, overallMood };
 };
 
-export const determineLevel = (score: number, type: 'depression' | 'anxiety' | 'stress' | 'satisfaction') => {
+export const determineLevel = (score: number, type: 'depression' | 'anxiety' | 'stress' | 'satisfaction'): AssessmentResult => {
   switch (type) {
     case 'depression':
-      if (score < 10) return "Normal";
-      if (score < 14) return "Mild";
-      if (score < 21) return "Moderate";
-      if (score < 28) return "Severe";
-      return "Very Severe";
+      if (score < 10) return {
+        score,
+        level: "Normal",
+        message: "You are not depressed",
+        courseRecommendation: "Course: [Cantonese] Brain, Mind, Life"
+      };
+      if (score < 14) return {
+        score,
+        level: "Mild",
+        message: "You have mild depression",
+        courseRecommendation: "Course: [Cantonese] Emotional Depression"
+      };
+      if (score < 21) return {
+        score,
+        level: "Moderate",
+        message: "You have moderate depression",
+        courseRecommendation: "Course: [Cantonese] Emotional Depression"
+      };
+      if (score < 28) return {
+        score,
+        level: "Severe",
+        message: "You have severe depression",
+        courseRecommendation: "Course: [Cantonese] Emotional Depression"
+      };
+      return {
+        score,
+        level: "Very Severe",
+        message: "You have very severe depression",
+        courseRecommendation: "Course: [Cantonese] Emotional Depression"
+      };
+    
+    case 'satisfaction':
+      if (score < 14) return {
+        score,
+        level: "Very Dissatisfied",
+        message: "Very dissatisfied with life",
+        courseRecommendation: "Course: [Cantonese] Self-worth"
+      };
+      if (score < 20) return {
+        score,
+        level: "Dissatisfied",
+        message: "Dissatisfied with life",
+        courseRecommendation: "Course: [Cantonese] Self-worth"
+      };
+      if (score < 27) return {
+        score,
+        level: "Neutral",
+        message: "Neutral level of satisfaction",
+        courseRecommendation: "Course: [Cantonese] Self-worth"
+      };
+      if (score < 33) return {
+        score,
+        level: "Satisfied",
+        message: "Satisfied with life",
+        courseRecommendation: "Course: [Cantonese] Brain, Mind, Life"
+      };
+      return {
+        score,
+        level: "Very Satisfied",
+        message: "Feel very satisfied with life",
+        courseRecommendation: "Course: [Cantonese] Brain, Mind, Life"
+      };
     
     case 'anxiety':
       if (score < 11) return "Normal";
@@ -49,13 +112,6 @@ export const determineLevel = (score: number, type: 'depression' | 'anxiety' | '
       if (score < 38) return "Severe";
       return "Very Severe";
     
-    case 'satisfaction':
-      if (score < 14) return "Very Dissatisfied";
-      if (score < 20) return "Dissatisfied";
-      if (score < 27) return "Neutral";
-      if (score < 33) return "Satisfied";
-      return "Very Satisfied";
-    
     default:
       return "Normal";
   }
@@ -63,9 +119,11 @@ export const determineLevel = (score: number, type: 'depression' | 'anxiety' | '
 
 export type MoodResult = {
   mood: string;
+  message: string;
   redirectUrl: string;
   iconType: 'frown' | 'meh' | 'smile';
   iconColor: string;
+  courseRecommendation: string;
 };
 
 const getDassSeverity = (depressionLevel: string, anxietyLevel: string, stressLevel: string): string => {
@@ -104,9 +162,11 @@ export const determineMoodResult = (
   ) {
     return {
       mood: "Mental Disturbance",
+      message: "You are a very unhappy person. Your mental health is in the 'Mental Disturbance' state.",
       redirectUrl: "https://www.micancapital.au/courses-en",
       iconType: "frown",
-      iconColor: "text-red-500"
+      iconColor: "text-red-500",
+      courseRecommendation: "Course: [Cantonese] Emotional Depression"
     };
   }
 
@@ -116,9 +176,11 @@ export const determineMoodResult = (
   ) {
     return {
       mood: "Lower-Middle Sub-Health Status",
+      message: "You are a very unhappy person. Your mental health is 'Lower Sub-Healthy'.",
       redirectUrl: "https://www.micancapital.au/courses-en",
       iconType: "meh",
-      iconColor: "text-yellow-500"
+      iconColor: "text-yellow-500",
+      courseRecommendation: "Course: [Cantonese] Self-worth"
     };
   }
 
@@ -128,9 +190,11 @@ export const determineMoodResult = (
   ) {
     return {
       mood: "Sub-Health Status Medium",
+      message: "You are a moderately unhappy person. Your mental health is 'Moderate Sub-Health'.",
       redirectUrl: "https://www.micancapital.au/courses-en",
       iconType: "meh",
-      iconColor: "text-blue-500"
+      iconColor: "text-blue-500",
+      courseRecommendation: "Course: [Cantonese] Self-worth"
     };
   }
 
@@ -140,9 +204,11 @@ export const determineMoodResult = (
   ) {
     return {
       mood: "Upper Asian Health State",
+      message: "You are a mildly unhappy person. Your mental health is 'Upper Sub-Healthy'.",
       redirectUrl: "https://www.micancapital.au/courses-en",
       iconType: "meh",
-      iconColor: "text-purple-500"
+      iconColor: "text-purple-500",
+      courseRecommendation: "Course: [Cantonese] Brain, Mind, Life"
     };
   }
 
@@ -152,17 +218,21 @@ export const determineMoodResult = (
   ) {
     return {
       mood: "Healthy",
+      message: "You are a happy person and you are satisfied with your life. Your mental health is in a 'healthy state'.",
       redirectUrl: "https://www.micancapital.au/courses-en",
       iconType: "smile",
-      iconColor: "text-green-500"
+      iconColor: "text-green-500",
+      courseRecommendation: "Course: [Cantonese] Brain, Mind, Life"
     };
   }
 
   // Default fallback
   return {
     mood: "Sub-Health Status Medium",
+    message: "Your mental health status requires attention.",
     redirectUrl: "https://www.micancapital.au/courses-en",
     iconType: "meh",
-    iconColor: "text-blue-500"
+    iconColor: "text-blue-500",
+    courseRecommendation: "Course: [Cantonese] Self-worth"
   };
 };
