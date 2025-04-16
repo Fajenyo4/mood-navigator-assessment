@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { createClient, User } from '@supabase/supabase-js';
+import { createClient, User, Provider } from '@supabase/supabase-js';
 
 // Use the direct Supabase URL and anon key values
 const supabaseUrl = 'https://rdlwkjcpbxwijipkcdep.supabase.co';
@@ -13,6 +13,7 @@ const supabase = createClient(
 
 interface AuthContextType {
   user: User | null;
+  loading: boolean;
   signIn: (provider: 'google' | 'github' | 'email', email?: string, password?: string) => Promise<void>;
   signOut: () => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
@@ -22,16 +23,27 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
+    async function loadSession() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setUser(session?.user ?? null);
+      } catch (error) {
+        console.error('Error loading auth session:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadSession();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -45,11 +57,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
       if (error) throw error;
     } else {
-      // Fix: Explicitly type the provider to match Supabase's expected Provider type
+      // Social login with proper typing to match Supabase's Provider type
+      const providerValue = provider as Provider; // Type assertion for Supabase's Provider type
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: provider as 'google' | 'github',
+        provider: providerValue,
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: `${window.location.origin}/`
         }
       });
       if (error) throw error;
@@ -61,7 +74,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       email,
       password,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: `${window.location.origin}/`
       }
     });
     if (error) throw error;
@@ -73,7 +86,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, signIn, signOut, signUp }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signOut, signUp }}>
       {children}
     </AuthContext.Provider>
   );

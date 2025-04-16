@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Mail, Github } from 'lucide-react';
 
 const Login = () => {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSignUp, setIsSignUp] = useState(false);
@@ -18,8 +18,24 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (user && !authLoading) {
+      navigate('/');
+    }
+  }, [user, authLoading, navigate]);
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email || !password) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please enter both email and password",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       if (isSignUp) {
@@ -28,11 +44,14 @@ const Login = () => {
           title: "Success!",
           description: "Please check your email to verify your account.",
         });
+        setEmail('');
+        setPassword('');
       } else {
         await signIn('email', email, password);
-        navigate('/');
+        // The navigate will happen in the useEffect when user state updates
       }
     } catch (error) {
+      console.error('Auth error:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -49,6 +68,7 @@ const Login = () => {
       await signIn(provider);
       // No navigation needed here as OAuth will redirect
     } catch (error) {
+      console.error('Social auth error:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -58,8 +78,16 @@ const Login = () => {
     }
   };
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>{isSignUp ? 'Create Account' : 'Login'}</CardTitle>
@@ -78,6 +106,7 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isLoading}
               />
               <Input
                 type="password"
@@ -85,19 +114,36 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isLoading || !email || !password}
+              >
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {isSignUp ? 'Signing Up...' : 'Logging In...'}
+                    {isSignUp ? 'Creating Account...' : 'Logging In...'}
                   </>
                 ) : (
-                  isSignUp ? 'Sign Up' : 'Login'
+                  isSignUp ? 'Create Account' : 'Login'
                 )}
               </Button>
+              
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Or continue with
+                  </span>
+                </div>
+              </div>
+              
               <Button
                 type="button"
                 variant="outline"
@@ -107,7 +153,9 @@ const Login = () => {
               >
                 {isLoading ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : null}
+                ) : (
+                  <Mail className="mr-2 h-4 w-4" /> 
+                )}
                 Continue with Google
               </Button>
               <Button
@@ -119,7 +167,9 @@ const Login = () => {
               >
                 {isLoading ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : null}
+                ) : (
+                  <Github className="mr-2 h-4 w-4" />
+                )}
                 Continue with GitHub
               </Button>
             </div>
