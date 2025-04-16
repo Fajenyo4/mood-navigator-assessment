@@ -1,13 +1,23 @@
+
 import React, { useState } from 'react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { questions } from '@/types/assessment';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Smile, Meh, Frown } from "lucide-react";
 
 const Assessment = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<{ [key: number]: number }>({});
   const [progress, setProgress] = useState(0);
+  const [showResults, setShowResults] = useState(false);
+  const [result, setResult] = useState<{
+    mood: string;
+    redirectUrl: string;
+    icon: React.ReactNode;
+  }>({ mood: "", redirectUrl: "", icon: null });
 
   const calculateScores = () => {
     const depression = ((answers[3] || 0) + (answers[5] || 0) + (answers[10] || 0) + 
@@ -37,54 +47,57 @@ const Assessment = () => {
     lifeSatisfaction: number,
     overallMood: number
   ) => {
-    const depressionLevel = depression <= 9 ? "Normal" :
-                          depression <= 13 ? "Mild" :
-                          depression <= 20 ? "Moderate" :
-                          depression <= 27 ? "Severe" : "Extremely Severe";
-
-    const anxietyLevel = anxiety <= 7 ? "Normal" :
-                        anxiety <= 9 ? "Mild" :
-                        anxiety <= 14 ? "Moderate" :
-                        anxiety <= 19 ? "Severe" : "Extremely Severe";
-
-    const stressLevel = stress <= 14 ? "Normal" :
-                       stress <= 18 ? "Mild" :
-                       stress <= 25 ? "Moderate" :
-                       stress <= 33 ? "Severe" : "Extremely Severe";
-
-    const satisfactionLevel = lifeSatisfaction <= 9 ? "Extremely Dissatisfied" :
-                            lifeSatisfaction <= 14 ? "Dissatisfied" :
-                            lifeSatisfaction <= 19 ? "Slightly Dissatisfied" :
-                            lifeSatisfaction <= 25 ? "Neutral" :
-                            lifeSatisfaction <= 29 ? "Satisfied" : "Extremely Satisfied";
+    let mood = "";
+    let redirectUrl = "";
+    let icon = null;
 
     if (depressionLevel === "Extremely Severe" || anxietyLevel === "Extremely Severe" || stressLevel === "Extremely Severe") {
-      window.location.href = "https://example.com/severe-psychological-distress";
+      mood = "Severe Psychological Distress";
+      redirectUrl = "https://example.com/severe-psychological-distress";
+      icon = <Frown className="w-12 h-12 text-red-500" />;
     } else if (
       ["Severe", "Extremely Severe"].includes(depressionLevel) ||
       ["Severe", "Extremely Severe"].includes(anxietyLevel) ||
       ["Severe", "Extremely Severe"].includes(stressLevel)
     ) {
-      window.location.href = "https://example.com/psychological-distress";
+      mood = "Psychological Distress";
+      redirectUrl = "https://example.com/psychological-distress";
+      icon = <Frown className="w-12 h-12 text-orange-500" />;
     } else if (
       depressionLevel === "Moderate" ||
       anxietyLevel === "Moderate" ||
       stressLevel === "Moderate" ||
       ["Dissatisfied", "Extremely Dissatisfied"].includes(satisfactionLevel)
     ) {
-      window.location.href = "https://example.com/moderate-subhealth";
+      mood = "Moderate Subhealth";
+      redirectUrl = "https://example.com/moderate-subhealth";
+      icon = <Meh className="w-12 h-12 text-yellow-500" />;
     } else if (
       depressionLevel === "Mild" ||
       anxietyLevel === "Mild" ||
       stressLevel === "Mild" ||
       satisfactionLevel === "Slightly Dissatisfied"
     ) {
-      window.location.href = "https://example.com/mild-subhealth";
+      mood = "Mild Subhealth";
+      redirectUrl = "https://example.com/mild-subhealth";
+      icon = <Meh className="w-12 h-12 text-blue-500" />;
     } else if (overallMood <= 2) {
-      window.location.href = "https://example.com/low-mood";
+      mood = "Low Mood";
+      redirectUrl = "https://example.com/low-mood";
+      icon = <Meh className="w-12 h-12 text-purple-500" />;
     } else {
-      window.location.href = "https://example.com/healthy";
+      mood = "Healthy";
+      redirectUrl = "https://example.com/healthy";
+      icon = <Smile className="w-12 h-12 text-green-500" />;
     }
+
+    setResult({ mood, redirectUrl, icon });
+    setShowResults(true);
+    
+    // Set up automatic redirect after 5 seconds
+    setTimeout(() => {
+      window.location.href = redirectUrl;
+    }, 5000);
   };
 
   const handleAnswer = (value: string) => {
@@ -105,33 +118,57 @@ const Assessment = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
-      <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-8">
-        <Progress value={progress} className="mb-8" />
-        
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-            Question {currentQuestion + 1} of {questions.length}
-          </h2>
-          <p className="text-lg text-gray-700">{questions[currentQuestion].text}</p>
-        </div>
+  const handleManualRedirect = () => {
+    window.location.href = result.redirectUrl;
+  };
 
-        <RadioGroup
-          onValueChange={handleAnswer}
-          className="space-y-4"
-        >
-          {questions[currentQuestion].options.map((option, index) => (
-            <div key={index} className="flex items-center space-x-3">
-              <RadioGroupItem value={option} id={`q${currentQuestion}-${index}`} />
-              <Label htmlFor={`q${currentQuestion}-${index}`} className="text-gray-700">
-                {option}
-              </Label>
-            </div>
-          ))}
-        </RadioGroup>
+  return (
+    <>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
+        <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-8">
+          <Progress value={progress} className="mb-8" />
+          
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold mb-4 text-gray-800">
+              Question {currentQuestion + 1} of {questions.length}
+            </h2>
+            <p className="text-lg text-gray-700">{questions[currentQuestion].text}</p>
+          </div>
+
+          <RadioGroup
+            onValueChange={handleAnswer}
+            className="space-y-4"
+          >
+            {questions[currentQuestion].options.map((option, index) => (
+              <div key={index} className="flex items-center space-x-3">
+                <RadioGroupItem value={option} id={`q${currentQuestion}-${index}`} />
+                <Label htmlFor={`q${currentQuestion}-${index}`} className="text-gray-700">
+                  {option}
+                </Label>
+              </div>
+            ))}
+          </RadioGroup>
+        </div>
       </div>
-    </div>
+
+      <Dialog open={showResults} onOpenChange={setShowResults}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">Assessment Results</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center space-y-4 py-4">
+            {result.icon}
+            <p className="text-xl font-semibold text-center">{result.mood}</p>
+            <p className="text-sm text-gray-500 text-center">
+              Redirecting in 5 seconds...
+            </p>
+            <Button onClick={handleManualRedirect} className="mt-4">
+              Redirect Now
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
