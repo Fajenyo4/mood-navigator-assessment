@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Provider } from '@supabase/supabase-js';
 import { toast } from '@/hooks/use-toast';
@@ -8,7 +9,7 @@ interface AuthContextType {
   loading: boolean;
   signIn: (provider: 'google' | 'github' | 'email', email?: string, password?: string) => Promise<void>;
   signOut: () => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, name?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -69,13 +70,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, name?: string) => {
     try {
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
+            name: name || '',
             email_confirmed: true
           },
           emailRedirectTo: `${window.location.origin}/`

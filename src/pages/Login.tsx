@@ -16,6 +16,7 @@ const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -35,16 +36,26 @@ const Login = () => {
       return;
     }
 
+    if (isSignUp && !name) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please enter your name",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       if (isSignUp) {
-        await signUp(email, password);
+        await signUp(email, password, name);
         toast({
           title: "Success!",
           description: "Please check your email to verify your account.",
         });
         setEmail('');
         setPassword('');
+        setName('');
       } else {
         await signIn('email', email, password);
       }
@@ -82,6 +93,17 @@ const Login = () => {
         <CardContent>
           <form onSubmit={handleAuth} className="space-y-4">
             <div className="space-y-2">
+              {isSignUp && (
+                <Input
+                  type="text"
+                  placeholder="Full Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required={isSignUp}
+                  disabled={isLoading}
+                  autoComplete="name"
+                />
+              )}
               <Input
                 type="email"
                 placeholder="Email"
@@ -104,7 +126,7 @@ const Login = () => {
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={isLoading || !email || !password}
+              disabled={isLoading || !email || !password || (isSignUp && !name)}
             >
               {isLoading ? (
                 <>
