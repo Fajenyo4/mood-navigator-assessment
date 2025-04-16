@@ -1,3 +1,4 @@
+
 import { Smile, Meh, Frown } from "lucide-react";
 
 export interface AssessmentResult {
@@ -225,6 +226,9 @@ export const determineMoodResult = (
   const dassSeverity = getDassSeverity(depressionLevel, anxietyLevel, stressLevel);
   const isLowSatisfaction = satisfactionLevel.level === "Very Dissatisfied" || satisfactionLevel.level === "Dissatisfied";
 
+  // Step 5: Determining Mental Health Status based on DASS severity and life satisfaction
+  
+  // Case 1: Severe/Very Severe DASS OR Moderate DASS with low satisfaction
   if (
     dassSeverity === "Severe" || 
     dassSeverity === "Very Severe" ||
@@ -239,6 +243,7 @@ export const determineMoodResult = (
     };
   }
 
+  // Case 2: Moderate DASS OR Mild DASS with low satisfaction
   if (
     dassSeverity === "Moderate" ||
     (dassSeverity === "Mild" && isLowSatisfaction)
@@ -252,6 +257,7 @@ export const determineMoodResult = (
     };
   }
 
+  // Case 3: Mild DASS OR Normal DASS with low satisfaction
   if (
     dassSeverity === "Mild" ||
     (dassSeverity === "Normal" && isLowSatisfaction)
@@ -265,6 +271,7 @@ export const determineMoodResult = (
     };
   }
 
+  // Case 4: Normal DASS with neutral satisfaction
   if (
     dassSeverity === "Normal" && 
     satisfactionLevel.level === "Neutral"
@@ -278,6 +285,7 @@ export const determineMoodResult = (
     };
   }
 
+  // Case 5: Normal DASS with high satisfaction
   if (
     dassSeverity === "Normal" && 
     (satisfactionLevel.level === "Satisfied" || satisfactionLevel.level === "Very Satisfied")
