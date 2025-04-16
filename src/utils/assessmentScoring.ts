@@ -1,4 +1,3 @@
-
 export interface AssessmentResult {
   score: number;
   level: string;

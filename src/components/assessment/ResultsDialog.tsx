@@ -9,6 +9,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Smile, Meh, Frown } from 'lucide-react';
 import { ExternalLink } from 'lucide-react';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from 'recharts';
 
 interface ResultsDialogProps {
   open: boolean;
@@ -20,18 +22,22 @@ interface ResultsDialogProps {
     iconType: 'smile' | 'meh' | 'frown';
     iconColor: string;
     depressionResult?: {
+      score: number;
       level: string;
       message: string;
     };
     anxietyResult?: {
+      score: number;
       level: string;
       message: string;
     };
     stressResult?: {
+      score: number;
       level: string;
       message: string;
     };
     satisfactionResult?: {
+      score: number;
       level: string;
       message: string;
     };
@@ -68,6 +74,34 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
     ));
   };
 
+  // Prepare data for the chart
+  const chartData = [
+    {
+      name: 'Depression',
+      value: result.depressionResult?.score || 0,
+      level: result.depressionResult?.level || '',
+      color: getColorForLevel(result.depressionResult?.level || '')
+    },
+    {
+      name: 'Anxiety',
+      value: result.anxietyResult?.score || 0,
+      level: result.anxietyResult?.level || '',
+      color: getColorForLevel(result.anxietyResult?.level || '')
+    },
+    {
+      name: 'Stress',
+      value: result.stressResult?.score || 0,
+      level: result.stressResult?.level || '',
+      color: getColorForLevel(result.stressResult?.level || '')
+    },
+    {
+      name: 'Life Satisfaction',
+      value: result.satisfactionResult?.score || 0,
+      level: result.satisfactionResult?.level || '',
+      color: getColorForSatisfactionLevel(result.satisfactionResult?.level || '')
+    }
+  ];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -79,6 +113,32 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
           <div className="space-y-4 text-left w-full">
             {renderMessage()}
           </div>
+
+          {/* Results Chart */}
+          <div className="w-full h-64 mt-4">
+            <ChartContainer config={{ 
+              depression: { theme: { light: '#ef4444', dark: '#f87171' } },
+              anxiety: { theme: { light: '#f59e0b', dark: '#fbbf24' } },
+              stress: { theme: { light: '#3b82f6', dark: '#60a5fa' } },
+              satisfaction: { theme: { light: '#10b981', dark: '#34d399' } },
+            }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
+                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={60} />
+                  <YAxis />
+                  <ChartTooltip
+                    content={<ChartTooltipContent />}
+                  />
+                  <Bar dataKey="value">
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </div>
+
           <div className="text-sm text-gray-500 text-center mt-4">
             <p>Your results have been saved. Redirecting to courses in 10 seconds...</p>
           </div>
@@ -94,5 +154,46 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
     </Dialog>
   );
 };
+
+// Helper functions to determine colors based on levels
+function getColorForLevel(level: string): string {
+  switch (level.toLowerCase()) {
+    case 'normal':
+      return '#10b981'; // Green
+    case 'mild':
+      return '#fbbf24'; // Yellow
+    case 'medium':
+    case 'moderate':
+      return '#f59e0b'; // Orange
+    case 'critical':
+    case 'severe':
+      return '#ef4444'; // Red
+    case 'very serious':
+    case 'extremely severe':
+      return '#7f1d1d'; // Dark red
+    default:
+      return '#6b7280'; // Gray
+  }
+}
+
+function getColorForSatisfactionLevel(level: string): string {
+  switch (level.toLowerCase()) {
+    case 'very satisfied':
+      return '#10b981'; // Green
+    case 'satisfactory':
+    case 'satisfied':
+      return '#34d399'; // Light green
+    case 'neutral':
+      return '#fbbf24'; // Yellow
+    case 'unsatisfactory':
+    case 'dissatisfied':
+      return '#f59e0b'; // Orange
+    case 'very unsatisfactory':
+    case 'very dissatisfied':
+      return '#ef4444'; // Red
+    default:
+      return '#6b7280'; // Gray
+  }
+}
 
 export default ResultsDialog;

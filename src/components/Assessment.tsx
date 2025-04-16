@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { questions } from '@/types/assessment';
 import QuestionDisplay from './assessment/QuestionDisplay';
@@ -64,11 +63,28 @@ const Assessment = () => {
       // Save the assessment results to Supabase with both numeric and text answers
       if (user) {
         try {
+          const resultsData = { 
+            numeric: answers, 
+            text: textAnswers,
+            scores: {
+              depression: scores.depression,
+              anxiety: scores.anxiety,
+              stress: scores.stress,
+              lifeSatisfaction: scores.lifeSatisfaction
+            },
+            levels: {
+              depression: depressionLevel.level,
+              anxiety: anxietyLevel.level,
+              stress: stressLevel.level,
+              lifeSatisfaction: satisfactionLevel.level
+            }
+          };
+
           await saveAssessmentResult(
             user.id,
             user.user_metadata?.name || user.email || '',
             user.email || '',
-            { numeric: answers, text: textAnswers }, // Store both numeric and text answers
+            resultsData, 
             moodResult.mood
           );
           console.log('Assessment results saved successfully');
