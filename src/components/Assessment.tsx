@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -47,7 +46,6 @@ const Assessment = () => {
     lifeSatisfaction: number,
     overallMood: number
   ) => {
-    // Determine depression level
     let depressionLevel = "";
     if (depression >= 28) {
       depressionLevel = "Extremely Severe";
@@ -61,7 +59,6 @@ const Assessment = () => {
       depressionLevel = "Normal";
     }
 
-    // Determine anxiety level
     let anxietyLevel = "";
     if (anxiety >= 20) {
       anxietyLevel = "Extremely Severe";
@@ -75,7 +72,6 @@ const Assessment = () => {
       anxietyLevel = "Normal";
     }
 
-    // Determine stress level
     let stressLevel = "";
     if (stress >= 34) {
       stressLevel = "Extremely Severe";
@@ -89,7 +85,6 @@ const Assessment = () => {
       stressLevel = "Normal";
     }
 
-    // Determine life satisfaction level
     let satisfactionLevel = "";
     if (lifeSatisfaction <= 9) {
       satisfactionLevel = "Extremely Dissatisfied";
@@ -113,7 +108,7 @@ const Assessment = () => {
 
     if (depressionLevel === "Extremely Severe" || anxietyLevel === "Extremely Severe" || stressLevel === "Extremely Severe") {
       mood = "Severe Psychological Distress";
-      redirectUrl = "https://example.com/severe-psychological-distress";
+      redirectUrl = "https://www.micancapital.au/courses-en";
       icon = <Frown className="w-12 h-12 text-red-500" />;
     } else if (
       ["Severe", "Extremely Severe"].includes(depressionLevel) ||
@@ -121,7 +116,7 @@ const Assessment = () => {
       ["Severe", "Extremely Severe"].includes(stressLevel)
     ) {
       mood = "Psychological Distress";
-      redirectUrl = "https://example.com/psychological-distress";
+      redirectUrl = "https://www.micancapital.au/courses-en";
       icon = <Frown className="w-12 h-12 text-orange-500" />;
     } else if (
       depressionLevel === "Moderate" ||
@@ -130,7 +125,7 @@ const Assessment = () => {
       ["Dissatisfied", "Extremely Dissatisfied"].includes(satisfactionLevel)
     ) {
       mood = "Moderate Subhealth";
-      redirectUrl = "https://example.com/moderate-subhealth";
+      redirectUrl = "https://www.micancapital.au/courses-en";
       icon = <Meh className="w-12 h-12 text-yellow-500" />;
     } else if (
       depressionLevel === "Mild" ||
@@ -139,22 +134,21 @@ const Assessment = () => {
       satisfactionLevel === "Slightly Dissatisfied"
     ) {
       mood = "Mild Subhealth";
-      redirectUrl = "https://example.com/mild-subhealth";
+      redirectUrl = "https://www.micancapital.au/courses-en";
       icon = <Meh className="w-12 h-12 text-blue-500" />;
     } else if (overallMood <= 2) {
       mood = "Low Mood";
-      redirectUrl = "https://example.com/low-mood";
+      redirectUrl = "https://www.micancapital.au/courses-en";
       icon = <Meh className="w-12 h-12 text-purple-500" />;
     } else {
       mood = "Healthy";
-      redirectUrl = "https://example.com/healthy";
+      redirectUrl = "https://www.micancapital.au/courses-en";
       icon = <Smile className="w-12 h-12 text-green-500" />;
     }
 
     setResult({ mood, redirectUrl, icon });
     setShowResults(true);
     
-    // Set up automatic redirect after 5 seconds
     setTimeout(() => {
       window.location.href = redirectUrl;
     }, 5000);
