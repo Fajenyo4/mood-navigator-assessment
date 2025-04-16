@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip, Legend } from 'recharts';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { ChartContainer } from "@/components/ui/chart";
 
 interface ChartDataItem {
   name: string;
@@ -74,9 +74,18 @@ const AssessmentChart: React.FC<AssessmentChartProps> = ({
         satisfaction: { theme: { light: '#10b981', dark: '#34d399' } },
       }}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
-            <XAxis dataKey="name" angle={-45} textAnchor="end" height={60} />
-            <YAxis />
+          <BarChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 50 }}>
+            <XAxis 
+              dataKey="name" 
+              angle={-45} 
+              textAnchor="end" 
+              height={70} 
+              tick={{ fill: '#666', fontSize: 12 }}
+            />
+            <YAxis 
+              tick={{ fill: '#666', fontSize: 12 }} 
+              label={{ value: 'Score', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }} 
+            />
             <Tooltip
               content={({ active, payload }) => {
                 if (active && payload && payload.length) {
@@ -92,8 +101,17 @@ const AssessmentChart: React.FC<AssessmentChartProps> = ({
                 return null;
               }}
             />
-            <Legend />
-            <Bar dataKey="value">
+            <Legend 
+              verticalAlign="bottom" 
+              height={36} 
+              formatter={(value) => <span className="text-sm font-medium">{value}</span>} 
+            />
+            <Bar 
+              dataKey="value" 
+              animationDuration={1500} 
+              animationEasing="ease-in-out"
+              radius={[4, 4, 0, 0]}
+            >
               {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}

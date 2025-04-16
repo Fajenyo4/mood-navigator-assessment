@@ -7,10 +7,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Smile, Meh, Frown } from 'lucide-react';
-import { ExternalLink } from 'lucide-react';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from 'recharts';
+import { Smile, Meh, Frown, ExternalLink } from 'lucide-react';
+import AssessmentChart from './AssessmentChart';
 
 interface ResultsDialogProps {
   open: boolean;
@@ -74,37 +72,35 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
     ));
   };
 
-  // Prepare data for the chart
-  const chartData = [
-    {
-      name: 'Depression',
-      value: result.depressionResult?.score || 0,
-      level: result.depressionResult?.level || '',
-      color: getColorForLevel(result.depressionResult?.level || '')
+  // Check if all assessment results are available
+  const hasAssessmentData = result.depressionResult && 
+                           result.anxietyResult && 
+                           result.stressResult && 
+                           result.satisfactionResult;
+
+  // Prepare chart data
+  const chartData = hasAssessmentData ? {
+    depression: {
+      score: result.depressionResult!.score,
+      level: result.depressionResult!.level,
     },
-    {
-      name: 'Anxiety',
-      value: result.anxietyResult?.score || 0,
-      level: result.anxietyResult?.level || '',
-      color: getColorForLevel(result.anxietyResult?.level || '')
+    anxiety: {
+      score: result.anxietyResult!.score,
+      level: result.anxietyResult!.level,
     },
-    {
-      name: 'Stress',
-      value: result.stressResult?.score || 0,
-      level: result.stressResult?.level || '',
-      color: getColorForLevel(result.stressResult?.level || '')
+    stress: {
+      score: result.stressResult!.score,
+      level: result.stressResult!.level,
     },
-    {
-      name: 'Life Satisfaction',
-      value: result.satisfactionResult?.score || 0,
-      level: result.satisfactionResult?.level || '',
-      color: getColorForSatisfactionLevel(result.satisfactionResult?.level || '')
+    lifeSatisfaction: {
+      score: result.satisfactionResult!.score,
+      level: result.satisfactionResult!.level,
     }
-  ];
+  } : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md md:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-center text-xl font-bold">Assessment Results</DialogTitle>
         </DialogHeader>
@@ -115,29 +111,12 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
           </div>
 
           {/* Results Chart */}
-          <div className="w-full h-64 mt-4">
-            <ChartContainer config={{ 
-              depression: { theme: { light: '#ef4444', dark: '#f87171' } },
-              anxiety: { theme: { light: '#f59e0b', dark: '#fbbf24' } },
-              stress: { theme: { light: '#3b82f6', dark: '#60a5fa' } },
-              satisfaction: { theme: { light: '#10b981', dark: '#34d399' } },
-            }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
-                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={60} />
-                  <YAxis />
-                  <ChartTooltip
-                    content={<ChartTooltipContent />}
-                  />
-                  <Bar dataKey="value">
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </div>
+          {hasAssessmentData && chartData && (
+            <div className="w-full mt-6">
+              <h3 className="text-center text-base font-medium mb-2">Your Assessment Scores</h3>
+              <AssessmentChart data={chartData} height={250} />
+            </div>
+          )}
 
           <div className="text-sm text-gray-500 text-center mt-4">
             <p>Your results have been saved. Redirecting to courses in 10 seconds...</p>
@@ -154,46 +133,5 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
     </Dialog>
   );
 };
-
-// Helper functions to determine colors based on levels
-function getColorForLevel(level: string): string {
-  switch (level.toLowerCase()) {
-    case 'normal':
-      return '#10b981'; // Green
-    case 'mild':
-      return '#fbbf24'; // Yellow
-    case 'medium':
-    case 'moderate':
-      return '#f59e0b'; // Orange
-    case 'critical':
-    case 'severe':
-      return '#ef4444'; // Red
-    case 'very serious':
-    case 'extremely severe':
-      return '#7f1d1d'; // Dark red
-    default:
-      return '#6b7280'; // Gray
-  }
-}
-
-function getColorForSatisfactionLevel(level: string): string {
-  switch (level.toLowerCase()) {
-    case 'very satisfied':
-      return '#10b981'; // Green
-    case 'satisfactory':
-    case 'satisfied':
-      return '#34d399'; // Light green
-    case 'neutral':
-      return '#fbbf24'; // Yellow
-    case 'unsatisfactory':
-    case 'dissatisfied':
-      return '#f59e0b'; // Orange
-    case 'very unsatisfactory':
-    case 'very dissatisfied':
-      return '#ef4444'; // Red
-    default:
-      return '#6b7280'; // Gray
-  }
-}
 
 export default ResultsDialog;
