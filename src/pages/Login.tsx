@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Mail, Github, LogIn } from 'lucide-react';
+import { Loader2, Mail, LogIn } from 'lucide-react';
 
 const Login = () => {
   const { signIn, signUp, user, loading: authLoading } = useAuth();
@@ -46,7 +47,6 @@ const Login = () => {
         setPassword('');
       } else {
         await signIn('email', email, password);
-        // The navigate will happen in the useEffect when user state updates
       }
     } catch (error) {
       console.error('Auth error:', error);
@@ -60,17 +60,16 @@ const Login = () => {
     }
   };
 
-  const handleSocialSignIn = async (provider: 'google' | 'github') => {
+  const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      await signIn(provider);
-      // OAuth will redirect the user, no need to navigate here
+      await signIn('google');
     } catch (error) {
-      console.error('Social auth error:', error);
+      console.error('Google auth error:', error);
       toast({
         variant: "destructive",
-        title: "Social Login Failed",
-        description: error instanceof Error ? error.message : "Social login failed. Please try again.",
+        title: "Google Login Failed",
+        description: error instanceof Error ? error.message : "Google login failed. Please try again.",
       });
       setIsLoading(false);
     }
@@ -150,8 +149,8 @@ const Login = () => {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full mb-2"
-                onClick={() => handleSocialSignIn('google')}
+                className="w-full"
+                onClick={handleGoogleSignIn}
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -160,20 +159,6 @@ const Login = () => {
                   <Mail className="mr-2 h-4 w-4" />
                 )}
                 Continue with Google
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={() => handleSocialSignIn('github')}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Github className="mr-2 h-4 w-4" />
-                )}
-                Continue with GitHub
               </Button>
             </div>
             <Button
