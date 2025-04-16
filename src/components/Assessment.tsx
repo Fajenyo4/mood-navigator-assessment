@@ -47,6 +47,66 @@ const Assessment = () => {
     lifeSatisfaction: number,
     overallMood: number
   ) => {
+    // Determine depression level
+    let depressionLevel = "";
+    if (depression >= 28) {
+      depressionLevel = "Extremely Severe";
+    } else if (depression >= 21) {
+      depressionLevel = "Severe";
+    } else if (depression >= 14) {
+      depressionLevel = "Moderate";
+    } else if (depression >= 10) {
+      depressionLevel = "Mild";
+    } else {
+      depressionLevel = "Normal";
+    }
+
+    // Determine anxiety level
+    let anxietyLevel = "";
+    if (anxiety >= 20) {
+      anxietyLevel = "Extremely Severe";
+    } else if (anxiety >= 15) {
+      anxietyLevel = "Severe";
+    } else if (anxiety >= 10) {
+      anxietyLevel = "Moderate";
+    } else if (anxiety >= 8) {
+      anxietyLevel = "Mild";
+    } else {
+      anxietyLevel = "Normal";
+    }
+
+    // Determine stress level
+    let stressLevel = "";
+    if (stress >= 34) {
+      stressLevel = "Extremely Severe";
+    } else if (stress >= 26) {
+      stressLevel = "Severe";
+    } else if (stress >= 19) {
+      stressLevel = "Moderate";
+    } else if (stress >= 15) {
+      stressLevel = "Mild";
+    } else {
+      stressLevel = "Normal";
+    }
+
+    // Determine life satisfaction level
+    let satisfactionLevel = "";
+    if (lifeSatisfaction <= 9) {
+      satisfactionLevel = "Extremely Dissatisfied";
+    } else if (lifeSatisfaction <= 14) {
+      satisfactionLevel = "Dissatisfied";
+    } else if (lifeSatisfaction <= 19) {
+      satisfactionLevel = "Slightly Dissatisfied";
+    } else if (lifeSatisfaction <= 25) {
+      satisfactionLevel = "Neutral";
+    } else if (lifeSatisfaction <= 29) {
+      satisfactionLevel = "Slightly Satisfied";
+    } else if (lifeSatisfaction <= 34) {
+      satisfactionLevel = "Satisfied";
+    } else {
+      satisfactionLevel = "Extremely Satisfied";
+    }
+
     let mood = "";
     let redirectUrl = "";
     let icon = null;
