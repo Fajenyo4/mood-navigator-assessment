@@ -1,3 +1,4 @@
+
 import { Smile, Meh, Frown } from "lucide-react";
 
 export interface AssessmentResult {
@@ -99,21 +100,76 @@ export const determineLevel = (score: number, type: 'depression' | 'anxiety' | '
       };
     
     case 'anxiety':
-      if (score < 11) return "Normal";
-      if (score < 14) return "Mild";
-      if (score < 21) return "Moderate";
-      if (score < 28) return "Severe";
-      return "Very Severe";
+      if (score < 11) return {
+        score,
+        level: "Normal",
+        message: "Normal anxiety levels",
+        courseRecommendation: "Course: [Cantonese] Brain, Mind, Life"
+      };
+      if (score < 14) return {
+        score,
+        level: "Mild",
+        message: "Mild anxiety levels",
+        courseRecommendation: "Course: [Cantonese] Emotional Depression"
+      };
+      if (score < 21) return {
+        score,
+        level: "Moderate",
+        message: "Moderate anxiety levels",
+        courseRecommendation: "Course: [Cantonese] Emotional Depression"
+      };
+      if (score < 28) return {
+        score,
+        level: "Severe",
+        message: "Severe anxiety levels",
+        courseRecommendation: "Course: [Cantonese] Emotional Depression"
+      };
+      return {
+        score,
+        level: "Very Severe",
+        message: "Very severe anxiety levels",
+        courseRecommendation: "Course: [Cantonese] Emotional Depression"
+      };
     
     case 'stress':
-      if (score < 17) return "Normal";
-      if (score < 21) return "Mild";
-      if (score < 29) return "Moderate";
-      if (score < 38) return "Severe";
-      return "Very Severe";
+      if (score < 17) return {
+        score,
+        level: "Normal",
+        message: "Normal stress levels",
+        courseRecommendation: "Course: [Cantonese] Brain, Mind, Life"
+      };
+      if (score < 21) return {
+        score,
+        level: "Mild",
+        message: "Mild stress levels",
+        courseRecommendation: "Course: [Cantonese] Emotional Depression"
+      };
+      if (score < 29) return {
+        score,
+        level: "Moderate",
+        message: "Moderate stress levels",
+        courseRecommendation: "Course: [Cantonese] Emotional Depression"
+      };
+      if (score < 38) return {
+        score,
+        level: "Severe",
+        message: "Severe stress levels",
+        courseRecommendation: "Course: [Cantonese] Emotional Depression"
+      };
+      return {
+        score,
+        level: "Very Severe",
+        message: "Very severe stress levels",
+        courseRecommendation: "Course: [Cantonese] Emotional Depression"
+      };
     
     default:
-      return "Normal";
+      return {
+        score,
+        level: "Normal",
+        message: "Normal levels",
+        courseRecommendation: "Course: [Cantonese] Brain, Mind, Life"
+      };
   }
 };
 
@@ -126,9 +182,9 @@ export type MoodResult = {
   courseRecommendation: string;
 };
 
-const getDassSeverity = (depressionLevel: string, anxietyLevel: string, stressLevel: string): string => {
+const getDassSeverity = (depressionLevel: AssessmentResult, anxietyLevel: AssessmentResult, stressLevel: AssessmentResult): string => {
   const levels = ["Normal", "Mild", "Moderate", "Severe", "Very Severe"];
-  const severityMap = {
+  const severityMap: Record<string, number> = {
     "Normal": 0,
     "Mild": 1,
     "Moderate": 2,
@@ -137,23 +193,23 @@ const getDassSeverity = (depressionLevel: string, anxietyLevel: string, stressLe
   };
 
   const maxSeverity = Math.max(
-    severityMap[depressionLevel],
-    severityMap[anxietyLevel],
-    severityMap[stressLevel]
+    severityMap[depressionLevel.level],
+    severityMap[anxietyLevel.level],
+    severityMap[stressLevel.level]
   );
 
   return levels[maxSeverity];
 };
 
 export const determineMoodResult = (
-  depressionLevel: string,
-  anxietyLevel: string,
-  stressLevel: string,
-  satisfactionLevel: string,
+  depressionLevel: AssessmentResult,
+  anxietyLevel: AssessmentResult,
+  stressLevel: AssessmentResult,
+  satisfactionLevel: AssessmentResult,
   overallMood: number
 ): MoodResult => {
   const dassSeverity = getDassSeverity(depressionLevel, anxietyLevel, stressLevel);
-  const isLowSatisfaction = satisfactionLevel === "Very Dissatisfied" || satisfactionLevel === "Dissatisfied";
+  const isLowSatisfaction = satisfactionLevel.level === "Very Dissatisfied" || satisfactionLevel.level === "Dissatisfied";
 
   if (
     dassSeverity === "Severe" || 
@@ -200,7 +256,7 @@ export const determineMoodResult = (
 
   if (
     dassSeverity === "Normal" && 
-    satisfactionLevel === "Neutral"
+    satisfactionLevel.level === "Neutral"
   ) {
     return {
       mood: "Upper Asian Health State",
@@ -214,7 +270,7 @@ export const determineMoodResult = (
 
   if (
     dassSeverity === "Normal" && 
-    (satisfactionLevel === "Satisfied" || satisfactionLevel === "Very Satisfied")
+    (satisfactionLevel.level === "Satisfied" || satisfactionLevel.level === "Very Satisfied")
   ) {
     return {
       mood: "Healthy",

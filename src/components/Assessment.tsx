@@ -13,9 +13,11 @@ const Assessment = () => {
   const [selectedOption, setSelectedOption] = useState<string>("");
   const [result, setResult] = useState<MoodResult>({
     mood: "",
+    message: "",
     redirectUrl: "",
     iconType: "smile",
-    iconColor: ""
+    iconColor: "",
+    courseRecommendation: ""
   });
 
   const calculateScores = () => {
@@ -26,10 +28,10 @@ const Assessment = () => {
     const stressLevel = determineLevel(scores.stress, 'stress');
     const satisfactionLevel = determineLevel(scores.lifeSatisfaction, 'satisfaction');
 
-    console.log("Depression:", scores.depression, "Level:", depressionLevel);
-    console.log("Anxiety:", scores.anxiety, "Level:", anxietyLevel);
-    console.log("Stress:", scores.stress, "Level:", stressLevel);
-    console.log("Life Satisfaction:", scores.lifeSatisfaction, "Level:", satisfactionLevel);
+    console.log("Depression:", scores.depression, "Level:", depressionLevel.level);
+    console.log("Anxiety:", scores.anxiety, "Level:", anxietyLevel.level);
+    console.log("Stress:", scores.stress, "Level:", stressLevel.level);
+    console.log("Life Satisfaction:", scores.lifeSatisfaction, "Level:", satisfactionLevel.level);
     console.log("Overall Mood:", scores.overallMood);
 
     const moodResult = determineMoodResult(
