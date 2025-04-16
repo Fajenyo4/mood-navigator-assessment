@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User } from '@supabase/supabase-js';
+import { User, Provider } from '@supabase/supabase-js';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -56,9 +56,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         });
         if (error) throw error;
       } else {
-        // Using just string type for provider instead of SupabaseProvider
         const { error } = await supabase.auth.signInWithOAuth({
-          provider: provider,
+          provider: provider as Provider,
           options: {
             redirectTo: `${window.location.origin}/`,
           }
@@ -78,7 +77,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
-          // Remove skipConfirmation as it's not a valid option
         }
       });
       if (error) throw error;
