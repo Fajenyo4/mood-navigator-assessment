@@ -1,8 +1,15 @@
+
 import React, { useState } from 'react';
 import { questions } from '@/types/assessment';
 import QuestionDisplay from './assessment/QuestionDisplay';
 import ResultsDialog from './assessment/ResultsDialog';
-import { calculateDassScores, determineLevel, determineMoodResult, getAdditionalCourses } from '@/utils/assessmentScoring';
+import { 
+  calculateDassScores, 
+  determineLevel, 
+  determineMoodResult, 
+  getAdditionalCourses, 
+  MoodResult 
+} from '@/utils/assessmentScoring';
 
 const Assessment = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
