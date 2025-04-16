@@ -178,7 +178,6 @@ export type MoodResult = {
   redirectUrl: string;
   iconType: 'frown' | 'meh' | 'smile';
   iconColor: string;
-  courseRecommendation: string;
 };
 
 const getDassSeverity = (depressionLevel: AssessmentResult, anxietyLevel: AssessmentResult, stressLevel: AssessmentResult): string => {
@@ -233,11 +232,10 @@ export const determineMoodResult = (
   ) {
     return {
       mood: "Mental Disturbance",
-      message: `Are you happy?\nYour psychological assessment shows that you are a very unhappy person. Your mental health is in a state of 'psychological distress'.\n${satisfactionLevel.message}. ${anxietyLevel.message}. ${stressLevel.message}.`,
+      message: "Your psychological assessment shows that you are experiencing significant mental distress.",
       redirectUrl: "https://www.micancapital.au/courses-en",
       iconType: "frown",
-      iconColor: "text-red-500",
-      courseRecommendation: depressionLevel.courseRecommendation
+      iconColor: "text-red-500"
     };
   }
 
@@ -247,11 +245,10 @@ export const determineMoodResult = (
   ) {
     return {
       mood: "Lower-Middle Sub-Health Status",
-      message: "You are a very unhappy person. Your mental health is 'Lower Sub-Healthy'.",
+      message: "Your mental health shows signs of being in a lower sub-healthy state.",
       redirectUrl: "https://www.micancapital.au/courses-en",
       iconType: "meh",
-      iconColor: "text-yellow-500",
-      courseRecommendation: "Course: [Cantonese] Self-worth"
+      iconColor: "text-yellow-500"
     };
   }
 
@@ -261,11 +258,10 @@ export const determineMoodResult = (
   ) {
     return {
       mood: "Sub-Health Status Medium",
-      message: "You are a moderately unhappy person. Your mental health is 'Moderate Sub-Health'.",
+      message: "Your mental health indicates a moderate sub-health condition.",
       redirectUrl: "https://www.micancapital.au/courses-en",
       iconType: "meh",
-      iconColor: "text-blue-500",
-      courseRecommendation: "Course: [Cantonese] Self-worth"
+      iconColor: "text-blue-500"
     };
   }
 
@@ -275,11 +271,10 @@ export const determineMoodResult = (
   ) {
     return {
       mood: "Upper Asian Health State",
-      message: "You are a mildly unhappy person. Your mental health is 'Upper Sub-Healthy'.",
+      message: "Your mental health shows signs of being in an upper sub-healthy state.",
       redirectUrl: "https://www.micancapital.au/courses-en",
       iconType: "meh",
-      iconColor: "text-purple-500",
-      courseRecommendation: "Course: [Cantonese] Brain, Mind, Life"
+      iconColor: "text-purple-500"
     };
   }
 
@@ -289,11 +284,10 @@ export const determineMoodResult = (
   ) {
     return {
       mood: "Healthy",
-      message: "You are a happy person and you are satisfied with your life. Your mental health is in a 'healthy state'.",
+      message: "Your mental health appears to be in a healthy state.",
       redirectUrl: "https://www.micancapital.au/courses-en",
       iconType: "smile",
-      iconColor: "text-green-500",
-      courseRecommendation: "Course: [Cantonese] Brain, Mind, Life"
+      iconColor: "text-green-500"
     };
   }
 
@@ -303,7 +297,6 @@ export const determineMoodResult = (
     message: "Your mental health status requires attention.",
     redirectUrl: "https://www.micancapital.au/courses-en",
     iconType: "meh",
-    iconColor: "text-blue-500",
-    courseRecommendation: "Course: [Cantonese] Self-worth"
+    iconColor: "text-blue-500"
   };
 };

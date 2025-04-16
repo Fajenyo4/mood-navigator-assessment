@@ -6,7 +6,6 @@ import {
   calculateDassScores, 
   determineLevel, 
   determineMoodResult, 
-  getAdditionalCourses, 
   MoodResult 
 } from '@/utils/assessmentScoring';
 
@@ -21,8 +20,7 @@ const Assessment = () => {
     message: "",
     redirectUrl: "",
     iconType: "smile",
-    iconColor: "",
-    courseRecommendation: ""
+    iconColor: ""
   });
 
   const calculateScores = () => {
@@ -40,9 +38,6 @@ const Assessment = () => {
       satisfactionLevel,
       scores.overallMood
     );
-
-    const additionalCourses = getAdditionalCourses(answers);
-    moodResult.courseRecommendation = [moodResult.courseRecommendation, ...additionalCourses].join('\n');
 
     setResult(moodResult);
     setShowResults(true);

@@ -18,7 +18,6 @@ interface ResultsDialogProps {
     redirectUrl: string;
     iconType: 'smile' | 'meh' | 'frown';
     iconColor: string;
-    courseRecommendation: string;
   };
   onManualRedirect: () => void;
 }
@@ -50,12 +49,6 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
     ));
   };
 
-  const renderCourseRecommendations = () => {
-    return result.courseRecommendation.split('\n').map((course, index) => (
-      <p key={index} className="text-sm text-blue-600 text-center">{course}</p>
-    ));
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -68,11 +61,8 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
           <div className="space-y-2">
             {renderMessage()}
           </div>
-          <div className="space-y-1">
-            {renderCourseRecommendations()}
-          </div>
           <p className="text-sm text-gray-500 text-center">
-            Redirecting in 5 seconds...
+            Redirecting in 15 seconds...
           </p>
           <Button onClick={onManualRedirect} className="mt-4">
             Redirect Now
