@@ -6,7 +6,7 @@ import {
   calculateDassScores, 
   determineLevel, 
   determineMoodResult, 
-  getAdditionalCourses,
+  getAdditionalCourses, 
   MoodResult 
 } from '@/utils/assessmentScoring';
 
@@ -49,7 +49,7 @@ const Assessment = () => {
     
     setTimeout(() => {
       window.location.href = "https://www.micancapital.au/courses-en";
-    }, 5000);
+    }, 15000);
   };
 
   const handleAnswer = (value: string) => {
