@@ -2,9 +2,18 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { createClient, User } from '@supabase/supabase-js';
 
+// Check for environment variables
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// Ensure URL and key are present
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Missing Supabase URL or Anon Key. Make sure environment variables are set.');
+}
+
 const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
+  supabaseUrl || '',
+  supabaseAnonKey || ''
 );
 
 interface AuthContextType {
@@ -41,8 +50,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
       if (error) throw error;
     } else {
+      // Fix: Cast the provider to the correct type for OAuth
       const { error } = await supabase.auth.signInWithOAuth({
-        provider,
+        provider: provider as 'google' | 'github',
       });
       if (error) throw error;
     }
