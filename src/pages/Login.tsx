@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Mail, LogIn } from 'lucide-react';
+import { Loader2, LogIn } from 'lucide-react';
 
 const Login = () => {
   const { signIn, signUp, user, loading: authLoading } = useAuth();
@@ -60,21 +60,6 @@ const Login = () => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    try {
-      await signIn('google');
-    } catch (error) {
-      console.error('Google auth error:', error);
-      toast({
-        variant: "destructive",
-        title: "Google Login Failed",
-        description: error instanceof Error ? error.message : "Google login failed. Please try again.",
-      });
-      setIsLoading(false);
-    }
-  };
-
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -116,51 +101,23 @@ const Login = () => {
                 autoComplete={isSignUp ? "new-password" : "current-password"}
               />
             </div>
-            <div className="space-y-2">
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={isLoading || !email || !password}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {isSignUp ? 'Creating Account...' : 'Logging In...'}
-                  </>
-                ) : (
-                  <>
-                    <LogIn className="mr-2 h-4 w-4" />
-                    {isSignUp ? 'Create Account' : 'Login'}
-                  </>
-                )}
-              </Button>
-              
-              <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">
-                    Or continue with
-                  </span>
-                </div>
-              </div>
-              
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={handleGoogleSignIn}
-                disabled={isLoading}
-              >
-                {isLoading ? (
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={isLoading || !email || !password}
+            >
+              {isLoading ? (
+                <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Mail className="mr-2 h-4 w-4" />
-                )}
-                Continue with Google
-              </Button>
-            </div>
+                  {isSignUp ? 'Creating Account...' : 'Logging In...'}
+                </>
+              ) : (
+                <>
+                  <LogIn className="mr-2 h-4 w-4" />
+                  {isSignUp ? 'Create Account' : 'Login'}
+                </>
+              )}
+            </Button>
             <Button
               type="button"
               variant="link"
