@@ -51,7 +51,8 @@ const Assessment = () => {
         anxietyLevel,
         stressLevel,
         satisfactionLevel,
-        scores.overallMood
+        scores.isParent,
+        scores.needsHelp
       );
 
       console.log('Mood result:', moodResult);
@@ -94,8 +95,7 @@ const Assessment = () => {
     let numericValue: number;
     
     if (currentQuestion < 26) {
-      // For questions 1-26 (depression, anxiety, stress, and life satisfaction)
-      // Convert from "Strongly disagree" (1) to "Strongly agree" (7)
+      // For questions 1-26 (converted to 1-7 scale)
       numericValue = questions[currentQuestion].options.indexOf(value) + 1;
     } else {
       // For demographic questions (27-28)

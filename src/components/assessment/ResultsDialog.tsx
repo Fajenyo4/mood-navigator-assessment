@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Smile, Meh, Frown } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 
 interface ResultsDialogProps {
   open: boolean;
@@ -34,6 +35,8 @@ interface ResultsDialogProps {
       level: string;
       message: string;
     };
+    isParent?: number;
+    needsHelp?: number;
   };
   onManualRedirect: () => void;
 }
@@ -61,7 +64,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
 
   const renderMessage = () => {
     return result.message.split('\n').map((line, index) => (
-      <p key={index} className="text-sm text-gray-700 text-center mb-2">{line}</p>
+      <p key={index} className="text-sm text-gray-700 mb-2">{line}</p>
     ));
   };
 
@@ -69,19 +72,22 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-center">Assessment Results</DialogTitle>
+          <DialogTitle className="text-center text-xl font-bold">Assessment Results</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col items-center space-y-4 py-4">
-          {renderIcon()}
-          <p className="text-xl font-semibold text-center">{result.mood}</p>
-          <div className="space-y-2">
+          <div className="mb-2">{renderIcon()}</div>
+          <div className="space-y-4 text-left w-full">
             {renderMessage()}
           </div>
-          <p className="text-sm text-gray-500 text-center">
-            Your results have been saved. Redirecting to all courses in 10 seconds...
-          </p>
-          <Button onClick={onManualRedirect} className="mt-4">
-            Go to Courses Now
+          <div className="text-sm text-gray-500 text-center mt-4">
+            <p>Your results have been saved. Redirecting to courses in 10 seconds...</p>
+          </div>
+          <Button 
+            onClick={onManualRedirect} 
+            className="mt-6 w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700"
+          >
+            <ExternalLink className="w-4 h-4" />
+            <span>Go to Mican Capital Courses</span>
           </Button>
         </div>
       </DialogContent>
