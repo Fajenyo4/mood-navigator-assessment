@@ -21,22 +21,18 @@ interface ResultsDialogProps {
     depressionResult?: {
       level: string;
       message: string;
-      courseRecommendation: string;
     };
     anxietyResult?: {
       level: string;
       message: string;
-      courseRecommendation: string;
     };
     stressResult?: {
       level: string;
       message: string;
-      courseRecommendation: string;
     };
     satisfactionResult?: {
       level: string;
       message: string;
-      courseRecommendation: string;
     };
   };
   onManualRedirect: () => void;
@@ -69,53 +65,6 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
     ));
   };
 
-  const renderCourseRecommendations = () => {
-    const recommendations = [];
-    
-    if (result.depressionResult && result.depressionResult.courseRecommendation) {
-      recommendations.push(
-        <p key="depression" className="text-xs text-gray-600">
-          <span className="font-medium">Depression: </span>
-          {result.depressionResult.courseRecommendation}
-        </p>
-      );
-    }
-    
-    if (result.anxietyResult && result.anxietyResult.courseRecommendation) {
-      recommendations.push(
-        <p key="anxiety" className="text-xs text-gray-600">
-          <span className="font-medium">Anxiety: </span>
-          {result.anxietyResult.courseRecommendation}
-        </p>
-      );
-    }
-    
-    if (result.stressResult && result.stressResult.courseRecommendation) {
-      recommendations.push(
-        <p key="stress" className="text-xs text-gray-600">
-          <span className="font-medium">Stress: </span>
-          {result.stressResult.courseRecommendation}
-        </p>
-      );
-    }
-    
-    if (result.satisfactionResult && result.satisfactionResult.courseRecommendation) {
-      recommendations.push(
-        <p key="satisfaction" className="text-xs text-gray-600">
-          <span className="font-medium">Life Satisfaction: </span>
-          {result.satisfactionResult.courseRecommendation}
-        </p>
-      );
-    }
-    
-    return recommendations.length > 0 ? (
-      <div className="mt-4 border-t pt-3 space-y-1">
-        <p className="text-sm font-medium text-gray-700 text-center mb-2">Recommended Courses:</p>
-        {recommendations}
-      </div>
-    ) : null;
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -128,12 +77,11 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
           <div className="space-y-2">
             {renderMessage()}
           </div>
-          {renderCourseRecommendations()}
           <p className="text-sm text-gray-500 text-center">
-            Your results have been saved. Redirecting in 10 seconds...
+            Your results have been saved. Redirecting to all courses in 10 seconds...
           </p>
           <Button onClick={onManualRedirect} className="mt-4">
-            Redirect Now
+            Go to Courses Now
           </Button>
         </div>
       </DialogContent>

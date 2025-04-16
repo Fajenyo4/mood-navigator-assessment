@@ -1,11 +1,8 @@
 
-import { Smile, Meh, Frown } from "lucide-react";
-
 export interface AssessmentResult {
   score: number;
   level: string;
   message: string;
-  courseRecommendation: string;
 }
 
 export const calculateDassScores = (answers: { [key: number]: number }) => {
@@ -39,136 +36,115 @@ export const determineLevel = (score: number, type: 'depression' | 'anxiety' | '
       if (score < 10) return {
         score,
         level: "Normal",
-        message: "You don't have depressive symptoms",
-        courseRecommendation: "Course: Brain, Psychology, Life"
+        message: "You don't have depressive symptoms"
       };
       if (score < 14) return {
         score,
         level: "Mild",
-        message: "You have mild depressive symptoms",
-        courseRecommendation: "Course: Managing Depression"
+        message: "You have mild depressive symptoms"
       };
       if (score < 21) return {
         score,
         level: "Moderate",
-        message: "You have moderate depressive symptoms",
-        courseRecommendation: "Course: Managing Depression"
+        message: "You have moderate depressive symptoms"
       };
       if (score < 28) return {
         score,
         level: "Severe",
-        message: "You have severe depressive symptoms",
-        courseRecommendation: "Course: Managing Depression"
+        message: "You have severe depressive symptoms"
       };
       return {
         score,
         level: "Very Severe",
-        message: "You have very severe depressive symptoms",
-        courseRecommendation: "Course: Managing Depression"
+        message: "You have very severe depressive symptoms"
       };
     
     case 'anxiety':
       if (score < 11) return {
         score,
         level: "Normal",
-        message: "No anxiety symptoms",
-        courseRecommendation: "Course: Brain, Psychology, Life"
+        message: "No anxiety symptoms"
       };
       if (score < 14) return {
         score,
         level: "Mild",
-        message: "Mild anxiety symptoms",
-        courseRecommendation: "Course: Anxiety & Panic Management"
+        message: "Mild anxiety symptoms"
       };
       if (score < 21) return {
         score,
         level: "Moderate",
-        message: "Moderate anxiety symptoms",
-        courseRecommendation: "Course: Anxiety & Panic Management"
+        message: "Moderate anxiety symptoms"
       };
       if (score < 28) return {
         score,
         level: "Severe",
-        message: "Severe anxiety symptoms",
-        courseRecommendation: "Course: Anxiety & Panic Management"
+        message: "Severe anxiety symptoms"
       };
       return {
         score,
         level: "Very Severe",
-        message: "Very severe anxiety symptoms",
-        courseRecommendation: "Course: Anxiety & Panic Management"
+        message: "Very severe anxiety symptoms"
       };
     
     case 'stress':
       if (score < 17) return {
         score,
         level: "Normal",
-        message: "No stress issues",
-        courseRecommendation: "Course: Brain, Psychology, Life"
+        message: "No stress issues"
       };
       if (score < 21) return {
         score,
         level: "Mild",
-        message: "Mild stress levels",
-        courseRecommendation: "Course: Stress Management & Resilience"
+        message: "Mild stress levels"
       };
       if (score < 29) return {
         score,
         level: "Moderate",
-        message: "Moderate stress levels",
-        courseRecommendation: "Course: Stress Management & Resilience"
+        message: "Moderate stress levels"
       };
       if (score < 38) return {
         score,
         level: "Severe",
-        message: "Severe stress levels",
-        courseRecommendation: "Course: Stress Management & Resilience"
+        message: "Severe stress levels"
       };
       return {
         score,
         level: "Very Severe",
-        message: "Very severe stress levels",
-        courseRecommendation: "Course: Stress Management & Resilience"
+        message: "Very severe stress levels"
       };
     
     case 'satisfaction':
       if (score < 14) return {
         score,
         level: "Very Dissatisfied",
-        message: "feel very dissatisfied",
-        courseRecommendation: "Course: Self-Worth & Value"
+        message: "feel very dissatisfied"
       };
       if (score < 20) return {
         score,
         level: "Dissatisfied",
-        message: "feel dissatisfied",
-        courseRecommendation: "Course: Self-Worth & Value"
+        message: "feel dissatisfied"
       };
       if (score < 27) return {
         score,
         level: "Neutral",
-        message: "have neutral satisfaction levels",
-        courseRecommendation: "Course: Self-Worth & Value"
+        message: "have neutral satisfaction levels"
       };
       if (score < 33) return {
         score,
         level: "Satisfied",
-        message: "feel satisfied",
-        courseRecommendation: "Course: Brain, Psychology, Life"
+        message: "feel satisfied"
       };
       return {
         score,
         level: "Very Satisfied",
-        message: "feel very satisfied",
-        courseRecommendation: "Course: Brain, Psychology, Life"
+        message: "feel very satisfied"
       };
     
     default:
       return {
         score,
         level: "Normal",
-        message: "Normal levels",
-        courseRecommendation: "Course: Brain, Psychology, Life"
+        message: "Normal levels"
       };
   }
 };
@@ -202,22 +178,6 @@ const getDassSeverity = (depressionLevel: AssessmentResult, anxietyLevel: Assess
   );
 
   return levels[maxSeverity];
-};
-
-export const getAdditionalCourses = (answers: { [key: number]: number }): string[] => {
-  const additionalCourses: string[] = [];
-  
-  // Parent course recommendation
-  if (answers[27] === 1) {
-    additionalCourses.push("Course: Parenting Skills");
-  }
-  
-  // Helper course recommendation
-  if (answers[28] === 1) {
-    additionalCourses.push("Course: Brain, Psychology, Life, Self-Worth, Anxiety Management, Depression Management");
-  }
-  
-  return additionalCourses;
 };
 
 export const determineMoodResult = (
