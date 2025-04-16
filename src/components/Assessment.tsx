@@ -81,7 +81,7 @@ const Assessment = () => {
       
       setTimeout(() => {
         window.location.href = "https://www.micancapital.au/courses-en";
-      }, 15000);
+      }, 10000); // Changed from 15000 to 10000 milliseconds
     } catch (error) {
       console.error('Error calculating assessment results:', error);
       toast.error('An error occurred while processing your assessment');

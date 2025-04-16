@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Dialog,
@@ -62,7 +61,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
             {renderMessage()}
           </div>
           <p className="text-sm text-gray-500 text-center">
-            Your results have been saved. Redirecting in 15 seconds...
+            Your results have been saved. Redirecting in 10 seconds...
           </p>
           <Button onClick={onManualRedirect} className="mt-4">
             Redirect Now
