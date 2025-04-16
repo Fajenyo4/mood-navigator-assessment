@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { getAssessmentResults } from '@/services/assessment';
+import { getAssessmentResults, AssessmentRecord } from '@/services/assessment';
 import { Button } from "@/components/ui/button";
 import { 
   Dialog, 
@@ -12,28 +11,6 @@ import ResultsDialog from './ResultsDialog';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
-
-interface AssessmentRecord {
-  id: string;
-  created_at: string;
-  answers: {
-    numeric: Record<string, number>;
-    text: Record<string, string>;
-    scores: {
-      depression: number;
-      anxiety: number;
-      stress: number;
-      lifeSatisfaction: number;
-    };
-    levels: {
-      depression: string;
-      anxiety: string;
-      stress: string;
-      lifeSatisfaction: string;
-    };
-  };
-  final_mood: string;
-}
 
 const AssessmentHistory: React.FC = () => {
   const [assessments, setAssessments] = useState<AssessmentRecord[]>([]);
