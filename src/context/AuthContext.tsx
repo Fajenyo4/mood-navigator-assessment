@@ -1,23 +1,8 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { createClient, User, Provider as SupabaseProvider } from '@supabase/supabase-js';
+import { User, Provider as SupabaseProvider } from '@supabase/supabase-js';
 import { toast } from '@/hooks/use-toast';
-
-// Use the direct Supabase URL and anon key values
-const supabaseUrl = 'https://rdlwkjcpbxwijipkcdep.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJkbHdramNwYnh3aWppcGtjZGVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTY5OTkyNDgsImV4cCI6MjAzMjU3NTI0OH0.lE4IbloA4aAxaF-zopFQfVOBZDMRY7U5ToDJGmL-14c';
-
-// Create a single supabase client
-export const supabase = createClient(
-  supabaseUrl,
-  supabaseAnonKey,
-  {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-    }
-  }
-);
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
   user: User | null;
@@ -77,7 +62,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const { error } = await supabase.auth.signInWithOAuth({
           provider: socialProvider,
           options: {
-            redirectTo: window.location.origin,
+            redirectTo: `${window.location.origin}/`,
           }
         });
         

@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Mail, Github, LogIn } from 'lucide-react';
+import { Loader2, Mail, Github, LogIn, Google } from 'lucide-react';
 
 const Login = () => {
   const { signIn, signUp, user, loading: authLoading } = useAuth();
@@ -159,7 +159,7 @@ const Login = () => {
                 {isLoading ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
-                  <Mail className="mr-2 h-4 w-4" /> 
+                  <Google className="mr-2 h-4 w-4" /> 
                 )}
                 Continue with Google
               </Button>
