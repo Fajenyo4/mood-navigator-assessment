@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { questions } from '@/types/assessment';
 import QuestionDisplay from './assessment/QuestionDisplay';
@@ -90,13 +91,18 @@ const Assessment = () => {
   const handleAnswer = (value: string) => {
     setSelectedOption(value);
     
-    const numericValue = questions[currentQuestion].type === 'life-satisfaction' 
-      ? questions[currentQuestion].options.indexOf(value) 
-      : questions[currentQuestion].type === 'demographic'
-      ? value === 'Yes' ? 1 : 0
-      : questions[currentQuestion].options.indexOf(value);
+    let numericValue: number;
+    
+    if (currentQuestion < 26) {
+      // For questions 1-26 (depression, anxiety, stress, and life satisfaction)
+      // Convert from "Strongly disagree" (1) to "Strongly agree" (7)
+      numericValue = questions[currentQuestion].options.indexOf(value) + 1;
+    } else {
+      // For demographic questions (27-28)
+      numericValue = value === 'Yes' ? 1 : 0;
+    }
 
-    console.log(`Question ${currentQuestion + 1} (${questions[currentQuestion].type}): Answer "${value}" -> Numeric value: ${numericValue}`);
+    console.log(`Question ${currentQuestion + 1}: Answer "${value}" -> Numeric value: ${numericValue}`);
 
     const newAnswers = { ...answers, [currentQuestion + 1]: numericValue };
     setAnswers(newAnswers);

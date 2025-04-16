@@ -1,3 +1,4 @@
+
 export interface AssessmentResult {
   score: number;
   level: string;
@@ -5,24 +6,23 @@ export interface AssessmentResult {
 }
 
 export const calculateDassScores = (answers: { [key: number]: number }) => {
-  // Depression calculation (q3, q5, q10, q13, q16, q17, q21)
-  const depression = ((answers[3] || 0) + (answers[5] || 0) + (answers[10] || 0) + 
-                     (answers[13] || 0) + (answers[16] || 0) + (answers[17] || 0) + 
-                     (answers[21] || 0)) * 2;
+  // Depression calculation (Q1-Q6)
+  const depression = (answers[1] || 0) + (answers[2] || 0) + (answers[3] || 0) + 
+                     (answers[4] || 0) + (answers[5] || 0) + (answers[6] || 0);
 
-  // Anxiety calculation (q2, q4, q7, q9, q15, q19, q20)
-  const anxiety = ((answers[2] || 0) + (answers[4] || 0) + (answers[7] || 0) + 
-                  (answers[9] || 0) + (answers[15] || 0) + (answers[19] || 0) + 
-                  (answers[20] || 0)) * 2;
+  // Anxiety calculation (Q7-Q12)
+  const anxiety = (answers[7] || 0) + (answers[8] || 0) + (answers[9] || 0) + 
+                  (answers[10] || 0) + (answers[11] || 0) + (answers[12] || 0);
 
-  // Stress calculation (q1, q6, q8, q11, q12, q14, q18)
-  const stress = ((answers[1] || 0) + (answers[6] || 0) + (answers[8] || 0) + 
-                 (answers[11] || 0) + (answers[12] || 0) + (answers[14] || 0) + 
-                 (answers[18] || 0)) * 2;
+  // Stress calculation (Q13-Q19)
+  const stress = (answers[13] || 0) + (answers[14] || 0) + (answers[15] || 0) + 
+                 (answers[16] || 0) + (answers[17] || 0) + (answers[18] || 0) +
+                 (answers[19] || 0);
 
-  // Life satisfaction calculation (q22-q26)
-  const lifeSatisfaction = (answers[22] || 0) + (answers[23] || 0) + (answers[24] || 0) + 
-                          (answers[25] || 0) + (answers[26] || 0);
+  // Life satisfaction calculation (Q20-Q26)
+  const lifeSatisfaction = (answers[20] || 0) + (answers[21] || 0) + (answers[22] || 0) + 
+                           (answers[23] || 0) + (answers[24] || 0) + (answers[25] || 0) +
+                           (answers[26] || 0);
 
   const overallMood = (answers[27] || 0) + (answers[28] || 0);
 
@@ -32,103 +32,103 @@ export const calculateDassScores = (answers: { [key: number]: number }) => {
 export const determineLevel = (score: number, type: 'depression' | 'anxiety' | 'stress' | 'satisfaction'): AssessmentResult => {
   switch (type) {
     case 'depression':
-      if (score < 10) return {
+      if (score <= 9) return {
         score,
         level: "Normal",
         message: "You don't have depressive symptoms"
       };
-      if (score < 14) return {
+      if (score <= 13) return {
         score,
         level: "Mild",
         message: "You have mild depressive symptoms"
       };
-      if (score < 21) return {
+      if (score <= 20) return {
         score,
         level: "Moderate",
         message: "You have moderate depressive symptoms"
       };
-      if (score < 28) return {
+      if (score <= 27) return {
         score,
         level: "Severe",
         message: "You have severe depressive symptoms"
       };
       return {
         score,
-        level: "Very Severe",
-        message: "You have very severe depressive symptoms"
+        level: "Extremely Severe",
+        message: "You have extremely severe depressive symptoms"
       };
     
     case 'anxiety':
-      if (score < 11) return {
+      if (score <= 7) return {
         score,
         level: "Normal",
         message: "No anxiety symptoms"
       };
-      if (score < 14) return {
+      if (score <= 9) return {
         score,
         level: "Mild",
         message: "Mild anxiety symptoms"
       };
-      if (score < 21) return {
+      if (score <= 14) return {
         score,
         level: "Moderate",
         message: "Moderate anxiety symptoms"
       };
-      if (score < 28) return {
+      if (score <= 19) return {
         score,
         level: "Severe",
         message: "Severe anxiety symptoms"
       };
       return {
         score,
-        level: "Very Severe",
-        message: "Very severe anxiety symptoms"
+        level: "Extremely Severe",
+        message: "Extremely severe anxiety symptoms"
       };
     
     case 'stress':
-      if (score < 17) return {
+      if (score <= 10) return {
         score,
         level: "Normal",
         message: "No stress issues"
       };
-      if (score < 21) return {
+      if (score <= 18) return {
         score,
         level: "Mild",
         message: "Mild stress levels"
       };
-      if (score < 29) return {
+      if (score <= 25) return {
         score,
         level: "Moderate",
         message: "Moderate stress levels"
       };
-      if (score < 38) return {
+      if (score <= 33) return {
         score,
         level: "Severe",
         message: "Severe stress levels"
       };
       return {
         score,
-        level: "Very Severe",
-        message: "Very severe stress levels"
+        level: "Extremely Severe",
+        message: "Extremely severe stress levels"
       };
     
     case 'satisfaction':
-      if (score < 14) return {
-        score,
-        level: "Very Dissatisfied",
-        message: "feel very dissatisfied"
-      };
-      if (score < 20) return {
+      if (score <= 19) return {
         score,
         level: "Dissatisfied",
         message: "feel dissatisfied"
       };
-      if (score < 27) return {
+      if (score <= 25) return {
+        score,
+        level: "Slightly Dissatisfied",
+        message: "feel slightly dissatisfied"
+      };
+      if (score <= 30) return {
         score,
         level: "Neutral",
         message: "have neutral satisfaction levels"
       };
-      if (score < 33) return {
+      if (score <= 35) return {
         score,
         level: "Satisfied",
         message: "feel satisfied"
@@ -161,13 +161,13 @@ export type MoodResult = {
 };
 
 const getDassSeverity = (depressionLevel: AssessmentResult, anxietyLevel: AssessmentResult, stressLevel: AssessmentResult): string => {
-  const levels = ["Normal", "Mild", "Moderate", "Severe", "Very Severe"];
+  const levels = ["Normal", "Mild", "Moderate", "Severe", "Extremely Severe"];
   const severityMap: Record<string, number> = {
     "Normal": 0,
     "Mild": 1,
     "Moderate": 2,
     "Severe": 3,
-    "Very Severe": 4
+    "Extremely Severe": 4
   };
 
   const maxSeverity = Math.max(
@@ -187,7 +187,7 @@ export const determineMoodResult = (
   overallMood: number
 ): MoodResult => {
   const dassSeverity = getDassSeverity(depressionLevel, anxietyLevel, stressLevel);
-  const isLowSatisfaction = satisfactionLevel.level === "Very Dissatisfied" || satisfactionLevel.level === "Dissatisfied";
+  const isLowSatisfaction = satisfactionLevel.level === "Dissatisfied" || satisfactionLevel.level === "Slightly Dissatisfied";
 
   // Determining Mental Health Status based on DASS severity and life satisfaction
   let moodStatus = "";
@@ -195,10 +195,10 @@ export const determineMoodResult = (
   let iconType: 'frown' | 'meh' | 'smile' = 'meh';
   let iconColor = "text-yellow-500";
   
-  // Case 1: Severe/Very Severe DASS OR Moderate DASS with low satisfaction
+  // Case 1: Severe/Extremely Severe DASS OR Moderate DASS with low satisfaction
   if (
     dassSeverity === "Severe" || 
-    dassSeverity === "Very Severe" ||
+    dassSeverity === "Extremely Severe" ||
     (dassSeverity === "Moderate" && isLowSatisfaction)
   ) {
     moodStatus = "Psychological Disturbance";
