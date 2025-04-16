@@ -75,7 +75,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
     if (result.depressionResult && result.depressionResult.courseRecommendation) {
       recommendations.push(
         <p key="depression" className="text-xs text-gray-600">
-          <span className="font-medium">低落情緒: </span>
+          <span className="font-medium">Depression: </span>
           {result.depressionResult.courseRecommendation}
         </p>
       );
@@ -84,7 +84,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
     if (result.anxietyResult && result.anxietyResult.courseRecommendation) {
       recommendations.push(
         <p key="anxiety" className="text-xs text-gray-600">
-          <span className="font-medium">焦慮情緒: </span>
+          <span className="font-medium">Anxiety: </span>
           {result.anxietyResult.courseRecommendation}
         </p>
       );
@@ -93,7 +93,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
     if (result.stressResult && result.stressResult.courseRecommendation) {
       recommendations.push(
         <p key="stress" className="text-xs text-gray-600">
-          <span className="font-medium">受壓情況: </span>
+          <span className="font-medium">Stress: </span>
           {result.stressResult.courseRecommendation}
         </p>
       );
@@ -102,7 +102,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
     if (result.satisfactionResult && result.satisfactionResult.courseRecommendation) {
       recommendations.push(
         <p key="satisfaction" className="text-xs text-gray-600">
-          <span className="font-medium">生活滿意程度: </span>
+          <span className="font-medium">Life Satisfaction: </span>
           {result.satisfactionResult.courseRecommendation}
         </p>
       );
@@ -110,7 +110,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
     
     return recommendations.length > 0 ? (
       <div className="mt-4 border-t pt-3 space-y-1">
-        <p className="text-sm font-medium text-gray-700 text-center mb-2">推薦課程:</p>
+        <p className="text-sm font-medium text-gray-700 text-center mb-2">Recommended Courses:</p>
         {recommendations}
       </div>
     ) : null;
