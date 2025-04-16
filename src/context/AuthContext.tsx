@@ -45,9 +45,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
       if (error) throw error;
     } else {
-      // Fix: Cast the provider to the correct type for OAuth
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: provider as 'google' | 'github',
+        provider: provider,
+        options: {
+          redirectTo: window.location.origin,
+        }
       });
       if (error) throw error;
     }
@@ -57,6 +59,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: window.location.origin,
+      }
     });
     if (error) throw error;
   };
