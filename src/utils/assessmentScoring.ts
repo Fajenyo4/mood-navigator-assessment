@@ -59,13 +59,20 @@ export const determineLevel = (score: number, type: 'depression' | 'anxiety' | '
   }
 };
 
+export type MoodResult = {
+  mood: string;
+  redirectUrl: string;
+  iconType: 'frown' | 'meh' | 'smile';
+  iconColor: string;
+};
+
 export const determineMoodResult = (
   depressionLevel: string,
   anxietyLevel: string,
   stressLevel: string,
   satisfactionLevel: string,
   overallMood: number
-) => {
+): MoodResult => {
   if (
     depressionLevel === "Extremely Severe" || 
     anxietyLevel === "Extremely Severe" || 
@@ -74,7 +81,8 @@ export const determineMoodResult = (
     return {
       mood: "Severe Psychological Distress",
       redirectUrl: "https://www.micancapital.au/courses-en",
-      icon: <Frown className="w-12 h-12 text-red-500" />
+      iconType: "frown",
+      iconColor: "text-red-500"
     };
   } 
   
@@ -86,7 +94,8 @@ export const determineMoodResult = (
     return {
       mood: "Psychological Distress",
       redirectUrl: "https://www.micancapital.au/courses-en",
-      icon: <Frown className="w-12 h-12 text-orange-500" />
+      iconType: "frown",
+      iconColor: "text-orange-500"
     };
   } 
   
@@ -100,7 +109,8 @@ export const determineMoodResult = (
     return {
       mood: "Moderate Subhealth",
       redirectUrl: "https://www.micancapital.au/courses-en",
-      icon: <Meh className="w-12 h-12 text-yellow-500" />
+      iconType: "meh",
+      iconColor: "text-yellow-500"
     };
   } 
   
@@ -113,7 +123,8 @@ export const determineMoodResult = (
     return {
       mood: "Mild Subhealth",
       redirectUrl: "https://www.micancapital.au/courses-en",
-      icon: <Meh className="w-12 h-12 text-blue-500" />
+      iconType: "meh",
+      iconColor: "text-blue-500"
     };
   } 
   
@@ -121,13 +132,15 @@ export const determineMoodResult = (
     return {
       mood: "Low Mood",
       redirectUrl: "https://www.micancapital.au/courses-en",
-      icon: <Meh className="w-12 h-12 text-purple-500" />
+      iconType: "meh",
+      iconColor: "text-purple-500"
     };
   } 
   
   return {
     mood: "Healthy",
     redirectUrl: "https://www.micancapital.au/courses-en",
-    icon: <Smile className="w-12 h-12 text-green-500" />
+    iconType: "smile",
+    iconColor: "text-green-500"
   };
 };

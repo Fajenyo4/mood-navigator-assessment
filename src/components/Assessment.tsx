@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { questions } from '@/types/assessment';
 import QuestionDisplay from './assessment/QuestionDisplay';
 import ResultsDialog from './assessment/ResultsDialog';
-import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/assessmentScoring';
+import { calculateDassScores, determineLevel, determineMoodResult, MoodResult } from '@/utils/assessmentScoring';
 
 const Assessment = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -11,11 +11,12 @@ const Assessment = () => {
   const [progress, setProgress] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string>("");
-  const [result, setResult] = useState<{
-    mood: string;
-    redirectUrl: string;
-    icon: React.ReactNode;
-  }>({ mood: "", redirectUrl: "", icon: null });
+  const [result, setResult] = useState<MoodResult>({
+    mood: "",
+    redirectUrl: "",
+    iconType: "smile",
+    iconColor: ""
+  });
 
   const calculateScores = () => {
     const scores = calculateDassScores(answers);

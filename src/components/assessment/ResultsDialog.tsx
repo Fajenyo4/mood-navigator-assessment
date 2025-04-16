@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Smile, Meh, Frown } from 'lucide-react';
 
 interface ResultsDialogProps {
   open: boolean;
@@ -14,7 +15,8 @@ interface ResultsDialogProps {
   result: {
     mood: string;
     redirectUrl: string;
-    icon: React.ReactNode;
+    iconType: 'smile' | 'meh' | 'frown';
+    iconColor: string;
   };
   onManualRedirect: () => void;
 }
@@ -25,6 +27,21 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   result,
   onManualRedirect,
 }) => {
+  const renderIcon = () => {
+    const className = `w-12 h-12 ${result.iconColor}`;
+    
+    switch (result.iconType) {
+      case 'smile':
+        return <Smile className={className} />;
+      case 'meh':
+        return <Meh className={className} />;
+      case 'frown':
+        return <Frown className={className} />;
+      default:
+        return <Smile className={className} />;
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -32,7 +49,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
           <DialogTitle className="text-center">Assessment Results</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col items-center space-y-4 py-4">
-          {result.icon}
+          {renderIcon()}
           <p className="text-xl font-semibold text-center">{result.mood}</p>
           <p className="text-sm text-gray-500 text-center">
             Redirecting in 5 seconds...
