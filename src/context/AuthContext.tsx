@@ -1,6 +1,5 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Provider as SupabaseProvider } from '@supabase/supabase-js';
+import { User } from '@supabase/supabase-js';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -56,21 +55,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         });
         if (error) throw error;
       } else {
-        // Handle social login with proper typing
-        const socialProvider = provider as SupabaseProvider; // Cast to proper Supabase Provider type
-        
+        const socialProvider = provider as SupabaseProvider;
         const { error } = await supabase.auth.signInWithOAuth({
           provider: socialProvider,
           options: {
             redirectTo: `${window.location.origin}/`,
           }
         });
-        
         if (error) throw error;
       }
     } catch (error) {
       console.error('Sign in error:', error);
-      throw error; // Rethrow to handle in the UI layer
+      throw error;
     }
   };
 
@@ -80,13 +76,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`
+          emailRedirectTo: `${window.location.origin}/`,
+          skipConfirmation: true
         }
       });
       if (error) throw error;
     } catch (error) {
       console.error('Sign up error:', error);
-      throw error; // Rethrow to handle in the UI layer
+      throw error;
     }
   };
 
@@ -96,7 +93,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) throw error;
     } catch (error) {
       console.error('Sign out error:', error);
-      throw error; // Rethrow to handle in the UI layer
+      throw error;
     }
   };
 
