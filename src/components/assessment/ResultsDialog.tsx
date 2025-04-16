@@ -62,7 +62,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
             {renderMessage()}
           </div>
           <p className="text-sm text-gray-500 text-center">
-            Redirecting in 15 seconds...
+            Your results have been saved. Redirecting in 15 seconds...
           </p>
           <Button onClick={onManualRedirect} className="mt-4">
             Redirect Now

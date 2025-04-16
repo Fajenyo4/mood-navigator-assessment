@@ -1,14 +1,5 @@
 
-import { createClient } from '@supabase/supabase-js';
-
-// Use the direct Supabase URL and anon key values
-const supabaseUrl = 'https://rdlwkjcpbxwijipkcdep.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJkbHdramNwYnh3aWppcGtjZGVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTY5OTkyNDgsImV4cCI6MjAzMjU3NTI0OH0.lE4IbloA4aAxaF-zopFQfVOBZDMRY7U5ToDJGmL-14c';
-
-const supabase = createClient(
-  supabaseUrl,
-  supabaseAnonKey
-);
+import { supabase } from '@/integrations/supabase/client';
 
 export const saveAssessmentResult = async (
   userId: string,

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { questions } from '@/types/assessment';
 import QuestionDisplay from './assessment/QuestionDisplay';
@@ -8,6 +9,9 @@ import {
   determineMoodResult, 
   MoodResult 
 } from '@/utils/assessmentScoring';
+import { saveAssessmentResult } from '@/services/assessment';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
 
 const Assessment = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -22,8 +26,9 @@ const Assessment = () => {
     iconType: "smile",
     iconColor: ""
   });
+  const { user } = useAuth();
 
-  const calculateScores = () => {
+  const calculateScores = async () => {
     const scores = calculateDassScores(answers);
     
     const depressionLevel = determineLevel(scores.depression, 'depression');
@@ -41,6 +46,25 @@ const Assessment = () => {
 
     setResult(moodResult);
     setShowResults(true);
+    
+    // Save the assessment results to Supabase
+    if (user) {
+      try {
+        await saveAssessmentResult(
+          user.id,
+          user.email || '',
+          user.email || '',
+          answers,
+          moodResult.mood
+        );
+        console.log('Assessment results saved successfully');
+      } catch (error) {
+        console.error('Error saving assessment results:', error);
+        toast.error('Failed to save your assessment results');
+      }
+    } else {
+      console.warn('User not logged in, cannot save assessment results');
+    }
     
     setTimeout(() => {
       window.location.href = "https://www.micancapital.au/courses-en";
