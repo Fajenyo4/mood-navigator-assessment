@@ -45,8 +45,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
       if (error) throw error;
     } else {
+      // Fix: Explicitly type the provider to match Supabase's expected Provider type
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: provider,
+        provider: provider as 'google' | 'github',
         options: {
           redirectTo: window.location.origin,
         }
