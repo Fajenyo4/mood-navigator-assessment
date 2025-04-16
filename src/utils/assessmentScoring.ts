@@ -39,128 +39,128 @@ export const determineLevel = (score: number, type: 'depression' | 'anxiety' | '
       if (score < 10) return {
         score,
         level: "Normal",
-        message: "You are not depressed",
-        courseRecommendation: "Course: [Cantonese] Brain, Mind, Life"
+        message: "你沒有低落情緒",
+        courseRecommendation: "Course: [廣東話] 大腦、心理、人生"
       };
       if (score < 14) return {
         score,
         level: "Mild",
-        message: "You have mild depression",
-        courseRecommendation: "Course: [Cantonese] Emotional Depression"
+        message: "你有輕度的低落情緒",
+        courseRecommendation: "Course: [廣東話] 情緒低落"
       };
       if (score < 21) return {
         score,
         level: "Moderate",
-        message: "You have moderate depression",
-        courseRecommendation: "Course: [Cantonese] Emotional Depression"
+        message: "你有中度的低落情緒",
+        courseRecommendation: "Course: [廣東話] 情緒低落"
       };
       if (score < 28) return {
         score,
         level: "Severe",
-        message: "You have severe depression",
-        courseRecommendation: "Course: [Cantonese] Depression"
+        message: "你有嚴重的低落情緒",
+        courseRecommendation: "Course: [廣東話] 情緒低落"
       };
       return {
         score,
         level: "Very Severe",
-        message: "You have very severe depression",
-        courseRecommendation: "Course: [Cantonese] Moodiness"
+        message: "你有很嚴重的低落情緒",
+        courseRecommendation: "Course: [廣東話] 情緒低落"
       };
     
     case 'anxiety':
       if (score < 11) return {
         score,
         level: "Normal",
-        message: "No anxiety",
-        courseRecommendation: "Course: [Cantonese] Brain, Mind, Life"
+        message: "沒有焦慮情緒",
+        courseRecommendation: "Course: [廣東話] 大腦、心理、人生"
       };
       if (score < 14) return {
         score,
         level: "Mild",
-        message: "Have mild anxiety",
-        courseRecommendation: "Course: [Cantonese] Anxiety Panic"
+        message: "有輕度的焦慮情緒",
+        courseRecommendation: "Course: [廣東話] 焦慮恐慌"
       };
       if (score < 21) return {
         score,
         level: "Moderate",
-        message: "Have moderate anxiety",
-        courseRecommendation: "Course: [Cantonese] Anxiety Panic"
+        message: "有中度的焦慮情緒",
+        courseRecommendation: "Course: [廣東話] 焦慮恐慌"
       };
       if (score < 28) return {
         score,
         level: "Severe",
-        message: "Have severe anxiety",
-        courseRecommendation: "Course: [Cantonese] Anxiety Panic"
+        message: "有嚴重的焦慮情緒",
+        courseRecommendation: "Course: [廣東話] 焦慮恐慌"
       };
       return {
         score,
         level: "Very Severe",
-        message: "Have very severe anxiety",
-        courseRecommendation: "Course: [Cantonese] Anxiety Panic"
+        message: "有很嚴重的焦慮情緒",
+        courseRecommendation: "Course: [廣東話] 焦慮恐慌"
       };
     
     case 'stress':
       if (score < 17) return {
         score,
         level: "Normal",
-        message: "No stress problem",
-        courseRecommendation: "Course: [Cantonese] Brain, Mind, Life"
+        message: "並沒有壓力問題",
+        courseRecommendation: "Course: [廣東話] 大腦、心理、人生"
       };
       if (score < 21) return {
         score,
         level: "Mild",
-        message: "There is a mild stress condition",
-        courseRecommendation: "Course: 'Stress'! Increase your stress tolerance!"
+        message: "並有輕度的受壓情況",
+        courseRecommendation: "Course: 「『壓力』！增強抗壓能力！」"
       };
       if (score < 29) return {
         score,
         level: "Moderate",
-        message: "With moderate stress",
-        courseRecommendation: "Course: 'Stress'! Enhance stress resistance!"
+        message: "並有中度的受壓情況",
+        courseRecommendation: "Course: 「『壓力』！增強抗壓能力！」"
       };
       if (score < 38) return {
         score,
         level: "Severe",
-        message: "There is severe stress",
-        courseRecommendation: "Course: 'Stress'! Increase stress tolerance!"
+        message: "並有嚴重的受壓情況",
+        courseRecommendation: "Course: 「『壓力』！增強抗壓能力！」"
       };
       return {
         score,
         level: "Very Severe",
-        message: "There is a very serious stress condition",
-        courseRecommendation: "Course: 'Stress'! Increase your stress tolerance!"
+        message: "並有很嚴重的受壓情況",
+        courseRecommendation: "Course: 「『壓力』！增強抗壓能力！」"
       };
     
     case 'satisfaction':
       if (score < 14) return {
         score,
         level: "Very Dissatisfied",
-        message: "Very dissatisfied with life",
-        courseRecommendation: "Course: [Cantonese] Self-worth"
+        message: "感到非常不滿",
+        courseRecommendation: "Course: [廣東話] 自我价值"
       };
       if (score < 20) return {
         score,
         level: "Dissatisfied",
-        message: "Dissatisfied with life",
-        courseRecommendation: "Course: [Cantonese] Self-worth"
+        message: "感到不滿",
+        courseRecommendation: "Course: [廣東話] 自我价值"
       };
       if (score < 27) return {
         score,
         level: "Neutral",
-        message: "Neutral level of satisfaction",
-        courseRecommendation: "Course: [Cantonese] Self-worth"
+        message: "的滿意程度為中性",
+        courseRecommendation: "Course: [廣東話] 自我价值"
       };
       if (score < 33) return {
         score,
         level: "Satisfied",
-        message: "Satisfied with life",
-        courseRecommendation: "Course: [Cantonese] Brain, Mind, Life"
+        message: "感到滿意",
+        courseRecommendation: "Course: [廣東話] 大腦、心理、人生"
       };
       return {
         score,
         level: "Very Satisfied",
-        message: "Feel very satisfied with life",
-        courseRecommendation: "Course: [Cantonese] Brain, Mind, Life"
+        message: "感到非常滿意",
+        courseRecommendation: "Course: [廣東話] 大腦、心理、人生"
       };
     
     default:
@@ -168,7 +168,7 @@ export const determineLevel = (score: number, type: 'depression' | 'anxiety' | '
         score,
         level: "Normal",
         message: "Normal levels",
-        courseRecommendation: "Course: [Cantonese] Brain, Mind, Life"
+        courseRecommendation: "Course: [廣東話] 大腦、心理、人生"
       };
   }
 };
@@ -179,6 +179,10 @@ export type MoodResult = {
   redirectUrl: string;
   iconType: 'frown' | 'meh' | 'smile';
   iconColor: string;
+  depressionResult?: AssessmentResult;
+  anxietyResult?: AssessmentResult;
+  stressResult?: AssessmentResult;
+  satisfactionResult?: AssessmentResult;
 };
 
 const getDassSeverity = (depressionLevel: AssessmentResult, anxietyLevel: AssessmentResult, stressLevel: AssessmentResult): string => {
@@ -205,12 +209,12 @@ export const getAdditionalCourses = (answers: { [key: number]: number }): string
   
   // Parent course recommendation
   if (answers[27] === 1) {
-    additionalCourses.push("Course: [Cantonese] The Way of Parenthood");
+    additionalCourses.push("Course: [廣東話] 父母之道");
   }
   
   // Helper course recommendation
   if (answers[28] === 1) {
-    additionalCourses.push("Course: [Cantonese] Brain, Psychology, Life, Self-worth, Anxiety, Panic, Depression");
+    additionalCourses.push("Course: [廣東話] 大腦、心理、人生、自我价值、焦慮恐慌、情緒低落");
   }
   
   return additionalCourses;
@@ -226,7 +230,11 @@ export const determineMoodResult = (
   const dassSeverity = getDassSeverity(depressionLevel, anxietyLevel, stressLevel);
   const isLowSatisfaction = satisfactionLevel.level === "Very Dissatisfied" || satisfactionLevel.level === "Dissatisfied";
 
-  // Step 5: Determining Mental Health Status based on DASS severity and life satisfaction
+  // Determining Mental Health Status based on DASS severity and life satisfaction
+  let moodStatus = "";
+  let moodMessage = "你開心嗎？\n你的心理評估顯示，";
+  let iconType: 'frown' | 'meh' | 'smile' = 'meh';
+  let iconColor = "text-yellow-500";
   
   // Case 1: Severe/Very Severe DASS OR Moderate DASS with low satisfaction
   if (
@@ -234,77 +242,64 @@ export const determineMoodResult = (
     dassSeverity === "Very Severe" ||
     (dassSeverity === "Moderate" && isLowSatisfaction)
   ) {
-    return {
-      mood: "Mental Disturbance",
-      message: "Your psychological assessment shows that you are experiencing significant mental distress.",
-      redirectUrl: "https://www.micancapital.au/courses-en",
-      iconType: "frown",
-      iconColor: "text-red-500"
-    };
+    moodStatus = "心理困擾";
+    moodMessage += "你是一個非常不開心的人。你的精神心理健康屬於\"心理困擾\"狀態。";
+    iconType = "frown";
+    iconColor = "text-red-500";
   }
-
   // Case 2: Moderate DASS OR Mild DASS with low satisfaction
-  if (
+  else if (
     dassSeverity === "Moderate" ||
     (dassSeverity === "Mild" && isLowSatisfaction)
   ) {
-    return {
-      mood: "Lower-Middle Sub-Health Status",
-      message: "Your mental health shows signs of being in a lower sub-healthy state.",
-      redirectUrl: "https://www.micancapital.au/courses-en",
-      iconType: "meh",
-      iconColor: "text-yellow-500"
-    };
+    moodStatus = "亞健康狀態中下";
+    moodMessage += "你是一個很不開心的人。你的精神心理健康屬於\"亞健康狀態中下\"。";
+    iconType = "meh";
+    iconColor = "text-yellow-500";
   }
-
   // Case 3: Mild DASS OR Normal DASS with low satisfaction
-  if (
+  else if (
     dassSeverity === "Mild" ||
     (dassSeverity === "Normal" && isLowSatisfaction)
   ) {
-    return {
-      mood: "Sub-Health Status Medium",
-      message: "Your mental health indicates a moderate sub-health condition.",
-      redirectUrl: "https://www.micancapital.au/courses-en",
-      iconType: "meh",
-      iconColor: "text-blue-500"
-    };
+    moodStatus = "亞健康狀態中等";
+    moodMessage += "你是一個中度不開心的人。你的精神心理健康屬於\"亞健康狀態中等\"。";
+    iconType = "meh";
+    iconColor = "text-blue-500";
   }
-
   // Case 4: Normal DASS with neutral satisfaction
-  if (
+  else if (
     dassSeverity === "Normal" && 
     satisfactionLevel.level === "Neutral"
   ) {
-    return {
-      mood: "Upper Asian Health State",
-      message: "Your mental health shows signs of being in an upper sub-healthy state.",
-      redirectUrl: "https://www.micancapital.au/courses-en",
-      iconType: "meh",
-      iconColor: "text-purple-500"
-    };
+    moodStatus = "亞健康狀態中上";
+    moodMessage += "你是一個輕微不開心的人。你的精神心理健康屬於\"亞健康狀態中上\"。";
+    iconType = "meh";
+    iconColor = "text-purple-500";
   }
-
   // Case 5: Normal DASS with high satisfaction
-  if (
+  else if (
     dassSeverity === "Normal" && 
     (satisfactionLevel.level === "Satisfied" || satisfactionLevel.level === "Very Satisfied")
   ) {
-    return {
-      mood: "Healthy",
-      message: "Your mental health appears to be in a healthy state.",
-      redirectUrl: "https://www.micancapital.au/courses-en",
-      iconType: "smile",
-      iconColor: "text-green-500"
-    };
+    moodStatus = "健康狀態";
+    moodMessage += "你是一個開心的人，你滿意現在的生活。你的精神心理健康屬於\"健康狀態\"。";
+    iconType = "smile";
+    iconColor = "text-green-500";
   }
-
-  // Default fallback
+  
+  // Add detailed assessment results to the message
+  moodMessage += `\n你對整體生活${satisfactionLevel.message}。${depressionLevel.message}。${anxietyLevel.message}。${stressLevel.message}。`;
+  
   return {
-    mood: "Sub-Health Status Medium",
-    message: "Your mental health status requires attention.",
+    mood: moodStatus,
+    message: moodMessage,
     redirectUrl: "https://www.micancapital.au/courses-en",
-    iconType: "meh",
-    iconColor: "text-blue-500"
+    iconType,
+    iconColor,
+    depressionResult: depressionLevel,
+    anxietyResult: anxietyLevel,
+    stressResult: stressLevel,
+    satisfactionResult: satisfactionLevel
   };
 };
