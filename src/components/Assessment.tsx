@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -192,6 +193,9 @@ const Assessment = () => {
           <RadioGroup
             onValueChange={handleAnswer}
             className="space-y-4"
+            // This is the key fix: adding a unique name for each question
+            name={`question-${currentQuestion}`}
+            value=""
           >
             {questions[currentQuestion].options.map((option, index) => (
               <div key={index} className="flex items-center space-x-3">
