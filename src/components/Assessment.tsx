@@ -13,6 +13,7 @@ const Assessment = () => {
   const [answers, setAnswers] = useState<{ [key: number]: number }>({});
   const [progress, setProgress] = useState(0);
   const [showResults, setShowResults] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<string>("");
   const [result, setResult] = useState<{
     mood: string;
     redirectUrl: string;
@@ -103,45 +104,63 @@ const Assessment = () => {
       satisfactionLevel = "Extremely Satisfied";
     }
 
+    // Log the scores and levels to help debug the mood calculation
+    console.log("Depression:", depression, "Level:", depressionLevel);
+    console.log("Anxiety:", anxiety, "Level:", anxietyLevel);
+    console.log("Stress:", stress, "Level:", stressLevel);
+    console.log("Life Satisfaction:", lifeSatisfaction, "Level:", satisfactionLevel);
+    console.log("Overall Mood:", overallMood);
+
     let mood = "";
     let redirectUrl = "";
     let icon = null;
 
-    if (depressionLevel === "Extremely Severe" || anxietyLevel === "Extremely Severe" || stressLevel === "Extremely Severe") {
+    // Corrected mood determination logic
+    if (
+      depressionLevel === "Extremely Severe" || 
+      anxietyLevel === "Extremely Severe" || 
+      stressLevel === "Extremely Severe"
+    ) {
       mood = "Severe Psychological Distress";
       redirectUrl = "https://www.micancapital.au/courses-en";
       icon = <Frown className="w-12 h-12 text-red-500" />;
-    } else if (
-      ["Severe", "Extremely Severe"].includes(depressionLevel) ||
-      ["Severe", "Extremely Severe"].includes(anxietyLevel) ||
-      ["Severe", "Extremely Severe"].includes(stressLevel)
+    } 
+    else if (
+      depressionLevel === "Severe" || 
+      anxietyLevel === "Severe" || 
+      stressLevel === "Severe"
     ) {
       mood = "Psychological Distress";
       redirectUrl = "https://www.micancapital.au/courses-en";
       icon = <Frown className="w-12 h-12 text-orange-500" />;
-    } else if (
-      depressionLevel === "Moderate" ||
-      anxietyLevel === "Moderate" ||
-      stressLevel === "Moderate" ||
-      ["Dissatisfied", "Extremely Dissatisfied"].includes(satisfactionLevel)
+    } 
+    else if (
+      depressionLevel === "Moderate" || 
+      anxietyLevel === "Moderate" || 
+      stressLevel === "Moderate" || 
+      satisfactionLevel === "Dissatisfied" || 
+      satisfactionLevel === "Extremely Dissatisfied"
     ) {
       mood = "Moderate Subhealth";
       redirectUrl = "https://www.micancapital.au/courses-en";
       icon = <Meh className="w-12 h-12 text-yellow-500" />;
-    } else if (
-      depressionLevel === "Mild" ||
-      anxietyLevel === "Mild" ||
-      stressLevel === "Mild" ||
+    } 
+    else if (
+      depressionLevel === "Mild" || 
+      anxietyLevel === "Mild" || 
+      stressLevel === "Mild" || 
       satisfactionLevel === "Slightly Dissatisfied"
     ) {
       mood = "Mild Subhealth";
       redirectUrl = "https://www.micancapital.au/courses-en";
       icon = <Meh className="w-12 h-12 text-blue-500" />;
-    } else if (overallMood <= 2) {
+    } 
+    else if (overallMood <= 2) {
       mood = "Low Mood";
       redirectUrl = "https://www.micancapital.au/courses-en";
       icon = <Meh className="w-12 h-12 text-purple-500" />;
-    } else {
+    } 
+    else {
       mood = "Healthy";
       redirectUrl = "https://www.micancapital.au/courses-en";
       icon = <Smile className="w-12 h-12 text-green-500" />;
@@ -156,6 +175,8 @@ const Assessment = () => {
   };
 
   const handleAnswer = (value: string) => {
+    setSelectedOption(value); // Store the selected option
+    
     const numericValue = questions[currentQuestion].type === 'life-satisfaction' 
       ? questions[currentQuestion].options.indexOf(value) 
       : questions[currentQuestion].type === 'demographic'
@@ -166,8 +187,11 @@ const Assessment = () => {
     setAnswers(newAnswers);
     
     if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-      setProgress(((currentQuestion + 1) / questions.length) * 100);
+      setTimeout(() => {
+        setCurrentQuestion(currentQuestion + 1);
+        setProgress(((currentQuestion + 1) / questions.length) * 100);
+        setSelectedOption(""); // Reset selected option for next question
+      }, 300); // Short delay to show the selection before moving to next question
     } else {
       calculateScores();
     }
@@ -193,9 +217,8 @@ const Assessment = () => {
           <RadioGroup
             onValueChange={handleAnswer}
             className="space-y-4"
-            // This is the key fix: adding a unique name for each question
             name={`question-${currentQuestion}`}
-            value=""
+            value={selectedOption} // Use the selectedOption state to show selected value
           >
             {questions[currentQuestion].options.map((option, index) => (
               <div key={index} className="flex items-center space-x-3">
