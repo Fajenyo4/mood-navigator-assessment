@@ -87,7 +87,14 @@ const Assessment = () => {
             user.user_metadata?.name || user.email || '',
             user.email || '',
             resultsData, 
-            moodResult.mood
+            moodResult.mood,
+            'en',  // Adding language code parameter
+            {       // Adding scores object parameter
+              depression: scores.depression,
+              anxiety: scores.anxiety,
+              stress: scores.stress,
+              lifeSatisfaction: scores.lifeSatisfaction
+            }
           );
           console.log('Assessment results saved successfully');
           toast.success('Assessment results saved successfully');
