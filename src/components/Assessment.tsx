@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { questions } from '@/types/assessment';
 import QuestionDisplay from './assessment/QuestionDisplay';
@@ -31,7 +30,6 @@ const Assessment = () => {
     iconColor: ""
   });
   const [selectedLanguage, setSelectedLanguage] = useState<string>("en");
-  const { user } = useAuth();
 
   const calculateScores = async () => {
     try {
@@ -65,7 +63,6 @@ const Assessment = () => {
       setResult(moodResult);
       setShowResults(true);
       
-      // Save the assessment results to Supabase with both numeric and text answers
       if (user) {
         try {
           const resultsData = { 
@@ -91,8 +88,8 @@ const Assessment = () => {
             user.email || '',
             resultsData, 
             moodResult.mood,
-            selectedLanguage,  // Use the selected language
-            {       // Adding scores object parameter
+            selectedLanguage,
+            {
               depression: scores.depression,
               anxiety: scores.anxiety,
               stress: scores.stress,
@@ -125,16 +122,13 @@ const Assessment = () => {
     let numericValue: number;
     
     if (currentQuestion < 26) {
-      // For questions 1-26 (converted to 1-7 scale)
       numericValue = questions[currentQuestion].options.indexOf(value) + 1;
     } else {
-      // For demographic questions (27-28)
       numericValue = value === 'Yes' ? 1 : 0;
     }
 
     console.log(`Question ${currentQuestion + 1}: Answer "${value}" -> Numeric value: ${numericValue}`);
 
-    // Store both numeric value and text answer
     const newAnswers = { ...answers, [currentQuestion + 1]: numericValue };
     const newTextAnswers = { ...textAnswers, [currentQuestion + 1]: value };
     
@@ -156,7 +150,6 @@ const Assessment = () => {
     window.location.href = result.redirectUrl;
   };
   
-  // Get language label from code for display
   const getLanguageLabel = (code: string): string => {
     const language = AVAILABLE_LANGUAGES.find(lang => lang.code === code);
     return language ? language.label : code.toUpperCase();

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { getAssessmentResults, AssessmentRecord } from '@/services/assessment';
 import { Button } from "@/components/ui/button";
@@ -9,15 +8,10 @@ import { toast } from 'sonner';
 import { Loader2, Plus } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// Define available languages with their codes and labels
-// This can be easily extended in the future by adding more entries
 export const AVAILABLE_LANGUAGES = [
   { code: 'en', label: 'English' },
-  { code: 'zh', label: 'Chinese' },
-  { code: 'es', label: 'Spanish' },
-  // Add more languages as needed in the future
-  // Example: { code: 'fr', label: 'French' },
-  // Example: { code: 'de', label: 'German' },
+  { code: 'zh-CN', label: 'Simplified Chinese' },
+  { code: 'zh-TW', label: 'Traditional Chinese' },
 ];
 
 const AssessmentHistory: React.FC = () => {
@@ -132,7 +126,6 @@ const AssessmentHistory: React.FC = () => {
     }
   };
 
-  // Get language label from code
   const getLanguageLabel = (code: string): string => {
     const language = AVAILABLE_LANGUAGES.find(lang => lang.code === code);
     return language ? language.label : code.toUpperCase();
