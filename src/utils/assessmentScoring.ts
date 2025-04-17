@@ -1,3 +1,4 @@
+
 import { AssessmentResult, AssessmentType, DassScores, SeverityLevel, AssessmentLevels, MoodResult } from './scoring/types';
 
 const SEVERITY_WEIGHTS: Record<SeverityLevel, number> = {
@@ -129,7 +130,7 @@ export const determineMoodResult = (
   return {
     mood: moodStatus,
     message: fullMessage,
-    redirectUrl: "https://www.micancapital.au/courses-en",
+    redirectUrl: "https://www.micancapital.com.au/courses-en", // Updated with correct domain
     iconType,
     iconColor,
     depressionResult: depressionLevel,
