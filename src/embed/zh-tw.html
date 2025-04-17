@@ -7,11 +7,11 @@
     window.addEventListener('message', function(event) {
       if (event.data.type === 'AUTH_STATUS') {
         if (!event.data.isAuthenticated) {
-          document.getElementById('assessment').src = 'https://thvtgvvwksbxywhdnwcv.supabase.co/check-auth';
+          document.getElementById('assessment').src = '/check-auth';
         }
       }
       if (event.data.type === 'AUTH_SUCCESS') {
-        document.getElementById('assessment').src = 'https://www.mican.life/mood-assessment-zh-tw-clone';
+        document.getElementById('assessment').src = '/zh-tw';
       }
     });
   </script>
@@ -19,7 +19,7 @@
 <body style="margin:0;padding:0;overflow:hidden;">
   <iframe 
     id="assessment"
-    src="https://thvtgvvwksbxywhdnwcv.supabase.co/check-auth"
+    src="/check-auth"
     width="100%" 
     height="800"
     frameborder="0"
