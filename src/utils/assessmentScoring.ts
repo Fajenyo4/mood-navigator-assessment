@@ -1,4 +1,4 @@
-import { AssessmentResult, AssessmentType, DassScores, SeverityLevel, AssessmentLevels } from './scoring/types';
+import { AssessmentResult, AssessmentType, DassScores, SeverityLevel, AssessmentLevels, MoodResult } from './scoring/types';
 
 const SEVERITY_WEIGHTS: Record<SeverityLevel, number> = {
   "Normal": 0,
@@ -152,3 +152,5 @@ const getDassSeverity = (levels: AssessmentLevels): SeverityLevel => {
   
   return Object.entries(SEVERITY_WEIGHTS).find(([_, weight]) => weight === maxSeverity)?.[0] as SeverityLevel || "Normal";
 };
+
+export { MoodResult };

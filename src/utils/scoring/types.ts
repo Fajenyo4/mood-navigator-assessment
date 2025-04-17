@@ -24,3 +24,19 @@ export interface AssessmentLevels {
   stressLevel: AssessmentResult;
   satisfactionLevel: AssessmentResult;
 }
+
+// Add the MoodResult type here
+export interface MoodResult {
+  mood: string;
+  message: string;
+  redirectUrl: string;
+  iconType: 'frown' | 'meh' | 'smile';
+  iconColor: string;
+  depressionResult: AssessmentResult;
+  anxietyResult: AssessmentResult;
+  stressResult: AssessmentResult;
+  satisfactionResult: AssessmentResult;
+  isParent: number;
+  needsHelp: number;
+}
+
