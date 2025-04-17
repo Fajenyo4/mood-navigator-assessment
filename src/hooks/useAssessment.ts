@@ -1,6 +1,5 @@
 
 import { useState } from 'react';
-import { Question } from '@/types/assessment';
 import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/assessmentScoring';
 import { saveAssessmentResult } from '@/services/assessment';
 import { toast } from 'sonner';
@@ -113,7 +112,7 @@ export const useAssessment = ({
 
   return {
     currentQuestion,
-    answers,
+    answers, // Make sure to expose answers
     showResults,
     selectedOption,
     isSubmitting,

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -10,39 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Smile, Meh, Frown, ExternalLink, History } from 'lucide-react';
 import AssessmentChart from './AssessmentChart';
 import { Link } from 'react-router-dom';
+import { MoodResult } from '@/utils/assessmentScoring';
 
 interface ResultsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  result: {
-    mood: string;
-    message: string;
-    redirectUrl: string;
-    iconType: 'smile' | 'meh' | 'frown';
-    iconColor: string;
-    depressionResult?: {
-      score: number;
-      level: string;
-      message: string;
-    };
-    anxietyResult?: {
-      score: number;
-      level: string;
-      message: string;
-    };
-    stressResult?: {
-      score: number;
-      level: string;
-      message: string;
-    };
-    satisfactionResult?: {
-      score: number;
-      level: string;
-      message: string;
-    };
-    isParent?: number;
-    needsHelp?: number;
-  };
+  result: MoodResult | null;
   onManualRedirect: () => void;
 }
 
@@ -52,7 +25,26 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   result,
   onManualRedirect,
 }) => {
+  useEffect(() => {
+    let redirectTimeout: NodeJS.Timeout;
+    
+    if (open && result) {
+      // Auto-redirect after 10 seconds
+      redirectTimeout = setTimeout(() => {
+        onManualRedirect();
+      }, 10000);
+    }
+    
+    return () => {
+      if (redirectTimeout) {
+        clearTimeout(redirectTimeout);
+      }
+    };
+  }, [open, result, onManualRedirect]);
+
   const renderIcon = () => {
+    if (!result) return null;
+    
     const className = `w-12 h-12 ${result.iconColor}`;
     
     switch (result.iconType) {
@@ -68,13 +60,16 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   };
 
   const renderMessage = () => {
+    if (!result) return null;
+    
     return result.message.split('\n').map((line, index) => (
       <p key={index} className="text-sm text-gray-700 mb-2">{line}</p>
     ));
   };
 
   // Check if all assessment results are available
-  const hasAssessmentData = result.depressionResult && 
+  const hasAssessmentData = result && 
+                           result.depressionResult && 
                            result.anxietyResult && 
                            result.stressResult && 
                            result.satisfactionResult;
@@ -105,44 +100,50 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="text-center text-xl font-bold">Assessment Results</DialogTitle>
         </DialogHeader>
-        <div className="flex flex-col items-center space-y-4 py-4">
-          <div className="mb-2">{renderIcon()}</div>
-          <div className="space-y-4 text-left w-full">
-            {renderMessage()}
-          </div>
-
-          {/* Results Chart */}
-          {hasAssessmentData && chartData && (
-            <div className="w-full mt-6">
-              <h3 className="text-center text-base font-medium mb-2">Your Assessment Scores</h3>
-              <AssessmentChart data={chartData} height={250} />
+        {result ? (
+          <div className="flex flex-col items-center space-y-4 py-4">
+            <div className="mb-2">{renderIcon()}</div>
+            <div className="space-y-4 text-left w-full">
+              {renderMessage()}
             </div>
-          )}
 
-          <div className="text-sm text-gray-500 text-center mt-4">
-            <p>Your results have been saved. Redirecting to courses in 10 seconds...</p>
-          </div>
-          
-          <div className="flex flex-col gap-3 w-full">
-            <Button 
-              onClick={onManualRedirect} 
-              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700"
-            >
-              <ExternalLink className="w-4 h-4" />
-              <span>Go to Mican Capital Courses</span>
-            </Button>
+            {/* Results Chart */}
+            {hasAssessmentData && chartData && (
+              <div className="w-full mt-6">
+                <h3 className="text-center text-base font-medium mb-2">Your Assessment Scores</h3>
+                <AssessmentChart data={chartData} height={250} />
+              </div>
+            )}
+
+            <div className="text-sm text-gray-500 text-center mt-4">
+              <p>Your results have been saved. Redirecting to courses in 10 seconds...</p>
+            </div>
             
-            <Link to="/history" className="w-full">
+            <div className="flex flex-col gap-3 w-full">
               <Button 
-                variant="outline" 
-                className="w-full flex items-center justify-center gap-2"
+                onClick={onManualRedirect} 
+                className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700"
               >
-                <History className="w-4 h-4" />
-                <span>View Assessment History</span>
+                <ExternalLink className="w-4 h-4" />
+                <span>Go to Mican Capital Courses</span>
               </Button>
-            </Link>
+              
+              <Link to="/history" className="w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full flex items-center justify-center gap-2"
+                >
+                  <History className="w-4 h-4" />
+                  <span>View Assessment History</span>
+                </Button>
+              </Link>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="p-6 text-center">
+            <p>Loading results...</p>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
