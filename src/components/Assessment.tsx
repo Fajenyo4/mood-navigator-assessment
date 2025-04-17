@@ -30,6 +30,7 @@ const Assessment = () => {
     iconColor: ""
   });
   const [selectedLanguage, setSelectedLanguage] = useState<string>("en");
+  const { user } = useAuth();
 
   const calculateScores = async () => {
     try {
