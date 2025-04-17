@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Json } from '@/integrations/supabase/types';
@@ -8,7 +7,14 @@ export const saveAssessmentResult = async (
   name: string,
   email: string,
   answers: Record<string, any>,
-  finalMood: string
+  finalMood: string,
+  languageCode: string = 'en',
+  scores: {
+    depression: number;
+    anxiety: number;
+    stress: number;
+    lifeSatisfaction: number;
+  }
 ) => {
   const { error } = await supabase
     .from('assessment_results')
@@ -18,7 +24,13 @@ export const saveAssessmentResult = async (
         name,
         email,
         answers,
-        final_mood: finalMood
+        final_mood: finalMood,
+        language_code: languageCode,
+        depression_score: scores.depression,
+        anxiety_score: scores.anxiety,
+        stress_score: scores.stress,
+        life_satisfaction_score: scores.lifeSatisfaction,
+        mental_status: determineMentalStatus(scores)
       }
     ]);
   
@@ -54,7 +66,28 @@ export interface AssessmentRecord {
   email?: string | null;
   name?: string | null;
   user_id: string;
+  language_code: string;
+  depression_score: number | null;
+  anxiety_score: number | null;
+  stress_score: number | null;
+  life_satisfaction_score: number | null;
+  mental_status: string | null;
 }
+
+const determineMentalStatus = (scores: {
+  depression: number;
+  anxiety: number;
+  stress: number;
+  lifeSatisfaction: number;
+}): string => {
+  // Implement mental status determination logic based on scores
+  // This is a simplified example - adjust according to your needs
+  const avgScore = (scores.depression + scores.anxiety + scores.stress) / 3;
+  if (avgScore < 10) return 'Healthy';
+  if (avgScore < 20) return 'Mild Concern';
+  if (avgScore < 30) return 'Moderate Concern';
+  return 'Severe Concern';
+};
 
 // Helper function to safely parse JSON answers field
 const parseAnswers = (jsonData: Json): AssessmentRecord['answers'] => {
@@ -119,15 +152,25 @@ const parseAnswers = (jsonData: Json): AssessmentRecord['answers'] => {
   }
 };
 
-export const getAssessmentResults = async (userId: string): Promise<AssessmentRecord[]> => {
+export const getAssessmentResults = async (
+  userId: string,
+  languageCode?: string
+): Promise<AssessmentRecord[]> => {
   try {
     console.log('Fetching assessment results for userId:', userId);
     
-    const { data, error } = await supabase
+    let query = supabase
       .from('assessment_results')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
+
+    // Filter by language if specified
+    if (languageCode) {
+      query = query.eq('language_code', languageCode);
+    }
+    
+    const { data, error } = await query;
     
     if (error) {
       console.error('Error fetching assessment results:', error);
@@ -144,7 +187,13 @@ export const getAssessmentResults = async (userId: string): Promise<AssessmentRe
       final_mood: item.final_mood,
       email: item.email,
       name: item.name,
-      user_id: item.user_id
+      user_id: item.user_id,
+      language_code: item.language_code || 'en',
+      depression_score: item.depression_score,
+      anxiety_score: item.anxiety_score,
+      stress_score: item.stress_score,
+      life_satisfaction_score: item.life_satisfaction_score,
+      mental_status: item.mental_status
     }));
     
     return typedResults;

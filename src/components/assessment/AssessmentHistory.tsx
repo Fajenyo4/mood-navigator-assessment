@@ -1,16 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { getAssessmentResults, AssessmentRecord } from '@/services/assessment';
 import { Button } from "@/components/ui/button";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle 
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ResultsDialog from './ResultsDialog';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const AssessmentHistory: React.FC = () => {
   const [assessments, setAssessments] = useState<AssessmentRecord[]>([]);
@@ -18,6 +14,7 @@ const AssessmentHistory: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedAssessment, setSelectedAssessment] = useState<AssessmentRecord | null>(null);
   const [showResults, setShowResults] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
   const { user } = useAuth();
 
   useEffect(() => {
@@ -29,7 +26,7 @@ const AssessmentHistory: React.FC = () => {
       }
 
       try {
-        const results = await getAssessmentResults(user.id);
+        const results = await getAssessmentResults(user.id, selectedLanguage);
         setAssessments(results);
         setLoading(false);
       } catch (err) {
@@ -41,7 +38,7 @@ const AssessmentHistory: React.FC = () => {
     };
 
     fetchAssessments();
-  }, [user]);
+  }, [user, selectedLanguage]);
 
   const handleViewResults = (assessment: AssessmentRecord) => {
     setSelectedAssessment(assessment);
@@ -125,7 +122,19 @@ const AssessmentHistory: React.FC = () => {
 
   return (
     <div className="w-full max-w-4xl mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-6 text-center">Your Assessment History</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Your Assessment History</h2>
+        <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select Language" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="en">English</SelectItem>
+            <SelectItem value="zh">Chinese</SelectItem>
+            <SelectItem value="es">Spanish</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       
       {loading ? (
         <div className="flex justify-center items-center p-8">
@@ -135,7 +144,9 @@ const AssessmentHistory: React.FC = () => {
         <div className="text-center p-4 text-red-500">{error}</div>
       ) : assessments.length === 0 ? (
         <div className="text-center p-4">
-          <p className="mb-4 text-gray-600">You haven't taken any assessments yet.</p>
+          <p className="mb-4 text-gray-600">
+            No assessments found for the selected language.
+          </p>
           <Button onClick={() => window.location.href = "/"}>
             Take Assessment
           </Button>
@@ -150,7 +161,14 @@ const AssessmentHistory: React.FC = () => {
               <div className="flex justify-between items-center">
                 <div>
                   <h3 className="font-medium text-lg">{assessment.final_mood}</h3>
-                  <p className="text-sm text-gray-500">{formatDate(assessment.created_at)}</p>
+                  <p className="text-sm text-gray-500">
+                    {formatDate(assessment.created_at)} - {assessment.language_code.toUpperCase()}
+                  </p>
+                  {assessment.mental_status && (
+                    <p className="text-sm text-blue-600 mt-1">
+                      Mental Status: {assessment.mental_status}
+                    </p>
+                  )}
                 </div>
                 <Button 
                   onClick={() => handleViewResults(assessment)}
