@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { questions } from '@/types/assessment';
+import React, { useState, useEffect } from 'react';
 import QuestionDisplay from './assessment/QuestionDisplay';
 import ResultsDialog from './assessment/ResultsDialog';
 import { 
@@ -12,8 +11,11 @@ import { saveAssessmentResult } from '@/services/assessment';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AVAILABLE_LANGUAGES } from './assessment/AssessmentHistory';
+import { questions as enQuestions } from '@/translations/en';
+import { questions as zhCNQuestions } from '@/translations/zh-CN';
+import { questions as zhTWQuestions } from '@/translations/zh-TW';
+import { Question } from '@/types/assessment';
+import { AVAILABLE_LANGUAGES } from '@/constants/languages';
 
 interface AssessmentProps {
   defaultLanguage?: string;
@@ -34,7 +36,25 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     iconColor: ""
   });
   const [selectedLanguage, setSelectedLanguage] = useState<string>(defaultLanguage);
+  const [questions, setQuestions] = useState<Question[]>(enQuestions);
   const { user } = useAuth();
+
+  useEffect(() => {
+    let questionsToUse: Question[];
+    
+    switch (selectedLanguage) {
+      case 'zh-CN':
+        questionsToUse = zhCNQuestions;
+        break;
+      case 'zh-TW':
+        questionsToUse = zhTWQuestions;
+        break;
+      default:
+        questionsToUse = enQuestions;
+    }
+    
+    setQuestions(questionsToUse);
+  }, [selectedLanguage]);
 
   const calculateScores = async () => {
     try {
@@ -129,7 +149,7 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     if (currentQuestion < 26) {
       numericValue = questions[currentQuestion].options.indexOf(value) + 1;
     } else {
-      numericValue = value === 'Yes' ? 1 : 0;
+      numericValue = value === 'Yes' || value === '是' ? 1 : 0;
     }
 
     console.log(`Question ${currentQuestion + 1}: Answer "${value}" -> Numeric value: ${numericValue}`);
@@ -154,31 +174,9 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
   const handleManualRedirect = () => {
     window.location.href = result.redirectUrl;
   };
-  
-  const getLanguageLabel = (code: string): string => {
-    const language = AVAILABLE_LANGUAGES.find(lang => lang.code === code);
-    return language ? language.label : code.toUpperCase();
-  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
-      <div className="mb-6 w-full max-w-2xl">
-        <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select Language">
-              {getLanguageLabel(selectedLanguage)} Assessment
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {AVAILABLE_LANGUAGES.map(language => (
-              <SelectItem key={language.code} value={language.code}>
-                {language.label} Assessment
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      
       <QuestionDisplay
         currentQuestion={currentQuestion}
         totalQuestions={questions.length}

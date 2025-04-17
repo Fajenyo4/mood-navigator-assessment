@@ -28,30 +28,6 @@ const Index = () => {
             </Link>
           ))}
         </div>
-        
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-4">Embed Links</h2>
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold mb-2">English Version:</h3>
-              <code className="block p-3 bg-gray-100 rounded">
-                {`<iframe src="${window.location.origin}/en" width="100%" height="800" frameborder="0"></iframe>`}
-              </code>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Simplified Chinese Version:</h3>
-              <code className="block p-3 bg-gray-100 rounded">
-                {`<iframe src="${window.location.origin}/zh-cn" width="100%" height="800" frameborder="0"></iframe>`}
-              </code>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Traditional Chinese Version:</h3>
-              <code className="block p-3 bg-gray-100 rounded">
-                {`<iframe src="${window.location.origin}/zh-tw" width="100%" height="800" frameborder="0"></iframe>`}
-              </code>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
