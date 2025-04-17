@@ -130,7 +130,7 @@ export const determineMoodResult = (
   return {
     mood: moodStatus,
     message: fullMessage,
-    redirectUrl: "https://www.micancapital.com.au/courses-en", // Updated with correct domain
+    redirectUrl: "https://www.mican.life/courses-en", // Updated with the correct domain
     iconType,
     iconColor,
     depressionResult: depressionLevel,

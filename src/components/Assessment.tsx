@@ -85,12 +85,12 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
   const getRedirectUrl = () => {
     switch (defaultLanguage) {
       case 'zh-CN':
-        return "https://www.micancapital.com.au/courses-cn";
+        return "https://www.mican.life/courses-cn";
       case 'zh-TW':
-        return "https://www.micancapital.com.au/courses-tw";
+        return "https://www.mican.life/courses-tw";
       case 'en':
       default:
-        return "https://www.micancapital.com.au/courses-en";
+        return "https://www.mican.life/courses-en";
     }
   };
 
