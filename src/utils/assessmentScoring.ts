@@ -153,4 +153,4 @@ const getDassSeverity = (levels: AssessmentLevels): SeverityLevel => {
   return Object.entries(SEVERITY_WEIGHTS).find(([_, weight]) => weight === maxSeverity)?.[0] as SeverityLevel || "Normal";
 };
 
-export { MoodResult };
+export type { MoodResult };

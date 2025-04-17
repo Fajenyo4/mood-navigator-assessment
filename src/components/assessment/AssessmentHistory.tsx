@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { getAssessmentResults, AssessmentRecord } from '@/services/assessment';
 import { Button } from "@/components/ui/button";
@@ -92,7 +93,10 @@ const AssessmentHistory: React.FC = () => {
         score: scores.lifeSatisfaction,
         level: levels.lifeSatisfaction,
         message: ""
-      }
+      },
+      // Add the missing properties required by MoodResult type
+      isParent: assessment.answers.scores.isParent || 0,
+      needsHelp: assessment.answers.scores.needsHelp || 0
     };
   };
 
