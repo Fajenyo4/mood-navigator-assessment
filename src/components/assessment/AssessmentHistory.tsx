@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { getAssessmentResults, AssessmentRecord } from '@/services/assessment';
 import { Button } from "@/components/ui/button";
@@ -5,8 +6,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import ResultsDialog from './ResultsDialog';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+// Define available languages with their codes and labels
+// This can be easily extended in the future by adding more entries
+export const AVAILABLE_LANGUAGES = [
+  { code: 'en', label: 'English' },
+  { code: 'zh', label: 'Chinese' },
+  { code: 'es', label: 'Spanish' },
+  // Add more languages as needed in the future
+  // Example: { code: 'fr', label: 'French' },
+  // Example: { code: 'de', label: 'German' },
+];
 
 const AssessmentHistory: React.FC = () => {
   const [assessments, setAssessments] = useState<AssessmentRecord[]>([]);
@@ -120,6 +132,12 @@ const AssessmentHistory: React.FC = () => {
     }
   };
 
+  // Get language label from code
+  const getLanguageLabel = (code: string): string => {
+    const language = AVAILABLE_LANGUAGES.find(lang => lang.code === code);
+    return language ? language.label : code.toUpperCase();
+  };
+
   return (
     <div className="w-full max-w-4xl mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
@@ -129,9 +147,11 @@ const AssessmentHistory: React.FC = () => {
             <SelectValue placeholder="Select Language" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="en">English</SelectItem>
-            <SelectItem value="zh">Chinese</SelectItem>
-            <SelectItem value="es">Spanish</SelectItem>
+            {AVAILABLE_LANGUAGES.map(language => (
+              <SelectItem key={language.code} value={language.code}>
+                {language.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -145,7 +165,7 @@ const AssessmentHistory: React.FC = () => {
       ) : assessments.length === 0 ? (
         <div className="text-center p-4">
           <p className="mb-4 text-gray-600">
-            No assessments found for the selected language.
+            No assessments found for {getLanguageLabel(selectedLanguage)}.
           </p>
           <Button onClick={() => window.location.href = "/"}>
             Take Assessment
@@ -162,7 +182,7 @@ const AssessmentHistory: React.FC = () => {
                 <div>
                   <h3 className="font-medium text-lg">{assessment.final_mood}</h3>
                   <p className="text-sm text-gray-500">
-                    {formatDate(assessment.created_at)} - {assessment.language_code.toUpperCase()}
+                    {formatDate(assessment.created_at)} - {getLanguageLabel(assessment.language_code || 'en')}
                   </p>
                   {assessment.mental_status && (
                     <p className="text-sm text-blue-600 mt-1">

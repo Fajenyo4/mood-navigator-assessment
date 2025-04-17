@@ -13,6 +13,8 @@ import { saveAssessmentResult } from '@/services/assessment';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AVAILABLE_LANGUAGES } from './assessment/AssessmentHistory';
 
 const Assessment = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -28,6 +30,7 @@ const Assessment = () => {
     iconType: "smile",
     iconColor: ""
   });
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("en");
   const { user } = useAuth();
 
   const calculateScores = async () => {
@@ -88,7 +91,7 @@ const Assessment = () => {
             user.email || '',
             resultsData, 
             moodResult.mood,
-            'en',  // Adding language code parameter
+            selectedLanguage,  // Use the selected language
             {       // Adding scores object parameter
               depression: scores.depression,
               anxiety: scores.anxiety,
@@ -152,9 +155,32 @@ const Assessment = () => {
   const handleManualRedirect = () => {
     window.location.href = result.redirectUrl;
   };
+  
+  // Get language label from code for display
+  const getLanguageLabel = (code: string): string => {
+    const language = AVAILABLE_LANGUAGES.find(lang => lang.code === code);
+    return language ? language.label : code.toUpperCase();
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
+      <div className="mb-6 w-full max-w-2xl">
+        <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select Language">
+              {getLanguageLabel(selectedLanguage)} Assessment
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {AVAILABLE_LANGUAGES.map(language => (
+              <SelectItem key={language.code} value={language.code}>
+                {language.label} Assessment
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      
       <QuestionDisplay
         currentQuestion={currentQuestion}
         totalQuestions={questions.length}
