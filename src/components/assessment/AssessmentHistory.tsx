@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { Loader2, Plus } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SeverityLevel } from '@/utils/scoring/types';
 
 export const AVAILABLE_LANGUAGES = [
   { code: 'en', label: 'English' },
@@ -76,27 +77,27 @@ const AssessmentHistory: React.FC = () => {
       iconColor: getMoodColor(assessment.final_mood),
       depressionResult: {
         score: scores.depression,
-        level: levels.depression,
+        level: levels.depression as SeverityLevel,
         message: ""
       },
       anxietyResult: {
         score: scores.anxiety,
-        level: levels.anxiety,
+        level: levels.anxiety as SeverityLevel,
         message: ""
       },
       stressResult: {
         score: scores.stress,
-        level: levels.stress,
+        level: levels.stress as SeverityLevel,
         message: ""
       },
       satisfactionResult: {
         score: scores.lifeSatisfaction,
-        level: levels.lifeSatisfaction,
+        level: levels.lifeSatisfaction as SeverityLevel,
         message: ""
       },
-      // Add the missing properties required by MoodResult type
-      isParent: assessment.answers.scores.isParent || 0,
-      needsHelp: assessment.answers.scores.needsHelp || 0
+      // Add the missing properties required by MoodResult type with appropriate fallbacks
+      isParent: assessment.answers.scores.isParent !== undefined ? assessment.answers.scores.isParent : 0,
+      needsHelp: assessment.answers.scores.needsHelp !== undefined ? assessment.answers.scores.needsHelp : 0
     };
   };
 

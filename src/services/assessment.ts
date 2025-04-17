@@ -54,6 +54,8 @@ export interface AssessmentRecord {
       anxiety: number;
       stress: number;
       lifeSatisfaction: number;
+      isParent?: number;
+      needsHelp?: number;
     };
     levels: {
       depression: string;
@@ -121,13 +123,15 @@ const parseAnswers = (jsonData: Json): AssessmentRecord['answers'] => {
         depression: 0,
         anxiety: 0,
         stress: 0,
-        lifeSatisfaction: 0
+        lifeSatisfaction: 0,
+        isParent: 0,
+        needsHelp: 0
       },
       levels: {
-        depression: 'Unknown',
-        anxiety: 'Unknown',
-        stress: 'Unknown',
-        lifeSatisfaction: 'Unknown'
+        depression: 'Normal',
+        anxiety: 'Normal',
+        stress: 'Normal',
+        lifeSatisfaction: 'Neutral'
       }
     };
   } catch (error) {
@@ -140,13 +144,15 @@ const parseAnswers = (jsonData: Json): AssessmentRecord['answers'] => {
         depression: 0,
         anxiety: 0,
         stress: 0,
-        lifeSatisfaction: 0
+        lifeSatisfaction: 0,
+        isParent: 0,
+        needsHelp: 0
       },
       levels: {
-        depression: 'Unknown',
-        anxiety: 'Unknown',
-        stress: 'Unknown',
-        lifeSatisfaction: 'Unknown'
+        depression: 'Normal',
+        anxiety: 'Normal',
+        stress: 'Normal',
+        lifeSatisfaction: 'Neutral'
       }
     };
   }
