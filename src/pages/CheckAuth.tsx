@@ -1,19 +1,27 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export const CheckAuth = () => {
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const checkAuthStatus = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        setIsAuthenticated(true);
-      } else {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          // If authenticated, send success message to parent
+          window.parent.postMessage({ type: 'AUTH_STATUS', isAuthenticated: true }, '*');
+        } else {
+          // If not authenticated, redirect to login
+          window.parent.postMessage({ type: 'AUTH_STATUS', isAuthenticated: false }, '*');
+          navigate('/login');
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        window.parent.postMessage({ type: 'AUTH_STATUS', isAuthenticated: false, error: 'Auth check failed' }, '*');
         navigate('/login');
       }
     };
@@ -21,5 +29,6 @@ export const CheckAuth = () => {
     checkAuthStatus();
   }, [navigate]);
 
-  return isAuthenticated ? null : null;
+  // Return null as this is just a check component
+  return null;
 };

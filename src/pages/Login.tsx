@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -22,6 +21,7 @@ const Login = () => {
 
   useEffect(() => {
     if (user && !authLoading) {
+      window.parent.postMessage({ type: 'AUTH_SUCCESS', user: user.email }, '*');
       navigate('/');
     }
   }, [user, authLoading, navigate]);
