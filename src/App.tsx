@@ -50,6 +50,30 @@ const App = () => (
               } 
             />
             <Route 
+              path="/en" 
+              element={
+                <ProtectedRoute>
+                  <Assessment defaultLanguage="en" />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/zh-cn" 
+              element={
+                <ProtectedRoute>
+                  <Assessment defaultLanguage="zh-CN" />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/zh-tw" 
+              element={
+                <ProtectedRoute>
+                  <Assessment defaultLanguage="zh-TW" />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
               path="/history" 
               element={
                 <ProtectedRoute>

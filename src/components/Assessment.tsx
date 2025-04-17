@@ -15,7 +15,11 @@ import { Link } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AVAILABLE_LANGUAGES } from './assessment/AssessmentHistory';
 
-const Assessment = () => {
+interface AssessmentProps {
+  defaultLanguage?: string;
+}
+
+const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<{ [key: number]: number }>({});
   const [textAnswers, setTextAnswers] = useState<{ [key: number]: string }>({});
@@ -29,7 +33,7 @@ const Assessment = () => {
     iconType: "smile",
     iconColor: ""
   });
-  const [selectedLanguage, setSelectedLanguage] = useState<string>("en");
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(defaultLanguage);
   const { user } = useAuth();
 
   const calculateScores = async () => {
