@@ -28,31 +28,8 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   onPrevious,
   showPrevious
 }) => {
-  const getQuestionOptions = () => {
-    if (currentQuestion < 5) {
-      // Life satisfaction questions (1-5) use 7-point scale
-      return [
-        "Strongly disagree",
-        "Disagree",
-        "Slightly disagree",
-        "Neither agree nor disagree",
-        "Slightly agree",
-        "Agree",
-        "Strongly agree"
-      ];
-    } else if (currentQuestion < 26) {
-      // DASS questions (6-26) use 4-point scale
-      return [
-        "Did not apply to me at all",
-        "Applied to me to some degree, or some of the time",
-        "Applied to me to a considerable degree, or a good part of time",
-        "Applied to me very much, or most of the time"
-      ];
-    } else {
-      // Demographic questions (27-28) use Yes/No
-      return ["Yes", "No"];
-    }
-  };
+  // Use the options directly from the question
+  const options = question?.options || [];
 
   return (
     <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-8">
@@ -83,7 +60,7 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
         name={`question-${currentQuestion}`}
         value={selectedOption}
       >
-        {getQuestionOptions().map((option, index) => (
+        {options.map((option, index) => (
           <div key={index} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
             <RadioGroupItem value={index.toString()} id={`q${currentQuestion}-${index}`} />
             <Label 

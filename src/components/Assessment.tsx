@@ -1,12 +1,18 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import QuestionDisplay from './assessment/QuestionDisplay';
 import ResultsDialog from './assessment/ResultsDialog';
 import LoadingState from './assessment/LoadingState';
 import { useAssessment } from '@/hooks/useAssessment';
-import { questions } from '@/translations/en';
 import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/assessmentScoring';
+import { AVAILABLE_LANGUAGES } from '@/constants/languages';
+import { Question } from '@/types/assessment';
+
+// Import all question sets
+import { questions as enQuestions } from '@/translations/en';
+import { questions as zhCNQuestions } from '@/translations/zh-CN';
+import { questions as zhTWQuestions } from '@/translations/zh-TW';
 
 interface AssessmentProps {
   defaultLanguage?: string;
@@ -14,6 +20,24 @@ interface AssessmentProps {
 
 const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
   const { user } = useAuth();
+  const [questions, setQuestions] = useState<Question[]>(enQuestions);
+  
+  // Select the appropriate question set based on language
+  useEffect(() => {
+    switch (defaultLanguage) {
+      case 'zh-CN':
+        setQuestions(zhCNQuestions);
+        break;
+      case 'zh-TW':
+        setQuestions(zhTWQuestions);
+        break;
+      case 'en':
+      default:
+        setQuestions(enQuestions);
+        break;
+    }
+    console.log(`Loaded questions for language: ${defaultLanguage}`);
+  }, [defaultLanguage]);
   
   const {
     currentQuestion,
@@ -52,8 +76,8 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
       anxietyLevel,
       stressLevel,
       satisfactionLevel,
-      scores.isParent,
-      scores.needsHelp
+      scores.isParent || 0,
+      scores.needsHelp || 0
     );
   };
 
