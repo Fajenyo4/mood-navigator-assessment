@@ -57,6 +57,141 @@ export type Database = {
         }
         Relationships: []
       }
+      assessment_results_en: {
+        Row: {
+          answers: Json
+          anxiety_score: number | null
+          created_at: string
+          depression_score: number | null
+          email: string | null
+          final_mood: string
+          id: string
+          life_satisfaction_score: number | null
+          mental_status: string | null
+          name: string | null
+          stress_score: number | null
+          user_id: string
+        }
+        Insert: {
+          answers: Json
+          anxiety_score?: number | null
+          created_at?: string
+          depression_score?: number | null
+          email?: string | null
+          final_mood: string
+          id?: string
+          life_satisfaction_score?: number | null
+          mental_status?: string | null
+          name?: string | null
+          stress_score?: number | null
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          anxiety_score?: number | null
+          created_at?: string
+          depression_score?: number | null
+          email?: string | null
+          final_mood?: string
+          id?: string
+          life_satisfaction_score?: number | null
+          mental_status?: string | null
+          name?: string | null
+          stress_score?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      assessment_results_zh_cn: {
+        Row: {
+          answers: Json
+          anxiety_score: number | null
+          created_at: string
+          depression_score: number | null
+          email: string | null
+          final_mood: string
+          id: string
+          life_satisfaction_score: number | null
+          mental_status: string | null
+          name: string | null
+          stress_score: number | null
+          user_id: string
+        }
+        Insert: {
+          answers: Json
+          anxiety_score?: number | null
+          created_at?: string
+          depression_score?: number | null
+          email?: string | null
+          final_mood: string
+          id?: string
+          life_satisfaction_score?: number | null
+          mental_status?: string | null
+          name?: string | null
+          stress_score?: number | null
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          anxiety_score?: number | null
+          created_at?: string
+          depression_score?: number | null
+          email?: string | null
+          final_mood?: string
+          id?: string
+          life_satisfaction_score?: number | null
+          mental_status?: string | null
+          name?: string | null
+          stress_score?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      assessment_results_zh_hk: {
+        Row: {
+          answers: Json
+          anxiety_score: number | null
+          created_at: string
+          depression_score: number | null
+          email: string | null
+          final_mood: string
+          id: string
+          life_satisfaction_score: number | null
+          mental_status: string | null
+          name: string | null
+          stress_score: number | null
+          user_id: string
+        }
+        Insert: {
+          answers: Json
+          anxiety_score?: number | null
+          created_at?: string
+          depression_score?: number | null
+          email?: string | null
+          final_mood: string
+          id?: string
+          life_satisfaction_score?: number | null
+          mental_status?: string | null
+          name?: string | null
+          stress_score?: number | null
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          anxiety_score?: number | null
+          created_at?: string
+          depression_score?: number | null
+          email?: string | null
+          final_mood?: string
+          id?: string
+          life_satisfaction_score?: number | null
+          mental_status?: string | null
+          name?: string | null
+          stress_score?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

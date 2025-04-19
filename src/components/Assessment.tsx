@@ -112,6 +112,7 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
         onOpenChange={setShowResults}
         result={showResults ? getResultData() : null}
         onManualRedirect={() => window.location.href = getRedirectUrl()}
+        language={defaultLanguage}
       />
     </div>
   );

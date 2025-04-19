@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import {
   Dialog,
@@ -17,6 +16,7 @@ interface ResultsDialogProps {
   onOpenChange: (open: boolean) => void;
   result: MoodResult | null;
   onManualRedirect: () => void;
+  language: string;
 }
 
 const ResultsDialog: React.FC<ResultsDialogProps> = ({
@@ -24,14 +24,26 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   onOpenChange,
   result,
   onManualRedirect,
+  language
 }) => {
+  const getRedirectUrl = () => {
+    switch (language) {
+      case 'zh-CN':
+        return "https://www.mican.life/courses-cn";
+      case 'zh-HK':
+        return "https://www.mican.life/courses-hk";
+      case 'en':
+      default:
+        return "https://www.mican.life/courses-en";
+    }
+  };
+
   useEffect(() => {
     let redirectTimeout: NodeJS.Timeout;
     
     if (open && result) {
-      // Auto-redirect after 10 seconds
       redirectTimeout = setTimeout(() => {
-        onManualRedirect();
+        window.location.href = getRedirectUrl();
       }, 10000);
     }
     
@@ -40,7 +52,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
         clearTimeout(redirectTimeout);
       }
     };
-  }, [open, result, onManualRedirect]);
+  }, [open, result, language]);
 
   const renderIcon = () => {
     if (!result) return null;

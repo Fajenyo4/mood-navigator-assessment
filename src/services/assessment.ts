@@ -2,6 +2,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Json } from '@/integrations/supabase/types';
 
+const getTableNameByLanguage = (languageCode: string) => {
+  switch (languageCode) {
+    case 'zh-CN':
+      return 'assessment_results_zh_cn';
+    case 'zh-HK':
+      return 'assessment_results_zh_hk';
+    case 'en':
+    default:
+      return 'assessment_results_en';
+  }
+};
+
 export const saveAssessmentResult = async (
   userId: string,
   name: string,
@@ -16,8 +28,10 @@ export const saveAssessmentResult = async (
     lifeSatisfaction: number;
   }
 ) => {
+  const tableName = getTableNameByLanguage(languageCode);
+  
   const { error } = await supabase
-    .from('assessment_results')
+    .from(tableName)
     .insert([
       {
         user_id: userId,
@@ -25,7 +39,6 @@ export const saveAssessmentResult = async (
         email,
         answers,
         final_mood: finalMood,
-        language_code: languageCode,
         depression_score: scores.depression,
         anxiety_score: scores.anxiety,
         stress_score: scores.stress,
@@ -40,6 +53,21 @@ export const saveAssessmentResult = async (
   } else {
     console.log('Assessment saved successfully');
   }
+};
+
+const determineMentalStatus = (scores: {
+  depression: number;
+  anxiety: number;
+  stress: number;
+  lifeSatisfaction: number;
+}): string => {
+  // Implement mental status determination logic based on scores
+  // This is a simplified example - adjust according to your needs
+  const avgScore = (scores.depression + scores.anxiety + scores.stress) / 3;
+  if (avgScore < 10) return 'Healthy';
+  if (avgScore < 20) return 'Mild Concern';
+  if (avgScore < 30) return 'Moderate Concern';
+  return 'Severe Concern';
 };
 
 // Define types for the assessment data structure
@@ -75,21 +103,6 @@ export interface AssessmentRecord {
   life_satisfaction_score: number | null;
   mental_status: string | null;
 }
-
-const determineMentalStatus = (scores: {
-  depression: number;
-  anxiety: number;
-  stress: number;
-  lifeSatisfaction: number;
-}): string => {
-  // Implement mental status determination logic based on scores
-  // This is a simplified example - adjust according to your needs
-  const avgScore = (scores.depression + scores.anxiety + scores.stress) / 3;
-  if (avgScore < 10) return 'Healthy';
-  if (avgScore < 20) return 'Mild Concern';
-  if (avgScore < 30) return 'Moderate Concern';
-  return 'Severe Concern';
-};
 
 // Helper function to safely parse JSON answers field
 const parseAnswers = (jsonData: Json): AssessmentRecord['answers'] => {
@@ -165,18 +178,13 @@ export const getAssessmentResults = async (
   try {
     console.log('Fetching assessment results for userId:', userId);
     
-    let query = supabase
-      .from('assessment_results')
+    const tableName = getTableNameByLanguage(languageCode || 'en');
+    
+    const { data, error } = await supabase
+      .from(tableName)
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
-
-    // Filter by language if specified
-    if (languageCode) {
-      query = query.eq('language_code', languageCode);
-    }
-    
-    const { data, error } = await query;
     
     if (error) {
       console.error('Error fetching assessment results:', error);
