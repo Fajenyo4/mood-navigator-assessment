@@ -28,8 +28,8 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
       case 'zh-CN':
         setQuestions(zhCNQuestions);
         break;
-      case 'zh-TW':
-        setQuestions(zhTWQuestions);
+      case 'zh-HK':
+        setQuestions(zhTWQuestions); // Using zh-TW questions for zh-HK
         break;
       case 'en':
       default:

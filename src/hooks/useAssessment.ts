@@ -3,6 +3,9 @@ import { useState } from 'react';
 import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/assessmentScoring';
 import { saveAssessmentResult } from '@/services/assessment';
 import { toast } from 'sonner';
+import { questions as enQuestions } from '@/translations/en';
+import { questions as zhCNQuestions } from '@/translations/zh-CN';
+import { questions as zhTWQuestions } from '@/translations/zh-TW';
 
 interface UseAssessmentProps {
   userId: string | undefined;
@@ -23,6 +26,19 @@ export const useAssessment = ({
   const [selectedOption, setSelectedOption] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Get the appropriate question set based on the language
+  const getQuestions = () => {
+    switch (defaultLanguage) {
+      case 'zh-CN': 
+        return zhCNQuestions;
+      case 'zh-HK':
+        return zhTWQuestions; // Using zh-TW questions for zh-HK since they use traditional Chinese
+      case 'en':
+      default:
+        return enQuestions;
+    }
+  };
+
   const handleAnswer = async (value: string) => {
     const numericValue = parseInt(value);
     const newAnswers = { ...answers, [currentQuestion + 1]: numericValue };
@@ -30,7 +46,8 @@ export const useAssessment = ({
     setSelectedOption(value);
 
     // Get question count dynamically from imported modules based on language
-    let questionCount = 28; // Default count based on assessment design
+    const questions = getQuestions();
+    const questionCount = questions.length;
 
     // Move to next question after a short delay
     setTimeout(() => {
@@ -58,6 +75,7 @@ export const useAssessment = ({
 
     setIsSubmitting(true);
     try {
+      const questions = getQuestions();
       const scores = calculateDassScores(finalAnswers);
       const depressionLevel = determineLevel(scores.depression, 'depression');
       const anxietyLevel = determineLevel(scores.anxiety, 'anxiety');
@@ -73,15 +91,24 @@ export const useAssessment = ({
         scores.needsHelp
       );
 
-      // Create a text answers object that doesn't rely on imported questions
-      // This will be handled on the server side based on language selection
+      // Create a text answers object that maps question numbers to the text of the selected options
+      const textAnswers: { [key: string]: string } = {};
+      Object.keys(finalAnswers).forEach(questionNum => {
+        const qNum = parseInt(questionNum);
+        const question = questions.find(q => q.id === qNum);
+        if (question) {
+          const optionIndex = finalAnswers[qNum];
+          textAnswers[qNum] = question.options[optionIndex] || '';
+        }
+      });
+
       await saveAssessmentResult(
         userId,
         userName || userEmail || '',
         userEmail || '',
         {
           numeric: finalAnswers,
-          text: {}, // We'll skip trying to map option indices to text since we don't have the imported questions
+          text: textAnswers, // Including text answers mapped to selected options
           scores,
           levels: {
             depression: depressionLevel.level,
