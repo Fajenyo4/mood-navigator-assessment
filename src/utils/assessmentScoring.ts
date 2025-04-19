@@ -90,11 +90,11 @@ export const determineMoodResult = (
     let maxSeverity = "Normal";
     
     for (const level of levels) {
-      if (severityOrder.indexOf(level) > severityOrder.indexOf(maxSeverity)) {
-        maxSeverity = level;
+      if (severityOrder.indexOf(level as string) > severityOrder.indexOf(maxSeverity)) {
+        maxSeverity = level as string;
       }
     }
-    return maxSeverity;
+    return maxSeverity as "Normal" | "Mild" | "Moderate" | "Severe" | "Very Severe";
   };
 
   const dass = getDassSeverity();

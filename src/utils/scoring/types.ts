@@ -1,5 +1,15 @@
 
-export type SeverityLevel = "Normal" | "Mild" | "Medium" | "Moderate" | "Critical" | "Very Serious" | "Unsatisfactory" | "Very Unsatisfactory" | "Neutral" | "Satisfactory" | "Very Satisfied";
+export type SeverityLevel = 
+  | "Normal" 
+  | "Mild" 
+  | "Moderate" 
+  | "Severe" 
+  | "Very Severe" 
+  | "Very dissatisfied" 
+  | "Dissatisfied" 
+  | "Neutral" 
+  | "Satisfied"
+  | "Very Satisfied";
 
 export type AssessmentType = "depression" | "anxiety" | "stress" | "satisfaction";
 
@@ -39,4 +49,3 @@ export interface MoodResult {
   isParent: number;
   needsHelp: number;
 }
-
