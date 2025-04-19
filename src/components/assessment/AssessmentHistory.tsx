@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { getAssessmentResults, AssessmentRecord } from '@/services/assessment';
 import { Button } from "@/components/ui/button";
@@ -95,7 +94,6 @@ const AssessmentHistory: React.FC = () => {
         level: levels.lifeSatisfaction as SeverityLevel,
         message: ""
       },
-      // Add the missing properties required by MoodResult type with appropriate fallbacks
       isParent: assessment.answers.scores.isParent !== undefined ? assessment.answers.scores.isParent : 0,
       needsHelp: assessment.answers.scores.needsHelp !== undefined ? assessment.answers.scores.needsHelp : 0
     };
@@ -135,6 +133,8 @@ const AssessmentHistory: React.FC = () => {
     const language = AVAILABLE_LANGUAGES.find(lang => lang.code === code);
     return language ? language.label : code.toUpperCase();
   };
+
+  const REDIRECT_URL = "https://www.micancapital.au/courses-en";
 
   return (
     <div className="w-full max-w-4xl mx-auto p-4">
@@ -205,7 +205,7 @@ const AssessmentHistory: React.FC = () => {
           open={showResults}
           onOpenChange={setShowResults}
           result={prepareResultData(selectedAssessment)!}
-          onManualRedirect={() => window.location.href = "https://www.micancapital.au/courses-en"}
+          onManualRedirect={() => window.location.href = REDIRECT_URL}
           language={selectedAssessment.language_code || 'en'}
         />
       )}

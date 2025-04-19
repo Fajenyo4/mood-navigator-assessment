@@ -26,24 +26,14 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   onManualRedirect,
   language
 }) => {
-  const getRedirectUrl = () => {
-    switch (language) {
-      case 'zh-CN':
-        return "https://www.mican.life/courses-cn";
-      case 'zh-HK':
-        return "https://www.mican.life/courses-hk";
-      case 'en':
-      default:
-        return "https://www.mican.life/courses-en";
-    }
-  };
+  const REDIRECT_URL = "https://www.micancapital.au/courses-en";
 
   useEffect(() => {
     let redirectTimeout: NodeJS.Timeout;
     
     if (open && result) {
       redirectTimeout = setTimeout(() => {
-        window.location.href = getRedirectUrl();
+        window.location.href = REDIRECT_URL;
       }, 10000);
     }
     
@@ -52,7 +42,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
         clearTimeout(redirectTimeout);
       }
     };
-  }, [open, result, language]);
+  }, [open, result]);
 
   const renderIcon = () => {
     if (!result) return null;
@@ -130,7 +120,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
             
             <div className="flex flex-col gap-3 w-full">
               <Button 
-                onClick={onManualRedirect} 
+                onClick={() => window.location.href = REDIRECT_URL} 
                 className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700"
               >
                 <ExternalLink className="w-4 h-4" />

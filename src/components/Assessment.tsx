@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import QuestionDisplay from './assessment/QuestionDisplay';
@@ -81,17 +80,9 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     );
   };
 
-  // Choose the correct redirect URL based on language
+  // Consistent redirect URL
   const getRedirectUrl = () => {
-    switch (defaultLanguage) {
-      case 'zh-CN':
-        return "https://www.mican.life/courses-cn";
-      case 'zh-TW':
-        return "https://www.mican.life/courses-tw";
-      case 'en':
-      default:
-        return "https://www.mican.life/courses-en";
-    }
+    return "https://www.micancapital.au/courses-en";
   };
 
   return (
