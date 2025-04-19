@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Json } from '@/integrations/supabase/types';
@@ -202,7 +203,7 @@ export const getAssessmentResults = async (
       email: item.email,
       name: item.name,
       user_id: item.user_id,
-      language_code: item.language_code || 'en',
+      language_code: languageCode || 'en', // Add language_code here
       depression_score: item.depression_score,
       anxiety_score: item.anxiety_score,
       stress_score: item.stress_score,

@@ -79,14 +79,12 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
     ));
   };
 
-  // Check if all assessment results are available
   const hasAssessmentData = result && 
                            result.depressionResult && 
                            result.anxietyResult && 
                            result.stressResult && 
                            result.satisfactionResult;
 
-  // Prepare chart data
   const chartData = hasAssessmentData ? {
     depression: {
       score: result.depressionResult!.score,
@@ -119,7 +117,6 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
               {renderMessage()}
             </div>
 
-            {/* Results Chart */}
             {hasAssessmentData && chartData && (
               <div className="w-full mt-6">
                 <h3 className="text-center text-base font-medium mb-2">Your Assessment Scores</h3>

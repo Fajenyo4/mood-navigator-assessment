@@ -206,6 +206,7 @@ const AssessmentHistory: React.FC = () => {
           onOpenChange={setShowResults}
           result={prepareResultData(selectedAssessment)!}
           onManualRedirect={() => window.location.href = "https://www.micancapital.au/courses-en"}
+          language={selectedAssessment.language_code || 'en'}
         />
       )}
     </div>
