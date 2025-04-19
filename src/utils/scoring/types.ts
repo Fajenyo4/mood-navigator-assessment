@@ -35,6 +35,40 @@ export interface AssessmentLevels {
   satisfactionLevel: AssessmentResult;
 }
 
+// Add the AssessmentRecord type definition
+export interface AssessmentRecord {
+  id: string;
+  created_at: string;
+  user_id: string;
+  name: string;
+  email: string;
+  final_mood: string;
+  depression_score: number;
+  anxiety_score: number;
+  stress_score: number;
+  life_satisfaction_score: number;
+  mental_status: string;
+  language_code?: string;
+  answers: {
+    numeric: Record<string, number>;
+    text: Record<string, string>;
+    scores: {
+      depression: number;
+      anxiety: number;
+      stress: number;
+      lifeSatisfaction: number;
+      isParent?: number;
+      needsHelp?: number;
+    };
+    levels: {
+      depression: string;
+      anxiety: string;
+      stress: string;
+      lifeSatisfaction: string;
+    };
+  };
+}
+
 // Add the MoodResult type here
 export interface MoodResult {
   mood: string;
