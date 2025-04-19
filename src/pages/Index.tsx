@@ -7,7 +7,7 @@ const Index = () => {
   const languages = [
     { code: 'en', name: 'English Assessment', description: 'Take the assessment in English' },
     { code: 'zh-cn', name: '简体中文测评', description: '用简体中文进行测评' },
-    { code: 'zh-tw', name: '繁體中文測評', description: '用繁體中文進行測評' },
+    { code: 'zh-hk', name: '粵語測評', description: '用粵語進行測評' },
   ];
 
   return (
