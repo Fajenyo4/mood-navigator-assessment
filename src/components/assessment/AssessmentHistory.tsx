@@ -12,8 +12,8 @@ import { SeverityLevel } from '@/utils/scoring/types';
 
 export const AVAILABLE_LANGUAGES = [
   { code: 'en', label: 'English' },
-  { code: 'zh-CN', label: 'Simplified Chinese' },
-  { code: 'zh-TW', label: 'Traditional Chinese' },
+  { code: 'zh-CN', label: 'Simplified Chinese (Mandarin)' },
+  { code: 'zh-HK', label: 'Traditional Chinese (Cantonese)' },
 ];
 
 const AssessmentHistory: React.FC = () => {
