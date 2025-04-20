@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ResultsDialog from './ResultsDialog';
 import { useAuth } from '@/context/AuthContext';
-import { AssessmentRecord } from '@/utils/scoring/types';
+import { AssessmentRecord, SeverityLevel } from '@/utils/scoring/types';
 import { useAssessmentHistory } from '@/hooks/useAssessmentHistory';
 import HistoryLoadingState from './history/HistoryLoadingState';
 import AssessmentListItem from './history/AssessmentListItem';
@@ -41,22 +41,22 @@ const AssessmentHistory: React.FC = () => {
       iconColor: getMoodColor(assessment.final_mood),
       depressionResult: {
         score: scores.depression,
-        level: levels.depression,
+        level: levels.depression as SeverityLevel,
         message: ""
       },
       anxietyResult: {
         score: scores.anxiety,
-        level: levels.anxiety,
+        level: levels.anxiety as SeverityLevel,
         message: ""
       },
       stressResult: {
         score: scores.stress,
-        level: levels.stress,
+        level: levels.stress as SeverityLevel,
         message: ""
       },
       satisfactionResult: {
         score: scores.lifeSatisfaction,
-        level: levels.lifeSatisfaction,
+        level: levels.lifeSatisfaction as SeverityLevel,
         message: ""
       },
       isParent: assessment.answers.scores.isParent !== undefined ? assessment.answers.scores.isParent : 0,
