@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+
+import React, { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -26,21 +27,28 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   onManualRedirect,
   language
 }) => {
+  const [countdown, setCountdown] = useState(10);
   const REDIRECT_URL = "https://www.micancapital.au/courses-en";
 
   useEffect(() => {
     let redirectTimeout: NodeJS.Timeout;
+    let countdownInterval: NodeJS.Timeout;
     
     if (open && result) {
+      setCountdown(10); // Reset countdown when dialog opens
+      
+      countdownInterval = setInterval(() => {
+        setCountdown((prev) => Math.max(0, prev - 1));
+      }, 1000);
+      
       redirectTimeout = setTimeout(() => {
         window.location.href = REDIRECT_URL;
       }, 10000);
     }
     
     return () => {
-      if (redirectTimeout) {
-        clearTimeout(redirectTimeout);
-      }
+      if (redirectTimeout) clearTimeout(redirectTimeout);
+      if (countdownInterval) clearInterval(countdownInterval);
     };
   }, [open, result]);
 
@@ -115,7 +123,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
             )}
 
             <div className="text-sm text-gray-500 text-center mt-4">
-              <p>Your results have been saved. Redirecting to courses in 10 seconds...</p>
+              <p>Your results have been saved. Redirecting to courses in {countdown} seconds...</p>
             </div>
             
             <div className="flex flex-col gap-3 w-full">
