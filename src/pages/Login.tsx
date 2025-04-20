@@ -1,30 +1,38 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
 import { Loader2, LogIn } from 'lucide-react';
 import { toast } from 'sonner';
+import { loginTranslations } from '@/translations/loginTranslations';
 
 const Login = () => {
   const { signIn, signUp, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { toast: uiToast } = useToast();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Get selected language from localStorage
+  const selectedLanguage = localStorage.getItem('selectedLanguage') || 'en';
+  const t = loginTranslations[selectedLanguage as keyof typeof loginTranslations];
+
   useEffect(() => {
+    if (!localStorage.getItem('selectedLanguage')) {
+      navigate('/');
+      return;
+    }
+
     if (user && !authLoading) {
       window.parent.postMessage({ type: 'AUTH_SUCCESS', user: user.email }, '*');
-      navigate('/');
+      navigate(`/${selectedLanguage}`);
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, navigate, selectedLanguage]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +60,6 @@ const Login = () => {
     } catch (error: any) {
       console.error('Auth error:', error);
       
-      // Handle common error messages
       let errorMessage = "Authentication failed. Please try again.";
       
       if (error.message.includes("Invalid login credentials")) {
@@ -81,11 +88,9 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>{isSignUp ? 'Create Account' : 'Login'}</CardTitle>
+          <CardTitle>{isSignUp ? t.createAccount : t.title}</CardTitle>
           <CardDescription>
-            {isSignUp 
-              ? 'Sign up to take the assessment'
-              : 'Login to continue to the assessment'}
+            {isSignUp ? t.signUpToTake : t.loginToContinue}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -94,7 +99,7 @@ const Login = () => {
               {isSignUp && (
                 <Input
                   type="text"
-                  placeholder="Full Name"
+                  placeholder={t.fullName}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required={isSignUp}
@@ -104,7 +109,7 @@ const Login = () => {
               )}
               <Input
                 type="email"
-                placeholder="Email"
+                placeholder={t.email}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -113,7 +118,7 @@ const Login = () => {
               />
               <Input
                 type="password"
-                placeholder="Password"
+                placeholder={t.password}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -129,12 +134,12 @@ const Login = () => {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isSignUp ? 'Creating Account...' : 'Logging In...'}
+                  {isSignUp ? t.createAccountButton : t.loginButton}
                 </>
               ) : (
                 <>
                   <LogIn className="mr-2 h-4 w-4" />
-                  {isSignUp ? 'Create Account' : 'Login'}
+                  {isSignUp ? t.createAccountButton : t.loginButton}
                 </>
               )}
             </Button>
@@ -145,22 +150,20 @@ const Login = () => {
               onClick={() => setIsSignUp(!isSignUp)}
               disabled={isLoading}
             >
-              {isSignUp 
-                ? 'Already have an account? Login' 
-                : "Don't have an account? Sign Up"}
+              {isSignUp ? t.alreadyHaveAccount : t.dontHaveAccount}
             </Button>
             
             <div className="text-center text-sm text-gray-500 mt-4">
-              <p>Having trouble logging in?</p>
+              <p>{t.troubleLogging}</p>
               <Button
                 type="button"
                 variant="ghost"
                 className="text-sm p-0 h-auto"
                 onClick={() => {
-                  toast.info("Please contact support for password reset assistance");
+                  toast.info(t.contactSupport);
                 }}
               >
-                Forgot your password?
+                {t.forgotPassword}
               </Button>
             </div>
           </form>

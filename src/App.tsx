@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
+import LanguageSelect from "./pages/LanguageSelect";
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Loader2 } from 'lucide-react';
 import AssessmentHistory from './components/assessment/AssessmentHistory';
@@ -28,6 +29,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (!user) {
+    const selectedLanguage = localStorage.getItem('selectedLanguage');
+    if (!selectedLanguage) {
+      return <Navigate to="/" replace />;
+    }
     return <Navigate to="/login" replace />;
   }
   
@@ -42,19 +47,9 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            <Route path="/" element={<LanguageSelect />} />
             <Route path="/login" element={<Login />} />
-            <Route 
-              path="/" 
-              element={
-                <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/check-auth" 
-              element={<CheckAuth />} 
-            />
+            <Route path="/check-auth" element={<CheckAuth />} />
             <Route 
               path="/en" 
               element={
