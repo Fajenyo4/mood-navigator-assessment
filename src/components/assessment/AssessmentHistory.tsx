@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { getAssessmentResults, AssessmentRecord } from '@/services/assessment';
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
+import React, { useState } from 'react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ResultsDialog from './ResultsDialog';
 import { useAuth } from '@/context/AuthContext';
-import { toast } from 'sonner';
-import { Loader2, Plus } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SeverityLevel } from '@/utils/scoring/types';
+import { AssessmentRecord } from '@/utils/scoring/types';
+import { useAssessmentHistory } from '@/hooks/useAssessmentHistory';
+import HistoryLoadingState from './history/HistoryLoadingState';
+import AssessmentListItem from './history/AssessmentListItem';
+import EmptyState from './history/EmptyState';
 
 export const AVAILABLE_LANGUAGES = [
   { code: 'en', label: 'English' },
@@ -16,52 +16,17 @@ export const AVAILABLE_LANGUAGES = [
 ];
 
 const AssessmentHistory: React.FC = () => {
-  const [assessments, setAssessments] = useState<AssessmentRecord[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedAssessment, setSelectedAssessment] = useState<AssessmentRecord | null>(null);
   const [showResults, setShowResults] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
   const { user } = useAuth();
-
-  useEffect(() => {
-    const fetchAssessments = async () => {
-      if (!user) {
-        setError('You must be logged in to view your assessment history');
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const results = await getAssessmentResults(user.id, selectedLanguage);
-        setAssessments(results);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching assessment history:', err);
-        setError('Failed to load assessment history');
-        setLoading(false);
-        toast.error('Failed to load your assessment history');
-      }
-    };
-
-    fetchAssessments();
-  }, [user, selectedLanguage]);
-
-  const handleViewResults = (assessment: AssessmentRecord) => {
-    setSelectedAssessment(assessment);
-    setShowResults(true);
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
-  };
+  const { 
+    assessments, 
+    loading, 
+    error, 
+    selectedLanguage, 
+    setSelectedLanguage, 
+    getLanguageLabel 
+  } = useAssessmentHistory(user?.id);
 
   const prepareResultData = (assessment: AssessmentRecord) => {
     if (!assessment) return null;
@@ -70,28 +35,28 @@ const AssessmentHistory: React.FC = () => {
     
     return {
       mood: assessment.final_mood,
-      message: `Assessment taken on ${formatDate(assessment.created_at)}`,
+      message: `Assessment taken on ${new Date(assessment.created_at).toLocaleString()}`,
       redirectUrl: "https://www.micancapital.au/courses-en",
       iconType: getMoodIcon(assessment.final_mood),
       iconColor: getMoodColor(assessment.final_mood),
       depressionResult: {
         score: scores.depression,
-        level: levels.depression as SeverityLevel,
+        level: levels.depression,
         message: ""
       },
       anxietyResult: {
         score: scores.anxiety,
-        level: levels.anxiety as SeverityLevel,
+        level: levels.anxiety,
         message: ""
       },
       stressResult: {
         score: scores.stress,
-        level: levels.stress as SeverityLevel,
+        level: levels.stress,
         message: ""
       },
       satisfactionResult: {
         score: scores.lifeSatisfaction,
-        level: levels.lifeSatisfaction as SeverityLevel,
+        level: levels.lifeSatisfaction,
         message: ""
       },
       isParent: assessment.answers.scores.isParent !== undefined ? assessment.answers.scores.isParent : 0,
@@ -129,12 +94,10 @@ const AssessmentHistory: React.FC = () => {
     }
   };
 
-  const getLanguageLabel = (code: string): string => {
-    const language = AVAILABLE_LANGUAGES.find(lang => lang.code === code);
-    return language ? language.label : code.toUpperCase();
+  const handleViewResults = (assessment: AssessmentRecord) => {
+    setSelectedAssessment(assessment);
+    setShowResults(true);
   };
-
-  const REDIRECT_URL = "https://www.micancapital.au/courses-en";
 
   return (
     <div className="w-full max-w-4xl mx-auto p-4">
@@ -155,47 +118,20 @@ const AssessmentHistory: React.FC = () => {
       </div>
       
       {loading ? (
-        <div className="flex justify-center items-center p-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
+        <HistoryLoadingState />
       ) : error ? (
         <div className="text-center p-4 text-red-500">{error}</div>
       ) : assessments.length === 0 ? (
-        <div className="text-center p-4">
-          <p className="mb-4 text-gray-600">
-            No assessments found for {getLanguageLabel(selectedLanguage)}.
-          </p>
-          <Button onClick={() => window.location.href = "/"}>
-            Take Assessment
-          </Button>
-        </div>
+        <EmptyState languageLabel={getLanguageLabel(selectedLanguage)} />
       ) : (
         <div className="space-y-4">
           {assessments.map((assessment) => (
-            <div 
-              key={assessment.id} 
-              className="border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="font-medium text-lg">{assessment.final_mood}</h3>
-                  <p className="text-sm text-gray-500">
-                    {formatDate(assessment.created_at)} - {getLanguageLabel(assessment.language_code || 'en')}
-                  </p>
-                  {assessment.mental_status && (
-                    <p className="text-sm text-blue-600 mt-1">
-                      Mental Status: {assessment.mental_status}
-                    </p>
-                  )}
-                </div>
-                <Button 
-                  onClick={() => handleViewResults(assessment)}
-                  variant="outline"
-                >
-                  View Results
-                </Button>
-              </div>
-            </div>
+            <AssessmentListItem
+              key={assessment.id}
+              assessment={assessment}
+              onView={handleViewResults}
+              getLanguageLabel={getLanguageLabel}
+            />
           ))}
         </div>
       )}
@@ -205,7 +141,7 @@ const AssessmentHistory: React.FC = () => {
           open={showResults}
           onOpenChange={setShowResults}
           result={prepareResultData(selectedAssessment)!}
-          onManualRedirect={() => window.location.href = REDIRECT_URL}
+          onManualRedirect={() => {}}
           language={selectedAssessment.language_code || 'en'}
         />
       )}
