@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import {
   Dialog,
@@ -9,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Smile, Meh, Frown, ExternalLink, History } from 'lucide-react';
 import AssessmentChart from './AssessmentChart';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { MoodResult } from '@/utils/assessmentScoring';
 
 interface ResultsDialogProps {
@@ -29,12 +28,14 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
 }) => {
   const [countdown, setCountdown] = useState(10);
   const REDIRECT_URL = "https://www.micancapital.au/courses-en";
+  const location = useLocation();
+  const isHistoryPage = location.pathname === '/history';
 
   useEffect(() => {
     let redirectTimeout: NodeJS.Timeout;
     let countdownInterval: NodeJS.Timeout;
     
-    if (open && result) {
+    if (open && result && !isHistoryPage) {
       setCountdown(10); // Reset countdown when dialog opens
       
       countdownInterval = setInterval(() => {
@@ -50,7 +51,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
       if (redirectTimeout) clearTimeout(redirectTimeout);
       if (countdownInterval) clearInterval(countdownInterval);
     };
-  }, [open, result]);
+  }, [open, result, isHistoryPage]);
 
   const renderIcon = () => {
     if (!result) return null;
@@ -122,29 +123,33 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
               </div>
             )}
 
-            <div className="text-sm text-gray-500 text-center mt-4">
-              <p>Your results have been saved. Redirecting to courses in {countdown} seconds...</p>
-            </div>
-            
-            <div className="flex flex-col gap-3 w-full">
-              <Button 
-                onClick={() => window.location.href = REDIRECT_URL} 
-                className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700"
-              >
-                <ExternalLink className="w-4 h-4" />
-                <span>Go to Mican Capital Courses</span>
-              </Button>
-              
-              <Link to="/history" className="w-full">
-                <Button 
-                  variant="outline" 
-                  className="w-full flex items-center justify-center gap-2"
-                >
-                  <History className="w-4 h-4" />
-                  <span>View Assessment History</span>
-                </Button>
-              </Link>
-            </div>
+            {!isHistoryPage && (
+              <>
+                <div className="text-sm text-gray-500 text-center mt-4">
+                  <p>Your results have been saved. Redirecting to courses in {countdown} seconds...</p>
+                </div>
+                
+                <div className="flex flex-col gap-3 w-full">
+                  <Button 
+                    onClick={() => window.location.href = REDIRECT_URL} 
+                    className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span>Go to Mican Capital Courses</span>
+                  </Button>
+                  
+                  <Link to="/history" className="w-full">
+                    <Button 
+                      variant="outline" 
+                      className="w-full flex items-center justify-center gap-2"
+                    >
+                      <History className="w-4 h-4" />
+                      <span>View Assessment History</span>
+                    </Button>
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <div className="p-6 text-center">
