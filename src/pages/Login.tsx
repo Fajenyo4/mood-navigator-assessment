@@ -4,11 +4,10 @@ import { useAuth } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useNavigate, Link } from 'react-router-dom';
-import { Loader2, LogIn, Globe } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Loader2, LogIn } from 'lucide-react';
 import { toast } from 'sonner';
 import { loginTranslations } from '@/translations/loginTranslations';
-import { AVAILABLE_LANGUAGES } from '@/constants/languages';
 
 interface LoginProps {
   language?: string;
@@ -23,7 +22,7 @@ const Login = ({ language = 'en' }: LoginProps) => {
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Use the language prop to determine translations
+  // Determine translations
   const selectedLanguage = language || 'en';
   const t = loginTranslations[selectedLanguage as keyof typeof loginTranslations] || loginTranslations.en;
 
@@ -42,12 +41,12 @@ const Login = ({ language = 'en' }: LoginProps) => {
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error("Please enter both email and password");
+      toast.error(t.email && t.password ? t.email + ' & ' + t.password : "Please enter both email and password");
       return;
     }
 
     if (isSignUp && !name) {
-      toast.error("Please enter your name");
+      toast.error(t.fullName ?? "Please enter your name");
       return;
     }
 
@@ -55,7 +54,11 @@ const Login = ({ language = 'en' }: LoginProps) => {
     try {
       if (isSignUp) {
         await signUp(email, password, name);
-        toast.success("Account created! Please check your email to verify your account.");
+        toast.success(
+          selectedLanguage === "en"
+            ? "Account created! Please check your email to verify your account."
+            : t.createAccountButton + "! " + (t.contactSupport || "")
+        );
         setEmail('');
         setPassword('');
         setName('');
@@ -64,17 +67,17 @@ const Login = ({ language = 'en' }: LoginProps) => {
       }
     } catch (error: any) {
       console.error('Auth error:', error);
-      
-      let errorMessage = "Authentication failed. Please try again.";
-      
+
+      let errorMessage = t["errorDefault"] ?? "Authentication failed. Please try again.";
+
       if (error.message.includes("Invalid login credentials")) {
-        errorMessage = "Invalid email or password. Please check your credentials and try again.";
+        errorMessage = t["errorInvalid"] ?? "Invalid email or password. Please check your credentials and try again.";
       } else if (error.message.includes("Email not confirmed")) {
-        errorMessage = "Please verify your email before logging in.";
+        errorMessage = t["errorVerify"] ?? "Please verify your email before logging in.";
       } else if (error.message.includes("User already registered")) {
-        errorMessage = "An account with this email already exists. Try logging in instead.";
+        errorMessage = t["errorExists"] ?? "An account with this email already exists. Try logging in instead.";
       }
-      
+
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -95,23 +98,7 @@ const Login = ({ language = 'en' }: LoginProps) => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>{isSignUp ? t.createAccount : t.title}</CardTitle>
-            <div className="flex items-center gap-2">
-              <Globe className="h-4 w-4" />
-              <select 
-                className="text-sm bg-transparent border-none cursor-pointer focus:ring-0 p-0"
-                value={selectedLanguage}
-                onChange={(e) => {
-                  const newLang = e.target.value;
-                  navigate(`/login/${newLang.toLowerCase()}`);
-                }}
-              >
-                {AVAILABLE_LANGUAGES.map((lang) => (
-                  <option key={lang.code} value={lang.code}>
-                    {lang.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Removed language dropdown - language is selected by route only */}
           </div>
           <CardDescription>
             {isSignUp ? t.signUpToTake : t.loginToContinue}
@@ -150,9 +137,9 @@ const Login = ({ language = 'en' }: LoginProps) => {
                 autoComplete={isSignUp ? "new-password" : "current-password"}
               />
             </div>
-            <Button 
-              type="submit" 
-              className="w-full" 
+            <Button
+              type="submit"
+              className="w-full"
               disabled={isLoading || !email || !password || (isSignUp && !name)}
             >
               {isLoading ? (
@@ -176,7 +163,6 @@ const Login = ({ language = 'en' }: LoginProps) => {
             >
               {isSignUp ? t.alreadyHaveAccount : t.dontHaveAccount}
             </Button>
-            
             <div className="text-center text-sm text-gray-500 mt-4">
               <p>{t.troubleLogging}</p>
               <Button
