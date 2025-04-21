@@ -4,12 +4,17 @@ import { useAuth } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useNavigate } from 'react-router-dom';
-import { Loader2, LogIn } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Loader2, LogIn, Globe } from 'lucide-react';
 import { toast } from 'sonner';
 import { loginTranslations } from '@/translations/loginTranslations';
+import { AVAILABLE_LANGUAGES } from '@/constants/languages';
 
-const Login = () => {
+interface LoginProps {
+  language?: string;
+}
+
+const Login = ({ language = 'en' }: LoginProps) => {
   const { signIn, signUp, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [isSignUp, setIsSignUp] = useState(false);
@@ -18,19 +23,19 @@ const Login = () => {
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Get selected language from localStorage
-  const selectedLanguage = localStorage.getItem('selectedLanguage') || 'en';
-  const t = loginTranslations[selectedLanguage as keyof typeof loginTranslations];
+  // Use the language prop to determine translations
+  const selectedLanguage = language || 'en';
+  const t = loginTranslations[selectedLanguage as keyof typeof loginTranslations] || loginTranslations.en;
+
+  // Store the selected language in localStorage
+  useEffect(() => {
+    localStorage.setItem('selectedLanguage', selectedLanguage);
+  }, [selectedLanguage]);
 
   useEffect(() => {
-    if (!localStorage.getItem('selectedLanguage')) {
-      navigate('/');
-      return;
-    }
-
     if (user && !authLoading) {
       window.parent.postMessage({ type: 'AUTH_SUCCESS', user: user.email }, '*');
-      navigate(`/${selectedLanguage}`);
+      navigate(`/${selectedLanguage.toLowerCase()}`);
     }
   }, [user, authLoading, navigate, selectedLanguage]);
 
@@ -88,7 +93,26 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>{isSignUp ? t.createAccount : t.title}</CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle>{isSignUp ? t.createAccount : t.title}</CardTitle>
+            <div className="flex items-center gap-2">
+              <Globe className="h-4 w-4" />
+              <select 
+                className="text-sm bg-transparent border-none cursor-pointer focus:ring-0 p-0"
+                value={selectedLanguage}
+                onChange={(e) => {
+                  const newLang = e.target.value;
+                  navigate(`/login/${newLang.toLowerCase()}`);
+                }}
+              >
+                {AVAILABLE_LANGUAGES.map((lang) => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
           <CardDescription>
             {isSignUp ? t.signUpToTake : t.loginToContinue}
           </CardDescription>

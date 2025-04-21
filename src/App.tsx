@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -27,10 +28,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (!user) {
-    const selectedLanguage = localStorage.getItem('selectedLanguage');
-    if (!selectedLanguage) {
-      return <Navigate to="/" replace />;
-    }
     return <Navigate to="/login" replace />;
   }
   
@@ -45,9 +42,15 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Root path now shows the Login directly */}
-            <Route path="/" element={<Login />} />
-            <Route path="/login" element={<Login />} />
+            {/* Redirect root to login with English as default */}
+            <Route path="/" element={<Navigate to="/login/en" replace />} />
+            
+            {/* Language-specific login routes */}
+            <Route path="/login" element={<Navigate to="/login/en" replace />} />
+            <Route path="/login/en" element={<Login language="en" />} />
+            <Route path="/login/zh-cn" element={<Login language="zh-CN" />} />
+            <Route path="/login/zh-hk" element={<Login language="zh-HK" />} />
+            
             <Route path="/check-auth" element={<CheckAuth />} />
             <Route 
               path="/en" 
