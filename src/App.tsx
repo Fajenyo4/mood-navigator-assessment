@@ -47,7 +47,8 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<LanguageSelect />} />
+            {/* Root path now shows the Login directly */}
+            <Route path="/" element={<Login />} />
             <Route path="/login" element={<Login />} />
             <Route path="/check-auth" element={<CheckAuth />} />
             <Route 
