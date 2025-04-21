@@ -1,45 +1,33 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+
+const languages = [
+  { code: 'en', name: 'English', path: '/login?lang=en' },
+  { code: 'zh-cn', name: '简体中文', path: '/login?lang=zh-cn' },
+  { code: 'zh-hk', name: '粵語', path: '/login?lang=zh-hk' }
+];
 
 const LanguageSelect = () => {
-  const navigate = useNavigate();
-  const languages = [
-    { code: 'en', name: 'English', description: 'Take the assessment in English' },
-    { code: 'zh-cn', name: '简体中文', description: '用简体中文进行测评' },
-    { code: 'zh-hk', name: '粵語', description: '用粵語進行測評' }
-  ];
-
-  const handleLanguageSelect = (langCode: string) => {
-    localStorage.setItem('selectedLanguage', langCode);
-    navigate('/login');
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-8">Select Language | 选择语言 | 選擇語言</h1>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {languages.map((lang) => (
-            <Card 
-              key={lang.code} 
-              className="hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => handleLanguageSelect(lang.code)}
-            >
-              <CardHeader>
-                <CardTitle>{lang.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600">{lang.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-8 flex flex-col items-center justify-center">
+      <h1 className="text-3xl font-bold text-center mb-10">
+        Select Language | 选择语言 | 選擇語言
+      </h1>
+      <div className="flex flex-col gap-6 w-full max-w-xs">
+        {languages.map((lang) => (
+          <Link
+            key={lang.code}
+            to={lang.path}
+            className="block bg-blue-600 hover:bg-blue-700 text-white font-semibold text-lg text-center py-4 px-6 rounded-lg shadow transition-colors"
+          >
+            {lang.name}
+          </Link>
+        ))}
       </div>
     </div>
   );
 };
 
 export default LanguageSelect;
+
