@@ -31,47 +31,40 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   const location = useLocation();
   const isHistoryPage = location.pathname === '/history';
 
-  // Use a single redirect URL for all languages as requested
+  // The only redirect URL we should use
   const REDIRECT_URL = "https://www.micancapital.au/courses-en";
   
   useEffect(() => {
-    let countdownInterval: NodeJS.Timeout | null = null;
+    let countdownTimer: NodeJS.Timeout | null = null;
     
     if (open && result && !isHistoryPage) {
       setCountdown(10); // Reset countdown when dialog opens
       
-      countdownInterval = setInterval(() => {
-        setCountdown((prev) => {
-          const newCount = Math.max(0, prev - 1);
-          
-          // When countdown reaches 0, trigger redirect
-          if (newCount === 0 && countdownInterval) {
-            clearInterval(countdownInterval);
+      countdownTimer = setInterval(() => {
+        setCountdown((prevCount) => {
+          if (prevCount <= 1) {
+            clearInterval(countdownTimer!);
             
-            // Use timeout to ensure the counter shows 0 before redirecting
+            // Add a small delay to ensure the UI shows 0 before redirect
             setTimeout(() => {
-              console.log("Redirecting to:", REDIRECT_URL);
-              const newWindow = window.open(REDIRECT_URL, '_blank', 'noopener,noreferrer');
-              
-              // If popup blocker prevents opening, handle it gracefully
-              if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-                console.log("Popup blocked, unable to redirect automatically");
-              }
+              console.log("Attempting redirect to:", REDIRECT_URL);
+              window.location.href = REDIRECT_URL;
             }, 500);
+            
+            return 0;
           }
-          
-          return newCount;
+          return prevCount - 1;
         });
       }, 1000);
     }
     
     // Cleanup function
     return () => {
-      if (countdownInterval) {
-        clearInterval(countdownInterval);
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
       }
     };
-  }, [open, result, isHistoryPage, REDIRECT_URL]);
+  }, [open, result, isHistoryPage]);
 
   const hasAssessmentData = result && 
                            result.depressionResult && 

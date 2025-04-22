@@ -10,14 +10,9 @@ interface ResultActionsProps {
 }
 
 const ResultActions: React.FC<ResultActionsProps> = ({ redirectUrl, countdown }) => {
-  // Ensure this function explicitly opens the URL in a new tab with full window.open options
+  // Direct redirect without using window.open
   const handleRedirect = () => {
-    const newWindow = window.open(redirectUrl, '_blank', 'noopener,noreferrer');
-    
-    // If popup blocker prevents opening, log a message
-    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-      console.log("Popup blocked, unable to redirect on button click");
-    }
+    window.location.href = redirectUrl;
   };
 
   return (
