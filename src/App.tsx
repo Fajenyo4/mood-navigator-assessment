@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
+import SSOLogin from "./pages/SSOLogin"; // Import the new SSO login component
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Loader2 } from 'lucide-react';
 import AssessmentHistory from './components/assessment/AssessmentHistory';
@@ -44,6 +45,9 @@ const App = () => (
           <Routes>
             {/* Redirect root to login with English as default */}
             <Route path="/" element={<Navigate to="/login/en" replace />} />
+            
+            {/* SSO Login route */}
+            <Route path="/sso-login" element={<SSOLogin />} />
             
             {/* Language-specific login routes */}
             <Route path="/login" element={<Navigate to="/login/en" replace />} />
