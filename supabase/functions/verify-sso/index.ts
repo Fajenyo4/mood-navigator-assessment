@@ -1,6 +1,5 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import * as jose from "https://deno.land/x/jose@v4.14.4/index.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,22 +13,21 @@ serve(async (req) => {
   }
 
   try {
-    // Get the JWT token from the request
-    const { token, email } = await req.json();
+    // Get the email from the request
+    const { email, token } = await req.json();
     
-    if (!token || !email) {
+    if (!email) {
       return new Response(
-        JSON.stringify({ error: "Token and email are required" }),
+        JSON.stringify({ error: "Email is required" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
     
-    // In a production environment, you should verify the JWT token with LearnWorlds secret
-    // This is a simplified example
-    // const secret = Deno.env.get("LEARNWORLDS_JWT_SECRET");
-    // await jose.jwtVerify(token, new TextEncoder().encode(secret));
+    console.log("Verifying SSO for email:", email);
     
-    // For now, we'll trust the token and create a Supabase session
+    // In a real implementation, you would verify the token with LearnWorlds
+    // Here we're simply trusting the provided email and creating a Supabase session
+    
     const { data, error } = await fetch(
       `https://thvtgvvwksbxywhdnwcv.supabase.co/auth/v1/magiclink/login`,
       {
@@ -51,9 +49,11 @@ serve(async (req) => {
       );
     }
 
+    console.log("Authentication successful for:", email);
+
     // Return the session data
     return new Response(
-      JSON.stringify({ session: data }),
+      JSON.stringify({ session: data, success: true }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {

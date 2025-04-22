@@ -11,32 +11,58 @@
     
     // This function would be called by LearnWorlds when a user is logged in
     function initSSO(userData) {
-      // Example userData from LearnWorlds would include email and a token
-      // In a real implementation, LearnWorlds would provide this data
+      console.log("SSO initiated with user data:", userData);
+      
+      // Example userData from LearnWorlds would include email and name
       const email = userData.email;
-      const token = userData.token; // JWT token from LearnWorlds
+      const name = userData.name || 'Student';
+      
+      // Create a simple token by encoding the email and timestamp
+      // In production, this should be replaced with a proper JWT from LearnWorlds
+      const simpleToken = btoa(`${email}:${Date.now()}`);
       
       // Redirect to SSO login endpoint with token and language
-      document.getElementById('assessment').src = 
-        `${appDomain}/sso-login?token=${token}&email=${email}&lang=zh-cn`;
+      window.location.href = `${appDomain}/sso-login?token=${simpleToken}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&lang=zh-cn`;
+    }
+    
+    // Sample function to simulate LearnWorlds sending user data
+    // This would typically be called by the LearnWorlds platform
+    function simulateLearnWorldsLogin() {
+      const testEmail = prompt("输入测试邮箱进行SSO登录:", "student@example.com");
+      if (testEmail) {
+        initSSO({
+          email: testEmail,
+          name: "测试用户"
+        });
+      }
     }
   </script>
 </head>
 <body style="margin:0;padding:0;overflow:hidden;">
-  <iframe 
-    id="assessment"
-    src="https://mood-navigator-assessment.lovable.app/login/zh-cn"
-    width="100%" 
-    height="800"
-    frameborder="0"
-    allow="fullscreen"
-  ></iframe>
+  <div style="position: relative;">
+    <iframe 
+      id="assessment"
+      src="https://mood-navigator-assessment.lovable.app/login/zh-cn"
+      width="100%" 
+      height="800"
+      frameborder="0"
+      allow="fullscreen"
+    ></iframe>
+    
+    <!-- For testing purposes only - would be removed in production -->
+    <button 
+      onclick="simulateLearnWorldsLogin()" 
+      style="position: absolute; top: 10px; right: 10px; z-index: 1000; background: #4f46e5; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;"
+    >
+      测试 SSO 登录
+    </button>
+  </div>
   
-  <!-- This would be replaced with the actual LearnWorlds SDK integration -->
   <script>
-    // Sample placeholder for LearnWorlds SDK initialization
-    // In reality, LearnWorlds would provide their own SDK or API
-    console.log("LearnWorlds SDK would initialize here and call initSSO() with user data");
+    // Instructions for LearnWorlds integration
+    console.log("LearnWorlds 集成指南:");
+    console.log("1. 在您的 LearnWorlds 网站中添加自定义 JavaScript，以检测已登录用户");
+    console.log("2. 当用户点击评估链接时，调用 initSSO({email: 'user@example.com', name: 'User Name'})");
   </script>
 </body>
 </html>
