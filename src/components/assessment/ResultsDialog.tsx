@@ -31,32 +31,45 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   const location = useLocation();
   const isHistoryPage = location.pathname === '/history';
 
-  // Use a single redirect URL for all languages
+  // Use a single redirect URL for all languages as requested
   const REDIRECT_URL = "https://www.micancapital.au/courses-en";
   
   useEffect(() => {
-    let countdownInterval: NodeJS.Timeout;
+    let countdownInterval: NodeJS.Timeout | null = null;
     
     if (open && result && !isHistoryPage) {
       setCountdown(10); // Reset countdown when dialog opens
       
       countdownInterval = setInterval(() => {
         setCountdown((prev) => {
-          // When countdown reaches 0, trigger redirect in a new tab
-          if (prev <= 1) {
-            const newWindow = window.open(REDIRECT_URL, '_blank');
-            // If popup blocker prevents opening, handle it gracefully
-            if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-              console.log("Popup blocked, unable to redirect automatically");
-            }
+          const newCount = Math.max(0, prev - 1);
+          
+          // When countdown reaches 0, trigger redirect
+          if (newCount === 0 && countdownInterval) {
+            clearInterval(countdownInterval);
+            
+            // Use timeout to ensure the counter shows 0 before redirecting
+            setTimeout(() => {
+              console.log("Redirecting to:", REDIRECT_URL);
+              const newWindow = window.open(REDIRECT_URL, '_blank', 'noopener,noreferrer');
+              
+              // If popup blocker prevents opening, handle it gracefully
+              if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                console.log("Popup blocked, unable to redirect automatically");
+              }
+            }, 500);
           }
-          return Math.max(0, prev - 1);
+          
+          return newCount;
         });
       }, 1000);
     }
     
+    // Cleanup function
     return () => {
-      if (countdownInterval) clearInterval(countdownInterval);
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+      }
     };
   }, [open, result, isHistoryPage, REDIRECT_URL]);
 
