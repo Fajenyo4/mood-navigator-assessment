@@ -9,13 +9,17 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import SSOLogin from "./pages/SSOLogin";
-import EasyAccess from "./pages/EasyAccess"; // Import the new easy access page
-import LinkGenerator from "./pages/LinkGenerator"; // Import link generator page
+import EasyAccess from "./pages/EasyAccess";
+import LinkGenerator from "./pages/LinkGenerator";
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Loader2 } from 'lucide-react';
 import AssessmentHistory from './components/assessment/AssessmentHistory';
 import Assessment from './components/Assessment';
 import { CheckAuth } from './pages/CheckAuth';
+
+// Import embed HTML content
+import fs from 'fs';
+import path from 'path';
 
 const queryClient = new QueryClient();
 
@@ -35,6 +39,13 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   return <>{children}</>;
+};
+
+// Create a component to serve embed HTML files
+const EmbedHtml = ({ filePath }: { filePath: string }) => {
+  return (
+    <div dangerouslySetInnerHTML={{ __html: fs.readFileSync(path.join(__dirname, filePath), 'utf8') }} />
+  );
 };
 
 const App = () => (
@@ -62,6 +73,11 @@ const App = () => (
             <Route path="/login/en" element={<Login language="en" />} />
             <Route path="/login/zh-cn" element={<Login language="zh-CN" />} />
             <Route path="/login/zh-hk" element={<Login language="zh-HK" />} />
+            
+            {/* Embed routes - these serve the HTML directly */}
+            <Route path="/embed/en" element={<iframe src="/src/embed/en.html" style={{width: '100%', height: '100vh', border: 'none'}} />} />
+            <Route path="/embed/zh-cn" element={<iframe src="/src/embed/zh-cn.html" style={{width: '100%', height: '100vh', border: 'none'}} />} />
+            <Route path="/embed/zh-tw" element={<iframe src="/src/embed/zh-tw.html" style={{width: '100%', height: '100vh', border: 'none'}} />} />
             
             <Route path="/check-auth" element={<CheckAuth />} />
             <Route 

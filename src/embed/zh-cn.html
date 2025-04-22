@@ -4,6 +4,7 @@
 <head>
   <title>简体中文评估嵌入</title>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script>
     // Get the base URL from where this embed is being served
     const baseUrl = new URL(document.baseURI).origin;
@@ -47,5 +48,30 @@
       快速访问
     </button>
   </div>
+  
+  <!-- Add a message to confirm the embed is loading -->
+  <script>
+    console.log("简体中文评估嵌入已加载成功");
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add a small indicator that the embed is working
+      const loadIndicator = document.createElement('div');
+      loadIndicator.style.position = 'absolute';
+      loadIndicator.style.bottom = '10px';
+      loadIndicator.style.left = '10px';
+      loadIndicator.style.padding = '5px 10px';
+      loadIndicator.style.background = 'rgba(0,0,0,0.5)';
+      loadIndicator.style.color = 'white';
+      loadIndicator.style.borderRadius = '4px';
+      loadIndicator.style.fontSize = '12px';
+      loadIndicator.textContent = '简体中文评估已加载';
+      document.body.appendChild(loadIndicator);
+      
+      // Hide the indicator after 5 seconds
+      setTimeout(() => {
+        loadIndicator.style.opacity = '0';
+        loadIndicator.style.transition = 'opacity 1s';
+      }, 5000);
+    });
+  </script>
 </body>
 </html>
