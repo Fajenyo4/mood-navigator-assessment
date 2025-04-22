@@ -8,7 +8,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
-import SSOLogin from "./pages/SSOLogin"; // Import the new SSO login component
+import SSOLogin from "./pages/SSOLogin";
+import EasyAccess from "./pages/EasyAccess"; // Import the new easy access page
+import LinkGenerator from "./pages/LinkGenerator"; // Import link generator page
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Loader2 } from 'lucide-react';
 import AssessmentHistory from './components/assessment/AssessmentHistory';
@@ -48,6 +50,12 @@ const App = () => (
             
             {/* SSO Login route */}
             <Route path="/sso-login" element={<SSOLogin />} />
+            
+            {/* Easy Access route - new simplified access method */}
+            <Route path="/easy-access" element={<EasyAccess />} />
+            
+            {/* Link Generator - admin page to create access links */}
+            <Route path="/generate-links" element={<LinkGenerator />} />
             
             {/* Language-specific login routes */}
             <Route path="/login" element={<Navigate to="/login/en" replace />} />

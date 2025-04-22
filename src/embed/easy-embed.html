@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Easy Access Assessment</title>
+  <script>
+    // Get the app domain
+    const appDomain = "https://mood-navigator-assessment.lovable.app";
+    
+    // Function to create a direct access link with default parameters
+    function createDirectAccessLink(email, language = 'en') {
+      // Create a simple token by encoding the email and timestamp
+      const simpleToken = btoa(`${email}:${Date.now()}`);
+      
+      // Return the formatted URL
+      return `${appDomain}/easy-access?token=${simpleToken}&email=${encodeURIComponent(email)}&lang=${language}`;
+    }
+    
+    // Function to redirect the user directly to the assessment
+    function accessAssessment() {
+      const testEmail = prompt("Enter email to access the assessment:", "user@example.com");
+      if (testEmail) {
+        // Get language preference
+        const lang = new URLSearchParams(window.location.search).get('lang') || 'en';
+        
+        // Create and redirect to the access link
+        const accessLink = createDirectAccessLink(testEmail, lang);
+        window.location.href = accessLink;
+      }
+    }
+  </script>
+</head>
+<body style="margin:0;padding:0;overflow:hidden;">
+  <div style="position: relative;">
+    <iframe 
+      id="assessment"
+      src="https://mood-navigator-assessment.lovable.app/login/en"
+      width="100%" 
+      height="800"
+      frameborder="0"
+      allow="fullscreen"
+    ></iframe>
+    
+    <button 
+      onclick="accessAssessment()" 
+      style="position: absolute; top: 10px; right: 10px; z-index: 1000; background: #4f46e5; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;"
+    >
+      Quick Access
+    </button>
+  </div>
+  
+  <script>
+    // Handle language parameter if provided
+    const params = new URLSearchParams(window.location.search);
+    const lang = params.get('lang');
+    
+    if (lang) {
+      // Update iframe source based on language
+      const iframe = document.getElementById('assessment');
+      iframe.src = `https://mood-navigator-assessment.lovable.app/login/${lang}`;
+    }
+  </script>
+</body>
+</html>
