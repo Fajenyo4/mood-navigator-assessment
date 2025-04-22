@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -16,10 +15,9 @@ import { Loader2 } from 'lucide-react';
 import AssessmentHistory from './components/assessment/AssessmentHistory';
 import Assessment from './components/Assessment';
 import { CheckAuth } from './pages/CheckAuth';
-
-// Import embed HTML content
-import fs from 'fs';
-import path from 'path';
+import EnglishEmbed from './pages/embeds/EnglishEmbed';
+import SimplifiedChineseEmbed from './pages/embeds/SimplifiedChineseEmbed';
+import TraditionalChineseEmbed from './pages/embeds/TraditionalChineseEmbed';
 
 const queryClient = new QueryClient();
 
@@ -41,13 +39,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// Create a component to serve embed HTML files
-const EmbedHtml = ({ filePath }: { filePath: string }) => {
-  return (
-    <div dangerouslySetInnerHTML={{ __html: fs.readFileSync(path.join(__dirname, filePath), 'utf8') }} />
-  );
-};
-
 const App = () => (
   <AuthProvider>
     <QueryClientProvider client={queryClient}>
@@ -56,29 +47,17 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Redirect root to login with English as default */}
             <Route path="/" element={<Navigate to="/login/en" replace />} />
-            
-            {/* SSO Login route */}
             <Route path="/sso-login" element={<SSOLogin />} />
-            
-            {/* Easy Access route - new simplified access method */}
             <Route path="/easy-access" element={<EasyAccess />} />
-            
-            {/* Link Generator - admin page to create access links */}
             <Route path="/generate-links" element={<LinkGenerator />} />
-            
-            {/* Language-specific login routes */}
             <Route path="/login" element={<Navigate to="/login/en" replace />} />
             <Route path="/login/en" element={<Login language="en" />} />
             <Route path="/login/zh-cn" element={<Login language="zh-CN" />} />
             <Route path="/login/zh-hk" element={<Login language="zh-HK" />} />
-            
-            {/* Embed routes - these serve the HTML directly */}
-            <Route path="/embed/en" element={<iframe src="/src/embed/en.html" style={{width: '100%', height: '100vh', border: 'none'}} />} />
-            <Route path="/embed/zh-cn" element={<iframe src="/src/embed/zh-cn.html" style={{width: '100%', height: '100vh', border: 'none'}} />} />
-            <Route path="/embed/zh-tw" element={<iframe src="/src/embed/zh-tw.html" style={{width: '100%', height: '100vh', border: 'none'}} />} />
-            
+            <Route path="/embed/en" element={<EnglishEmbed />} />
+            <Route path="/embed/zh-cn" element={<SimplifiedChineseEmbed />} />
+            <Route path="/embed/zh-tw" element={<TraditionalChineseEmbed />} />
             <Route path="/check-auth" element={<CheckAuth />} />
             <Route 
               path="/en" 
