@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import QuestionDisplay from './assessment/QuestionDisplay';
@@ -80,11 +81,6 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     );
   };
 
-  // Consistent redirect URL
-  const getRedirectUrl = () => {
-    return "https://www.micancapital.au/courses-en";
-  };
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
       <QuestionDisplay
@@ -102,11 +98,24 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
         open={showResults}
         onOpenChange={setShowResults}
         result={showResults ? getResultData() : null}
-        onManualRedirect={() => window.location.href = getRedirectUrl()}
+        onManualRedirect={() => window.open(getRedirectUrl(defaultLanguage), '_blank')}
         language={defaultLanguage}
       />
     </div>
   );
+};
+
+// Helper function to get redirect URL based on language
+const getRedirectUrl = (language: string) => {
+  switch(language) {
+    case 'zh-CN':
+      return "https://www.micancapital.au/courses-cn";
+    case 'zh-HK':
+      return "https://www.micancapital.au/courses-tw";
+    case 'en':
+    default:
+      return "https://www.micancapital.au/courses-en";
+  }
 };
 
 export default Assessment;

@@ -54,17 +54,17 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
       setCountdown(10); // Reset countdown when dialog opens
       
       countdownInterval = setInterval(() => {
-        setCountdown((prev) => Math.max(0, prev - 1));
+        setCountdown((prev) => {
+          // When countdown reaches 0, trigger redirect
+          if (prev <= 1) {
+            window.open(REDIRECT_URL, '_blank');
+          }
+          return Math.max(0, prev - 1);
+        });
       }, 1000);
-      
-      redirectTimeout = setTimeout(() => {
-        // Use window.open instead of window.location.href for better cross-origin handling
-        window.open(REDIRECT_URL, '_blank');
-      }, 10000);
     }
     
     return () => {
-      if (redirectTimeout) clearTimeout(redirectTimeout);
       if (countdownInterval) clearInterval(countdownInterval);
     };
   }, [open, result, isHistoryPage, REDIRECT_URL]);
