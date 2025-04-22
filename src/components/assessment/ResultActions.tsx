@@ -10,6 +10,11 @@ interface ResultActionsProps {
 }
 
 const ResultActions: React.FC<ResultActionsProps> = ({ redirectUrl, countdown }) => {
+  const handleRedirect = () => {
+    // Use window.open for better cross-origin handling
+    window.open(redirectUrl, '_blank');
+  };
+
   return (
     <>
       <div className="text-sm text-gray-500 text-center mt-4">
@@ -18,7 +23,7 @@ const ResultActions: React.FC<ResultActionsProps> = ({ redirectUrl, countdown })
       
       <div className="flex flex-col gap-3 w-full">
         <Button 
-          onClick={() => window.location.href = redirectUrl} 
+          onClick={handleRedirect}
           className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700"
         >
           <ExternalLink className="w-4 h-4" />

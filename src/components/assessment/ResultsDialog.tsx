@@ -28,10 +28,24 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   language
 }) => {
   const [countdown, setCountdown] = useState(10);
-  const REDIRECT_URL = "https://www.micancapital.au/courses-en";
   const location = useLocation();
   const isHistoryPage = location.pathname === '/history';
 
+  // Define redirect URLs based on language
+  const getRedirectUrl = () => {
+    switch(language) {
+      case 'zh-CN':
+        return "https://www.micancapital.au/courses-cn";
+      case 'zh-HK':
+        return "https://www.micancapital.au/courses-tw";
+      case 'en':
+      default:
+        return "https://www.micancapital.au/courses-en";
+    }
+  };
+
+  const REDIRECT_URL = getRedirectUrl();
+  
   useEffect(() => {
     let redirectTimeout: NodeJS.Timeout;
     let countdownInterval: NodeJS.Timeout;
@@ -44,7 +58,8 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
       }, 1000);
       
       redirectTimeout = setTimeout(() => {
-        window.location.href = REDIRECT_URL;
+        // Use window.open instead of window.location.href for better cross-origin handling
+        window.open(REDIRECT_URL, '_blank');
       }, 10000);
     }
     
@@ -52,7 +67,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
       if (redirectTimeout) clearTimeout(redirectTimeout);
       if (countdownInterval) clearInterval(countdownInterval);
     };
-  }, [open, result, isHistoryPage]);
+  }, [open, result, isHistoryPage, REDIRECT_URL]);
 
   const hasAssessmentData = result && 
                            result.depressionResult && 
