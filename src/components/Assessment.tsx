@@ -98,24 +98,11 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
         open={showResults}
         onOpenChange={setShowResults}
         result={showResults ? getResultData() : null}
-        onManualRedirect={() => window.open(getRedirectUrl(defaultLanguage), '_blank')}
+        onManualRedirect={() => window.open("https://www.micancapital.au/courses-en", '_blank')}
         language={defaultLanguage}
       />
     </div>
   );
-};
-
-// Helper function to get redirect URL based on language
-const getRedirectUrl = (language: string) => {
-  switch(language) {
-    case 'zh-CN':
-      return "https://www.micancapital.au/courses-cn";
-    case 'zh-HK':
-      return "https://www.micancapital.au/courses-tw";
-    case 'en':
-    default:
-      return "https://www.micancapital.au/courses-en";
-  }
 };
 
 export default Assessment;

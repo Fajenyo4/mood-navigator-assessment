@@ -31,23 +31,10 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   const location = useLocation();
   const isHistoryPage = location.pathname === '/history';
 
-  // Define redirect URLs based on language
-  const getRedirectUrl = () => {
-    switch(language) {
-      case 'zh-CN':
-        return "https://www.micancapital.au/courses-cn";
-      case 'zh-HK':
-        return "https://www.micancapital.au/courses-tw";
-      case 'en':
-      default:
-        return "https://www.micancapital.au/courses-en";
-    }
-  };
-
-  const REDIRECT_URL = getRedirectUrl();
+  // Use a single redirect URL for all languages
+  const REDIRECT_URL = "https://www.micancapital.au/courses-en";
   
   useEffect(() => {
-    let redirectTimeout: NodeJS.Timeout;
     let countdownInterval: NodeJS.Timeout;
     
     if (open && result && !isHistoryPage) {
@@ -55,9 +42,13 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
       
       countdownInterval = setInterval(() => {
         setCountdown((prev) => {
-          // When countdown reaches 0, trigger redirect
+          // When countdown reaches 0, trigger redirect in a new tab
           if (prev <= 1) {
-            window.open(REDIRECT_URL, '_blank');
+            const newWindow = window.open(REDIRECT_URL, '_blank');
+            // If popup blocker prevents opening, handle it gracefully
+            if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+              console.log("Popup blocked, unable to redirect automatically");
+            }
           }
           return Math.max(0, prev - 1);
         });

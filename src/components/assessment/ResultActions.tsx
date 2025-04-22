@@ -11,7 +11,6 @@ interface ResultActionsProps {
 
 const ResultActions: React.FC<ResultActionsProps> = ({ redirectUrl, countdown }) => {
   const handleRedirect = () => {
-    // Use window.open for better cross-origin handling
     window.open(redirectUrl, '_blank');
   };
 
