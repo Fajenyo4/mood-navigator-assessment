@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const SSOLogin: React.FC = () => {
@@ -98,6 +98,7 @@ const SSOLogin: React.FC = () => {
         </div>
       ) : error ? (
         <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <div className="text-red-500 mb-4 text-lg">Authentication Failed</div>
           <p className="mb-4">{error}</p>
           <button

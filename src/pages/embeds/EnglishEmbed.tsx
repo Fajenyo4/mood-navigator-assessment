@@ -9,13 +9,23 @@ const EnglishEmbed: React.FC<EnglishEmbedProps> = ({ sso = false }) => {
   // Check for direct SSO parameters
   const [isDirectSso, setIsDirectSso] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Check URL parameters for direct SSO access
     const urlParams = new URLSearchParams(window.location.search);
-    const email = urlParams.get('email');
-    const name = urlParams.get('name');
+    const rawEmail = urlParams.get('email');
+    const rawName = urlParams.get('name');
     
+    // Clean up email if it contains template variables
+    let email = rawEmail;
+    if (email && (email.includes('{{') || email.includes('}}'))) {
+      console.warn("Template variables detected in email:", email);
+      // This is likely an unprocessed template from LearnWorlds
+      setError("The URL contains template variables. Please configure LearnWorlds to replace {{USER_EMAIL}} and {{USER_NAME}} with actual values.");
+      return;
+    }
+
     if (email) {
       setIsDirectSso(true);
       setRedirecting(true);
@@ -26,16 +36,27 @@ const EnglishEmbed: React.FC<EnglishEmbedProps> = ({ sso = false }) => {
         // Create a simple token by encoding the email and timestamp
         const simpleToken = btoa(`${email}:${Date.now()}`);
         
+        // Get actual name or default to email username
+        let name = rawName;
+        if (name && (name.includes('{{') || name.includes('}}'))) {
+          name = email.split('@')[0]; // Default to username portion of email
+        }
+        
         // Redirect to SSO login endpoint with token and language
         const appDomain = window.location.origin;
         const redirectUrl = `${appDomain}/sso-login?token=${encodeURIComponent(simpleToken)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name || email.split('@')[0])}&lang=en`;
         
         console.log("Redirecting to:", redirectUrl);
-        window.location.href = redirectUrl;
+        
+        // Add a small delay to allow logs to be sent to console
+        setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, 100);
       } catch (error) {
         console.error("Error during SSO redirect:", error);
         // Show error state instead of infinite loading
         setRedirecting(false);
+        setError("Error processing SSO login. Please try again or contact support.");
       }
     }
   }, []);
@@ -44,6 +65,20 @@ const EnglishEmbed: React.FC<EnglishEmbedProps> = ({ sso = false }) => {
   const embedUrl = sso 
     ? "https://mood-navigator-assessment.lovable.app/embed/en-sso.html" 
     : "https://mood-navigator-assessment.lovable.app/login/en";
+
+  if (error) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f9f9f9' }}>
+        <div style={{ textAlign: 'center', maxWidth: '80%', padding: '20px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)' }}>
+          <div style={{ color: '#e11d48', marginBottom: '16px', fontSize: '24px' }}>⚠️ Configuration Error</div>
+          <p style={{ marginBottom: '16px', color: '#4b5563', fontFamily: 'Arial, sans-serif' }}>{error}</p>
+          <p style={{ color: '#6b7280', fontSize: '14px', fontFamily: 'Arial, sans-serif' }}>
+            Please ensure your LearnWorlds integration is configured correctly.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (redirecting) {
     return (
