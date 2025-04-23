@@ -1,36 +1,47 @@
 
 import React from 'react';
 
-const TraditionalChineseEmbed: React.FC = () => {
+interface TraditionalChineseEmbedProps {
+  sso?: boolean;
+}
+
+const TraditionalChineseEmbed: React.FC<TraditionalChineseEmbedProps> = ({ sso = false }) => {
+  // Determine the URL based on whether this is an SSO embed or not
+  const embedUrl = sso 
+    ? "https://mood-navigator-assessment.lovable.app/embed/zh-tw-sso.html" 
+    : "https://mood-navigator-assessment.lovable.app/login/zh-hk";
+
   return (
     <div style={{ height: '100vh', width: '100%', margin: 0, padding: 0, overflow: 'hidden' }}>
       <div style={{ position: 'relative', height: '100%' }}>
         <iframe 
           id="assessment"
-          src="https://mood-navigator-assessment.lovable.app/login/zh-hk"
+          src={embedUrl}
           width="100%" 
           height="100%"
           style={{ border: 'none' }}
           allow="fullscreen"
         />
         
-        <button 
-          onClick={() => quickAccess('zh-hk')} 
-          style={{ 
-            position: 'absolute', 
-            top: '10px', 
-            right: '10px', 
-            zIndex: 1000, 
-            background: '#4f46e5', 
-            color: 'white', 
-            border: 'none', 
-            padding: '8px 12px', 
-            borderRadius: '4px', 
-            cursor: 'pointer' 
-          }}
-        >
-          快速訪問
-        </button>
+        {!sso && (
+          <button 
+            onClick={() => quickAccess('zh-hk')} 
+            style={{ 
+              position: 'absolute', 
+              top: '10px', 
+              right: '10px', 
+              zIndex: 1000, 
+              background: '#4f46e5', 
+              color: 'white', 
+              border: 'none', 
+              padding: '8px 12px', 
+              borderRadius: '4px', 
+              cursor: 'pointer' 
+            }}
+          >
+            快速訪問
+          </button>
+        )}
       </div>
     </div>
   );
