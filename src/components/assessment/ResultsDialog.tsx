@@ -48,7 +48,13 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
             // Add a small delay to ensure the UI shows 0 before redirect
             setTimeout(() => {
               console.log("Attempting redirect to:", REDIRECT_URL);
-              window.location.href = REDIRECT_URL;
+              
+              // Add referrer to help LearnWorlds identify the source
+              const redirectUrlWithRef = new URL(REDIRECT_URL);
+              redirectUrlWithRef.searchParams.append('ref', 'mood-assessment');
+              redirectUrlWithRef.searchParams.append('completed', 'true');
+              
+              window.location.href = redirectUrlWithRef.toString();
             }, 500);
             
             return 0;

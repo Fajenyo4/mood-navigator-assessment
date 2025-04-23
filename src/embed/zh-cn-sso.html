@@ -36,33 +36,73 @@
         });
       }
     }
+    
+    // If this page is directly loaded without iframe (direct link usage)
+    // Check for URL parameters that might contain user information
+    window.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const email = urlParams.get('email');
+      const name = urlParams.get('name');
+      
+      if (email) {
+        console.log("Direct link SSO detected with email:", email);
+        initSSO({
+          email: email,
+          name: name || email.split('@')[0]
+        });
+      }
+    });
   </script>
 </head>
-<body style="margin:0;padding:0;overflow:hidden;">
-  <div style="position: relative;">
-    <iframe 
-      id="assessment"
-      src="https://mood-navigator-assessment.lovable.app/login/zh-cn"
-      width="100%" 
-      height="800"
-      frameborder="0"
-      allow="fullscreen"
-    ></iframe>
+<body style="text-align: center; font-family: Arial, sans-serif; margin: 40px; line-height: 1.6;">
+  <h1>LearnWorlds SSO 集成</h1>
+  
+  <div style="max-width: 600px; margin: 0 auto; background: #f9f9f9; padding: 20px; border-radius: 8px;">
+    <p>此页面启用与 LearnWorlds 的单点登录 (SSO) 集成。</p>
+    <p>正确集成后，用户登录 LearnWorlds 后将自动重定向到评估。</p>
     
-    <!-- For testing purposes only - would be removed in production -->
-    <button 
-      onclick="simulateLearnWorldsLogin()" 
-      style="position: absolute; top: 10px; right: 10px; z-index: 1000; background: #4f46e5; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;"
-    >
-      测试 SSO 登录
-    </button>
+    <h2>集成说明</h2>
+    <ol style="text-align: left;">
+      <li>将此页面作为自定义 HTML 页面添加到您的 LearnWorlds 站点</li>
+      <li>在您的 LearnWorlds 站点中创建 JavaScript 代码，在用户点击评估链接时调用 initSSO 函数</li>
+      <li>将用户的电子邮件和姓名传递给 initSSO 函数</li>
+    </ol>
+    
+    <div style="margin: 30px 0; padding: 15px; background: #e9f5ff; border-radius: 6px;">
+      <h3>LearnWorlds 的示例 JavaScript</h3>
+      <pre style="background: #f0f0f0; padding: 10px; overflow-x: auto; text-align: left;">
+// 将此添加到您的 LearnWorlds 自定义 JavaScript
+function launchAssessment() {
+  // 从 LearnWorlds 获取用户数据
+  const userEmail = LW.getUserEmail(); // LearnWorlds 函数 (示例)
+  const userName = LW.getUserName(); // LearnWorlds 函数 (示例)
+  
+  // 调用我们的嵌入中的 SSO 函数
+  const assessmentFrame = document.getElementById('assessment-frame');
+  if (assessmentFrame && assessmentFrame.contentWindow) {
+    assessmentFrame.contentWindow.initSSO({
+      email: userEmail,
+      name: userName
+    });
+  } else {
+    // 直接链接备用
+    window.open('https://mood-navigator-assessment.lovable.app/embed/zh-cn-sso.html?email=' + 
+      encodeURIComponent(userEmail) + '&name=' + encodeURIComponent(userName), '_blank');
+  }
+}
+
+// 示例：将此添加到您的评估按钮
+document.getElementById('assessment-button').addEventListener('click', launchAssessment);
+      </pre>
+    </div>
   </div>
   
-  <script>
-    // Instructions for LearnWorlds integration
-    console.log("LearnWorlds 集成指南:");
-    console.log("1. 在您的 LearnWorlds 网站中添加自定义 JavaScript，以检测已登录用户");
-    console.log("2. 当用户点击评估链接时，调用 initSSO({email: 'user@example.com', name: 'User Name'})");
-  </script>
+  <!-- For testing purposes only - would be removed in production -->
+  <button 
+    onclick="simulateLearnWorldsLogin()" 
+    style="margin-top: 20px; background: #4f46e5; color: white; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-size: 16px;"
+  >
+    测试 SSO 登录
+  </button>
 </body>
 </html>

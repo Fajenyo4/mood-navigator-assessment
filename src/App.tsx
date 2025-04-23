@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -58,6 +59,9 @@ const App = () => (
             <Route path="/embed/en" element={<EnglishEmbed />} />
             <Route path="/embed/zh-cn" element={<SimplifiedChineseEmbed />} />
             <Route path="/embed/zh-tw" element={<TraditionalChineseEmbed />} />
+            <Route path="/embed/en-sso" element={<EnglishEmbed sso={true} />} />
+            <Route path="/embed/zh-cn-sso" element={<SimplifiedChineseEmbed sso={true} />} />
+            <Route path="/embed/zh-tw-sso" element={<TraditionalChineseEmbed sso={true} />} />
             <Route path="/check-auth" element={<CheckAuth />} />
             <Route 
               path="/en" 

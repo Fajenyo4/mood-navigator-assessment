@@ -12,7 +12,11 @@ interface ResultActionsProps {
 const ResultActions: React.FC<ResultActionsProps> = ({ redirectUrl, countdown }) => {
   // Direct redirect without using window.open
   const handleRedirect = () => {
-    window.location.href = redirectUrl;
+    // Add referrer to help LearnWorlds identify the source
+    const redirectUrlWithRef = new URL(redirectUrl);
+    redirectUrlWithRef.searchParams.append('ref', 'mood-assessment');
+    
+    window.location.href = redirectUrlWithRef.toString();
   };
 
   return (

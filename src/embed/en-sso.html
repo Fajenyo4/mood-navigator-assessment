@@ -36,33 +36,73 @@
         });
       }
     }
+    
+    // If this page is directly loaded without iframe (direct link usage)
+    // Check for URL parameters that might contain user information
+    window.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const email = urlParams.get('email');
+      const name = urlParams.get('name');
+      
+      if (email) {
+        console.log("Direct link SSO detected with email:", email);
+        initSSO({
+          email: email,
+          name: name || email.split('@')[0]
+        });
+      }
+    });
   </script>
 </head>
-<body style="margin:0;padding:0;overflow:hidden;">
-  <div style="position: relative;">
-    <iframe 
-      id="assessment"
-      src="https://mood-navigator-assessment.lovable.app/login/en"
-      width="100%" 
-      height="800"
-      frameborder="0"
-      allow="fullscreen"
-    ></iframe>
+<body style="text-align: center; font-family: Arial, sans-serif; margin: 40px; line-height: 1.6;">
+  <h1>LearnWorlds SSO Integration</h1>
+  
+  <div style="max-width: 600px; margin: 0 auto; background: #f9f9f9; padding: 20px; border-radius: 8px;">
+    <p>This page enables Single Sign-On (SSO) integration with LearnWorlds.</p>
+    <p>When properly integrated, users will be automatically redirected to the assessment after logging into LearnWorlds.</p>
     
-    <!-- For testing purposes only - would be removed in production -->
-    <button 
-      onclick="simulateLearnWorldsLogin()" 
-      style="position: absolute; top: 10px; right: 10px; z-index: 1000; background: #4f46e5; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;"
-    >
-      Test SSO Login
-    </button>
+    <h2>Integration Instructions</h2>
+    <ol style="text-align: left;">
+      <li>Add this page to your LearnWorlds site as a custom HTML page</li>
+      <li>Create a JavaScript snippet in your LearnWorlds site that calls the initSSO function when a user clicks on the assessment link</li>
+      <li>Pass the user's email and name to the initSSO function</li>
+    </ol>
+    
+    <div style="margin: 30px 0; padding: 15px; background: #e9f5ff; border-radius: 6px;">
+      <h3>Sample JavaScript for LearnWorlds</h3>
+      <pre style="background: #f0f0f0; padding: 10px; overflow-x: auto; text-align: left;">
+// Add this to your LearnWorlds custom JavaScript
+function launchAssessment() {
+  // Get user data from LearnWorlds
+  const userEmail = LW.getUserEmail(); // LearnWorlds function (example)
+  const userName = LW.getUserName(); // LearnWorlds function (example)
+  
+  // Call the SSO function in our embed
+  const assessmentFrame = document.getElementById('assessment-frame');
+  if (assessmentFrame && assessmentFrame.contentWindow) {
+    assessmentFrame.contentWindow.initSSO({
+      email: userEmail,
+      name: userName
+    });
+  } else {
+    // Direct link fallback
+    window.open('https://mood-navigator-assessment.lovable.app/embed/en-sso.html?email=' + 
+      encodeURIComponent(userEmail) + '&name=' + encodeURIComponent(userName), '_blank');
+  }
+}
+
+// Example: Add this to your assessment button
+document.getElementById('assessment-button').addEventListener('click', launchAssessment);
+      </pre>
+    </div>
   </div>
   
-  <script>
-    // Instructions for LearnWorlds integration
-    console.log("LearnWorlds integration guide:");
-    console.log("1. Add custom JavaScript in your LearnWorlds site that detects logged-in user");
-    console.log("2. Call initSSO({email: 'user@example.com', name: 'User Name'}) when user clicks assessment link");
-  </script>
+  <!-- For testing purposes only - would be removed in production -->
+  <button 
+    onclick="simulateLearnWorldsLogin()" 
+    style="margin-top: 20px; background: #4f46e5; color: white; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-size: 16px;"
+  >
+    Test SSO Login
+  </button>
 </body>
 </html>
