@@ -12,11 +12,19 @@ interface ResultActionsProps {
 const ResultActions: React.FC<ResultActionsProps> = ({ redirectUrl, countdown }) => {
   // Direct redirect without using window.open
   const handleRedirect = () => {
-    // Add referrer to help LearnWorlds identify the source
-    const redirectUrlWithRef = new URL(redirectUrl);
-    redirectUrlWithRef.searchParams.append('ref', 'mood-assessment');
-    
-    window.location.href = redirectUrlWithRef.toString();
+    try {
+      // Add referrer to help LearnWorlds identify the source
+      const redirectUrlWithRef = new URL(redirectUrl);
+      redirectUrlWithRef.searchParams.append('ref', 'mood-assessment');
+      redirectUrlWithRef.searchParams.append('completed', 'true');
+      
+      // Use location.href for a clean redirect within the same tab
+      window.location.href = redirectUrlWithRef.toString();
+    } catch (error) {
+      console.error("Redirect error:", error);
+      // Fallback to simple redirect if URL construction fails
+      window.location.href = redirectUrl;
+    }
   };
 
   return (

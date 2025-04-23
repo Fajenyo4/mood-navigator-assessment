@@ -31,8 +31,8 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   const location = useLocation();
   const isHistoryPage = location.pathname === '/history';
 
-  // The only redirect URL we should use
-  const REDIRECT_URL = "https://www.micancapital.au/courses-en";
+  // The redirect URL with no protocol to avoid cross-origin issues
+  const REDIRECT_URL = "www.micancapital.au/courses-en";
   
   useEffect(() => {
     let countdownTimer: NodeJS.Timeout | null = null;
@@ -49,11 +49,12 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
             setTimeout(() => {
               console.log("Attempting redirect to:", REDIRECT_URL);
               
-              // Add referrer to help LearnWorlds identify the source
-              const redirectUrlWithRef = new URL(REDIRECT_URL);
+              // Build the full URL with protocol and parameters
+              const redirectUrlWithRef = new URL(`https://${REDIRECT_URL}`);
               redirectUrlWithRef.searchParams.append('ref', 'mood-assessment');
               redirectUrlWithRef.searchParams.append('completed', 'true');
               
+              // Open in the current window using window.location.href
               window.location.href = redirectUrlWithRef.toString();
             }, 500);
             
@@ -119,7 +120,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
             )}
 
             {!isHistoryPage && (
-              <ResultActions redirectUrl={REDIRECT_URL} countdown={countdown} />
+              <ResultActions redirectUrl={`https://${REDIRECT_URL}`} countdown={countdown} />
             )}
           </div>
         ) : (
