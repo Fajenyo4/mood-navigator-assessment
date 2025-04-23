@@ -35,31 +35,35 @@ const SSOLogin: React.FC = () => {
           lang 
         });
 
-        // For simple SSO, we can use magic link login with Supabase
-        const { data, error: signInError } = await supabase.auth.signInWithOtp({
-          email,
-          options: {
-            // Create the user if they don't exist
-            shouldCreateUser: true,
-            data: {
-              name: name,
-              source: 'learnworlds'
-            },
-            // We won't send an email, we'll use the return value
-            emailRedirectTo: `${window.location.origin}/${lang}`
-          }
+        // For SSO login, use the admin API through the edge function instead of client-side OTP
+        // This will prevent sending magic link emails
+        const response = await fetch(`${window.location.origin}/functions/v1/verify-sso`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, token, name }),
         });
 
-        if (signInError) {
-          console.error('SSO sign-in error:', signInError);
-          setError(`Authentication failed: ${signInError.message}`);
+        const data = await response.json();
+        
+        if (!response.ok) {
+          console.error('SSO verification error:', data);
+          setError(`Authentication failed: ${data.error || 'Unknown error'}`);
           setIsLoading(false);
           return;
         }
 
-        // If we have user data, we're authenticated
-        if (data) {
+        // If we have session data from the edge function, we're authenticated
+        if (data.session) {
           console.log('Authentication successful, redirecting to:', `/${lang}`);
+          
+          // Set the session manually in Supabase client
+          await supabase.auth.setSession({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token
+          });
+          
           toast.success('Successfully signed in!');
           
           // Use a small timeout to ensure the toast is visible
