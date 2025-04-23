@@ -31,8 +31,8 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   const location = useLocation();
   const isHistoryPage = location.pathname === '/history';
 
-  // The redirect URL with no protocol to avoid cross-origin issues
-  const REDIRECT_URL = "www.micancapital.au/courses-en";
+  // The redirect URL with proper https protocol to avoid cross-origin issues
+  const REDIRECT_URL = "https://www.micancapital.au/courses-en";
   
   useEffect(() => {
     let countdownTimer: NodeJS.Timeout | null = null;
@@ -49,13 +49,19 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
             setTimeout(() => {
               console.log("Attempting redirect to:", REDIRECT_URL);
               
-              // Build the full URL with protocol and parameters
-              const redirectUrlWithRef = new URL(`https://${REDIRECT_URL}`);
-              redirectUrlWithRef.searchParams.append('ref', 'mood-assessment');
-              redirectUrlWithRef.searchParams.append('completed', 'true');
-              
-              // Open in the current window using window.location.href
-              window.location.href = redirectUrlWithRef.toString();
+              try {
+                // Build the full URL with parameters
+                const redirectUrlWithRef = new URL(REDIRECT_URL);
+                redirectUrlWithRef.searchParams.append('ref', 'mood-assessment');
+                redirectUrlWithRef.searchParams.append('completed', 'true');
+                
+                // Open in the current window using window.location.href
+                window.location.href = redirectUrlWithRef.toString();
+              } catch (error) {
+                console.error("Redirect URL construction error:", error);
+                // Fallback to direct redirect
+                window.location.href = REDIRECT_URL;
+              }
             }, 500);
             
             return 0;
@@ -120,7 +126,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
             )}
 
             {!isHistoryPage && (
-              <ResultActions redirectUrl={`https://${REDIRECT_URL}`} countdown={countdown} />
+              <ResultActions redirectUrl={REDIRECT_URL} countdown={countdown} />
             )}
           </div>
         ) : (

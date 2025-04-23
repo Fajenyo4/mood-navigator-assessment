@@ -22,14 +22,21 @@ const EnglishEmbed: React.FC<EnglishEmbedProps> = ({ sso = false }) => {
       
       console.log("Direct SSO detected with email:", email);
       
-      // Create a simple token by encoding the email and timestamp
-      const simpleToken = btoa(`${email}:${Date.now()}`);
-      
-      // Redirect to SSO login endpoint with token and language
-      const appDomain = window.location.origin;
-      const redirectUrl = `${appDomain}/sso-login?token=${simpleToken}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name || email.split('@')[0])}&lang=en`;
-      
-      window.location.href = redirectUrl;
+      try {
+        // Create a simple token by encoding the email and timestamp
+        const simpleToken = btoa(`${email}:${Date.now()}`);
+        
+        // Redirect to SSO login endpoint with token and language
+        const appDomain = window.location.origin;
+        const redirectUrl = `${appDomain}/sso-login?token=${encodeURIComponent(simpleToken)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name || email.split('@')[0])}&lang=en`;
+        
+        console.log("Redirecting to:", redirectUrl);
+        window.location.href = redirectUrl;
+      } catch (error) {
+        console.error("Error during SSO redirect:", error);
+        // Show error state instead of infinite loading
+        setRedirecting(false);
+      }
     }
   }, []);
 

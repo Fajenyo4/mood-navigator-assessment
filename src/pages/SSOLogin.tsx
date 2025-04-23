@@ -36,7 +36,6 @@ const SSOLogin: React.FC = () => {
         });
 
         // For simple SSO, we can use magic link login with Supabase
-        // This will send an email with a magic link, but we can auto-click it for the user
         const { data, error: signInError } = await supabase.auth.signInWithOtp({
           email,
           options: {
@@ -62,7 +61,11 @@ const SSOLogin: React.FC = () => {
         if (data) {
           console.log('Authentication successful, redirecting to:', `/${lang}`);
           toast.success('Successfully signed in!');
-          navigate(`/${lang}`);
+          
+          // Use a small timeout to ensure the toast is visible
+          setTimeout(() => {
+            navigate(`/${lang}`);
+          }, 1000);
         } else {
           setError('Authentication failed. Please try logging in manually.');
           setIsLoading(false);
