@@ -32,7 +32,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   const isHistoryPage = location.pathname === '/history';
 
   // The redirect URL with proper https protocol to avoid cross-origin issues
-  const REDIRECT_URL = "https://www.micancapital.au/courses-en";
+  const REDIRECT_URL = "https://www.mican.life/courses-en";
   
   useEffect(() => {
     let countdownTimer: NodeJS.Timeout | null = null;
@@ -140,3 +140,4 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
 };
 
 export default ResultsDialog;
+

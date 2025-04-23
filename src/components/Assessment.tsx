@@ -81,6 +81,9 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     );
   };
 
+  // Use the updated redirect URL
+  const REDIRECT_URL = "https://www.mican.life/courses-en";
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
       <QuestionDisplay
@@ -98,7 +101,7 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
         open={showResults}
         onOpenChange={setShowResults}
         result={showResults ? getResultData() : null}
-        onManualRedirect={() => window.location.href = "https://www.micancapital.au/courses-en"}
+        onManualRedirect={() => window.location.href = REDIRECT_URL}
         language={defaultLanguage}
       />
     </div>
@@ -106,3 +109,4 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
 };
 
 export default Assessment;
+
