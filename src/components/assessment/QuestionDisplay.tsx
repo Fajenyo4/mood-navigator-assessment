@@ -64,10 +64,8 @@ const QuestionDisplay = memo(function QuestionDisplay({
     onAnswer(value);
   }, [onAnswer]);
   
-  const handlePreviousClick = useCallback((event?: React.SyntheticEvent) => {
-    if (event && 'preventDefault' in event) {
-      event.preventDefault();
-    }
+  const handlePreviousClick = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
     if (onPrevious) onPrevious();
   }, [onPrevious]);
 
@@ -85,7 +83,7 @@ const QuestionDisplay = memo(function QuestionDisplay({
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={(e) => handlePreviousClick(e)}
+          onClick={handlePreviousClick}
           className="mb-6 hover:bg-gray-100 transition-colors duration-200"
           type="button" 
         >
