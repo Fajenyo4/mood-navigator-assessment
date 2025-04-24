@@ -60,18 +60,21 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
             <ResultMessage message={result.message} language={language} />
 
             {!isHistoryPage && (
-              <div className="w-full space-y-4">
+              <div className="w-full flex space-x-4">
                 <ResultActions 
                   redirectUrl={REDIRECT_URL}
                   language={language}
+                  className="flex-1"
                 />
                 <Button 
                   variant="outline" 
-                  className="w-full flex items-center justify-center gap-2"
+                  className="flex items-center justify-center gap-2 flex-1"
                   onClick={handleViewHistory}
                 >
                   <History className="w-4 h-4" />
-                  <span>{assessmentResultsTranslations[language as keyof typeof assessmentResultsTranslations]?.viewHistory || 'View Assessment History'}</span>
+                  <span className="truncate">
+                    {assessmentResultsTranslations[language as keyof typeof assessmentResultsTranslations]?.viewHistory || 'View Assessment History'}
+                  </span>
                 </Button>
               </div>
             )}
