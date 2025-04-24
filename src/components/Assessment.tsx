@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import QuestionDisplay from './assessment/QuestionDisplay';
@@ -109,8 +108,13 @@ const Assessment = React.memo(function Assessment({ defaultLanguage = 'en' }: As
 
   // Calculate progress percentage - memoized
   const progressPercentage = useMemo(() => {
-    return Math.max(5, (currentQuestion / totalQuestions) * 100);
-  }, [currentQuestion, totalQuestions]);
+    // Only show progress if at least one question has been answered
+    if (Object.keys(answers).length === 0 && currentQuestion === 0) {
+      return 0;
+    }
+    // Otherwise show progress based on current question
+    return (currentQuestion / totalQuestions) * 100;
+  }, [currentQuestion, totalQuestions, answers]);
 
   // Don't render anything until initialized to prevent flashes
   if (!isInitialized) {

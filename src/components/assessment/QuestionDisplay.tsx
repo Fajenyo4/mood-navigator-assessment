@@ -92,7 +92,10 @@ const QuestionDisplay = memo(function QuestionDisplay({
       )}
 
       <div className="bg-white rounded-xl shadow-lg p-8 mb-6 hover:shadow-xl transition-all duration-300">
-        <Progress value={progress} className="mb-8 transition-all duration-500 ease-out" />
+        <Progress 
+          value={progress} 
+          className="mb-8 transition-all duration-500 ease-out" 
+        />
         
         <h2 className="text-xl font-medium text-gray-900 mb-8 text-center">
           {question.text}
