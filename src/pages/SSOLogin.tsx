@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -11,6 +12,7 @@ const SSOLogin: React.FC = () => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     const authenticateWithSSO = async () => {
@@ -38,25 +40,38 @@ const SSOLogin: React.FC = () => {
             body: JSON.stringify({ email, token, name }),
           });
 
-          if (!response.ok) {
-            const errorData = await response.json();
-            console.error('SSO verification error:', errorData);
-            throw new Error(errorData.error || `Server error: ${response.status}`);
+          // Check for non-JSON responses first
+          const contentType = response.headers.get('content-type');
+          if (!contentType || !contentType.includes('application/json')) {
+            const textResponse = await response.text();
+            console.error('Non-JSON response:', textResponse);
+            throw new Error(`Received non-JSON response from server`);
           }
 
+          // Now parse as JSON
           const data = await response.json();
+          
+          if (!response.ok) {
+            console.error('SSO verification error:', data);
+            throw new Error(data.error || `Server error: ${response.status}`);
+          }
           
           if (data.session) {
             console.log('Authentication successful, setting session');
             
-            // Set the session in Supabase client
-            await supabase.auth.setSession({
-              access_token: data.session.access_token,
-              refresh_token: data.session.refresh_token
-            });
-            
-            toast.success('Successfully signed in!');
-            navigate(`/${lang}`);
+            try {
+              // Set the session in Supabase client
+              await supabase.auth.setSession({
+                access_token: data.session.access_token,
+                refresh_token: data.session.refresh_token
+              });
+              
+              toast.success('Successfully signed in!');
+              navigate(`/${lang}`);
+            } catch (sessionError: any) {
+              console.error('Error setting session:', sessionError);
+              throw new Error(`Failed to set session: ${sessionError.message}`);
+            }
           } else {
             throw new Error('Authentication failed: No session data returned');
           }
@@ -80,49 +95,12 @@ const SSOLogin: React.FC = () => {
     }
 
     authenticateWithSSO();
-  }, [searchParams, navigate, user]);
+  }, [searchParams, navigate, user, retryCount]);
 
   const handleRetry = () => {
     setIsLoading(true);
     setError(null);
-    
-    // Force a new authentication attempt
-    const authenticateWithSSO = async () => {
-      const email = searchParams.get('email');
-      const token = searchParams.get('token');
-      const name = searchParams.get('name') || '';
-      const lang = searchParams.get('lang') || 'en';
-      
-      try {
-        const response = await fetch(`${window.location.origin}/functions/v1/verify-sso`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email, token, name }),
-        });
-        
-        const data = await response.json();
-        
-        if (data.session) {
-          await supabase.auth.setSession({
-            access_token: data.session.access_token,
-            refresh_token: data.session.refresh_token
-          });
-          
-          toast.success('Successfully signed in!');
-          navigate(`/${lang}`);
-        } else {
-          setError('Authentication failed. Please try again.');
-          setIsLoading(false);
-        }
-      } catch (err: any) {
-        setError(`Authentication error: ${err.message}`);
-        setIsLoading(false);
-      }
-    };
-    
-    authenticateWithSSO();
+    setRetryCount(prevCount => prevCount + 1);
   };
 
   // Display loading state or error message

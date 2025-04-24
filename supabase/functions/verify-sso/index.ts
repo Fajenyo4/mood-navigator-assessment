@@ -18,7 +18,18 @@ serve(async (req) => {
 
   try {
     // Initialize Supabase with the service role key
-    const supabase = createClient(supabaseUrl, supabaseServiceKey || '', {
+    if (!supabaseServiceKey) {
+      console.error("Missing SUPABASE_SERVICE_ROLE_KEY environment variable");
+      return new Response(
+        JSON.stringify({ error: "Server configuration error" }),
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" }, 
+          status: 500 
+        }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false
@@ -65,7 +76,10 @@ serve(async (req) => {
         
         if (createError) {
           console.error("Error creating user:", createError);
-          throw new Error("Failed to create user: " + createError.message);
+          return new Response(
+            JSON.stringify({ error: `Failed to create user: ${createError.message}` }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+          );
         }
         
         userId = newUser.user.id;
@@ -80,7 +94,18 @@ serve(async (req) => {
       
       if (sessionError) {
         console.error("Session creation error:", sessionError);
-        throw new Error("Failed to create session");
+        return new Response(
+          JSON.stringify({ error: `Failed to create session: ${sessionError.message}` }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+        );
+      }
+      
+      if (!session) {
+        console.error("No session data returned");
+        return new Response(
+          JSON.stringify({ error: "Failed to create session: No session data returned" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+        );
       }
       
       console.log("Authentication successful for:", email);
@@ -92,14 +117,14 @@ serve(async (req) => {
     } catch (authError) {
       console.error("Authentication error:", authError);
       return new Response(
-        JSON.stringify({ error: "Authentication failed: " + authError.message }),
+        JSON.stringify({ error: `Authentication failed: ${authError.message}` }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
       );
     }
   } catch (error) {
     console.error("Unhandled error in SSO function:", error);
     return new Response(
-      JSON.stringify({ error: "Authentication failed: " + error.message }),
+      JSON.stringify({ error: `Authentication failed: ${error.message}` }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
     );
   }
