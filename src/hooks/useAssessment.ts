@@ -67,11 +67,14 @@ export const useAssessment = ({
       };
       setAnswers(updatedAnswers);
       
+      // Update selected option immediately
       setSelectedOption(value);
 
+      // Check if we're at the last question
       if (currentQuestion < questions.length - 1) {
-        // Move to the next question immediately
+        // Move to the next question
         setCurrentQuestion(prev => prev + 1);
+        // Reset selected option for the next question
         setSelectedOption("");
       } else {
         // We're at the last question, submit the assessment
@@ -87,6 +90,7 @@ export const useAssessment = ({
     if (currentQuestion > 0) {
       const prevQuestion = currentQuestion - 1;
       setCurrentQuestion(prevQuestion);
+      // Set the selected option to the previously answered value
       setSelectedOption(answers[prevQuestion + 1]?.toString() || "");
     }
   }, [currentQuestion, answers]);
