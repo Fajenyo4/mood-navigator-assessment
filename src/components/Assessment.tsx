@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import QuestionDisplay from './assessment/QuestionDisplay';
@@ -89,6 +90,11 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     }
   }, [effectiveLanguage]);
 
+  // Calculate the total number of questions for the current language
+  const totalQuestions = React.useMemo(() => {
+    return questionCounts[effectiveLanguage as keyof typeof questionCounts] || questionCounts['en'];
+  }, [effectiveLanguage]);
+
   // Memoize the current question for better performance
   const currentQuestionData = React.useMemo(() => {
     const questions = getQuestions();
@@ -97,10 +103,8 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
 
   // Calculate progress percentage
   const progressPercentage = React.useMemo(() => {
-    const totalQuestions = questionCounts[effectiveLanguage as keyof typeof questionCounts] || 
-                           questionCounts['en'];
     return (currentQuestion / totalQuestions) * 100;
-  }, [currentQuestion, effectiveLanguage]);
+  }, [currentQuestion, totalQuestions]);
 
   // Prevent refreshes from resetting the assessment state
   useEffect(() => {
