@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,8 +16,17 @@ const SSOLogin: React.FC = () => {
   const [retryCount, setRetryCount] = useState(0);
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [magicLink, setMagicLink] = useState<string | null>(null);
 
   useEffect(() => {
+    // If already authenticated, redirect to home page
+    if (user) {
+      const lang = searchParams.get('lang') || 'en';
+      navigate(`/${lang}`, { replace: true });
+      return;
+    }
+
     const authenticateWithSSO = async () => {
       try {
         // Get token, email and name from URL params
@@ -39,12 +48,20 @@ const SSOLogin: React.FC = () => {
           const apiEndpoint = `https://thvtgvvwksbxywhdnwcv.supabase.co/functions/v1/verify-sso`;
           console.log("Calling API endpoint:", apiEndpoint);
           
+          // Get current URL to use as redirect URL
+          const currentUrl = window.location.origin + `/${lang}`;
+          
           const response = await fetch(apiEndpoint, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ email, token, name }),
+            body: JSON.stringify({ 
+              email, 
+              token, 
+              name,
+              redirectUrl: currentUrl
+            }),
           });
 
           // Store status and headers for debugging
@@ -81,46 +98,21 @@ const SSOLogin: React.FC = () => {
             throw new Error(data.error || `Server error: ${response.status}`);
           }
           
-          if (data.session) {
-            console.log('Authentication successful, setting session directly:', data.session);
+          if (data.magicLink) {
+            console.log('Magic link received:', data.magicLink);
+            setMagicLink(data.magicLink);
             
-            try {
-              // Set the session directly in Supabase client
-              const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-                access_token: data.session.access_token,
-                refresh_token: data.session.refresh_token
-              });
-              
-              if (sessionError) {
-                console.error("Error setting session:", sessionError);
-                setErrorDetails(JSON.stringify(sessionError, null, 2));
-                throw new Error(`Failed to set session: ${sessionError.message}`);
+            // Create a hidden iframe to automatically load the magic link
+            // This will trigger the auth flow without user interaction
+            setTimeout(() => {
+              if (!user) {
+                // After 5 seconds, if still not logged in, show a message
+                setError("Automatic login is taking longer than expected. Please wait or try refreshing the page.");
+                setIsLoading(false);
               }
-              
-              console.log("Session set successfully:", sessionData);
-              
-              // Get the user from the session data
-              if (sessionData.user) {
-                setUser(sessionData.user);
-                console.log("User state updated in AuthContext:", sessionData.user);
-                
-                toast.success('Successfully signed in!');
-                
-                // Add a slightly longer delay to ensure state is updated before redirecting
-                setTimeout(() => {
-                  console.log(`Redirecting to /${lang}`);
-                  navigate(`/${lang}`, { replace: true });
-                }, 800);
-              } else {
-                throw new Error("User data not available in session after setting it");
-              }
-            } catch (sessionError: any) {
-              console.error('Error setting session:', sessionError);
-              setErrorDetails(typeof sessionError === 'object' ? JSON.stringify(sessionError, null, 2) : sessionError.toString());
-              throw new Error(`Failed to set session: ${sessionError.message}`);
-            }
+            }, 5000);
           } else {
-            throw new Error('Authentication failed: No session data returned');
+            throw new Error('Authentication failed: No magic link returned');
           }
         } catch (fetchError: any) {
           console.error('Error during SSO:', fetchError);
@@ -135,21 +127,49 @@ const SSOLogin: React.FC = () => {
       }
     };
 
-    // If already authenticated, redirect to home page
-    if (user) {
-      const lang = searchParams.get('lang') || 'en';
-      navigate(`/${lang}`, { replace: true });
-      return;
-    }
-
     authenticateWithSSO();
+    
+    // Set up auth state listener to detect when magic link succeeds
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event, session?.user?.email);
+      if (session?.user) {
+        setUser(session.user);
+        const lang = searchParams.get('lang') || 'en';
+        toast.success('Successfully signed in!');
+        navigate(`/${lang}`, { replace: true });
+      }
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+    
   }, [searchParams, navigate, user, retryCount, setUser]);
+
+  // Auto-open magic link when it's available
+  useEffect(() => {
+    if (magicLink) {
+      // Use an iframe to silently process the magic link
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = magicLink;
+      document.body.appendChild(iframe);
+      
+      // Fallback: If iframe doesn't work, open in a new tab or redirect
+      setTimeout(() => {
+        if (!user) {
+          window.open(magicLink, '_blank');
+        }
+      }, 3000);
+    }
+  }, [magicLink, user]);
 
   const handleRetry = () => {
     setIsLoading(true);
     setError(null);
     setErrorDetails(null);
     setDebugInfo(null);
+    setMagicLink(null);
     setRetryCount(prevCount => prevCount + 1);
   };
 
@@ -206,6 +226,16 @@ const SSOLogin: React.FC = () => {
           </div>
         </div>
       ) : null}
+      
+      {/* Hidden iframe to load the magic link */}
+      {magicLink && (
+        <iframe 
+          ref={iframeRef}
+          src={magicLink}
+          style={{ display: 'none', width: 0, height: 0, border: 0 }}
+          title="SSO Authentication"
+        />
+      )}
     </div>
   );
 };

@@ -41,7 +41,7 @@ serve(async (req) => {
       );
     }
     
-    const { email, token, name } = requestData;
+    const { email, token, name, redirectUrl } = requestData;
     
     if (!email) {
       console.error("Missing required email parameter");
@@ -50,8 +50,11 @@ serve(async (req) => {
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
+
+    // Get the redirect URL or default to the app domain
+    const finalRedirectUrl = redirectUrl || new URL(req.url).origin;
     
-    console.log("Processing SSO for email:", email, "name:", name);
+    console.log("Processing SSO for email:", email, "name:", name, "redirect:", finalRedirectUrl);
     
     // Initialize Supabase admin client with service role
     console.log("Initializing Supabase admin client");
@@ -118,37 +121,35 @@ serve(async (req) => {
         userId = newUser.user.id;
       }
       
-      // 3. Create session token (authenticate the user)
-      console.log("Creating session for user ID:", userId);
-      const { data: sessionData, error: sessionError } = await supabaseAdmin.auth.admin.createSession({
-        userId: userId
+      // 3. Generate a sign-in link with magic link
+      console.log("Generating sign-in link for user ID:", userId);
+      const { data: signInData, error: signInError } = await supabaseAdmin.auth.admin.generateLink({
+        type: 'magiclink',
+        email: email,
+        options: {
+          redirectTo: finalRedirectUrl
+        }
       });
       
-      if (sessionError) {
-        console.error("Error creating session:", sessionError);
+      if (signInError) {
+        console.error("Error generating sign-in link:", signInError);
         return new Response(
-          JSON.stringify({ error: `Session creation failed: ${sessionError.message}` }),
+          JSON.stringify({ error: `Sign-in link generation failed: ${signInError.message}` }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
         );
       }
       
-      console.log("Session created successfully");
+      console.log("Sign-in link generated successfully");
       
-      // Return the session data to the client
+      // Return the sign-in link to the client
       return new Response(
         JSON.stringify({ 
-          session: {
-            access_token: sessionData.access_token,
-            refresh_token: sessionData.refresh_token,
-            expires_in: sessionData.expires_in, 
-            expires_at: sessionData.expires_at,
-            token_type: 'bearer',
-            user: sessionData.user
-          },
+          magicLink: signInData.properties.action_link,
           success: true 
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+      
     } catch (authError) {
       console.error("Error in authentication flow:", authError);
       return new Response(
