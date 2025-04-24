@@ -20,6 +20,7 @@ import SimplifiedChineseEmbed from './pages/embeds/SimplifiedChineseEmbed';
 import TraditionalChineseEmbed from './pages/embeds/TraditionalChineseEmbed';
 import AssessmentHistoryChart from './pages/AssessmentHistoryChart';
 import Index from './pages/Index';
+import EasyHistoryRedirect from './pages/EasyHistoryRedirect';
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,7 @@ const App = () => (
             <Route path="/embed/en-sso" element={<EnglishEmbed sso={true} />} />
             <Route path="/embed/zh-cn-sso" element={<SimplifiedChineseEmbed sso={true} />} />
             <Route path="/embed/zh-tw-sso" element={<TraditionalChineseEmbed sso={true} />} />
+            <Route path="/embed/easy-history" element={<EasyHistoryRedirect />} />
             <Route path="/check-auth" element={<CheckAuth />} />
             <Route 
               path="/en" 

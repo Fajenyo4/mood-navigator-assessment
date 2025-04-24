@@ -37,25 +37,39 @@ const EasyAccess = () => {
         console.log("EasyAccess: Creating anonymous session with", anonymousEmail);
 
         // For public access, we create an anonymous session
-        const { data: { session }, error } = await supabase.auth.signUp({
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: anonymousEmail,
           password: randomPassword,
         });
 
-        if (error || !session) {
-          console.error('Failed to create anonymous session:', error);
-          throw new Error('Failed to create anonymous session');
+        if (signUpError || !signUpData.session) {
+          console.error('Failed to create anonymous session:', signUpError);
+          
+          // Try sign in as fallback - the user might exist already
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+            email: anonymousEmail,
+            password: randomPassword,
+          });
+          
+          if (signInError || !signInData.session) {
+            console.error('Failed to sign in as anonymous user:', signInError);
+            throw new Error('Failed to create anonymous session');
+          }
+          
+          // Use the session from sign in
+          await supabase.auth.setSession({
+            access_token: signInData.session.access_token,
+            refresh_token: signInData.session.refresh_token
+          });
+        } else {
+          // Set the session in Supabase
+          await supabase.auth.setSession({
+            access_token: signUpData.session.access_token,
+            refresh_token: signUpData.session.refresh_token
+          });
         }
 
-        console.log("EasyAccess: Anonymous session created successfully");
-
-        // Set the session in Supabase
-        await supabase.auth.setSession({
-          access_token: session.access_token,
-          refresh_token: session.refresh_token
-        });
-
-        console.log('EasyAccess: Session set successfully');
+        console.log('EasyAccess: Anonymous session created successfully');
 
         // Navigate to the appropriate view based on the view parameter
         if (view === 'history') {

@@ -9,13 +9,29 @@
     // Get the app domain from the current URL
     const appDomain = window.location.origin;
     
-    // Function to create a direct access link with default parameters
+    // Function to create a direct access link with user parameters
     function createDirectAccessLink(language = 'en') {
-      // Create a simple token by encoding timestamp only since we don't need email
-      const simpleToken = btoa(`public:${Date.now()}`);
+      // Get email and name parameters if present
+      const urlParams = new URLSearchParams(window.location.search);
+      const email = urlParams.get('email');
+      const name = urlParams.get('name');
       
-      // Return the formatted URL for history view with language parameter
-      return `${appDomain}/easy-access?token=${simpleToken}&view=history&lang=${language}`;
+      console.log("Parameters detected:", { email, name, language });
+      
+      // If we have email param, use SSO-like flow
+      if (email && email !== "{{USER_EMAIL}}") {
+        // Create a token that includes the email
+        const userToken = btoa(`${email}:${Date.now()}`);
+        
+        // Return SSO-style URL with email and name
+        return `${appDomain}/sso-login?token=${userToken}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name || email)}&lang=${language}&redirectUrl=${encodeURIComponent(appDomain + '/history-chart')}`;
+      } else {
+        // For public access, use a simpler token
+        const simpleToken = btoa(`public:${Date.now()}`);
+        
+        // Return public access URL
+        return `${appDomain}/easy-access?token=${simpleToken}&view=history&lang=${language}`;
+      }
     }
 
     // Get language from URL parameter or default to English
@@ -26,9 +42,10 @@
     console.log("Easy-history redirect starting");
     console.log("App domain:", appDomain);
     console.log("Language parameter:", lang);
+    console.log("URL params:", Object.fromEntries(urlParams));
     console.log("Redirecting to:", createDirectAccessLink(lang));
     
-    // Redirect immediately to history view
+    // Redirect immediately to appropriate access path
     window.location.href = createDirectAccessLink(lang);
   </script>
 </head>
