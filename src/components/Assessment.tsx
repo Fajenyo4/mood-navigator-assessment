@@ -7,7 +7,7 @@ import LoadingState from './assessment/LoadingState';
 import { useAssessment } from '@/hooks/useAssessment';
 import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/assessmentScoring';
 
-// Preloading question sets for faster access
+// Optimize imports by directly importing question sets
 import { questions as enQuestions } from '@/translations/en';
 import { questions as zhCNQuestions } from '@/translations/zh-CN';
 import { questions as zhTWQuestions } from '@/translations/zh-TW';
@@ -16,7 +16,7 @@ interface AssessmentProps {
   defaultLanguage?: string;
 }
 
-// Optimize initial loading by precomputing total questions for each language
+// Pre-compute question counts for better performance
 const questionCounts = {
   'en': enQuestions.length,
   'zh-CN': zhCNQuestions.length,
@@ -30,7 +30,7 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
   // Get the effective language - either from props or from auth context
   const effectiveLanguage = defaultLanguage || authLanguage || 'en';
   
-  // Create an optimized function to get saved progress state
+  // Optimize progress state retrieval
   const getSavedProgressState = useCallback(() => {
     try {
       const savedProgress = localStorage.getItem('assessment_progress');
@@ -126,9 +126,6 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     );
   }, [answers, showResults]);
 
-  // Use the updated redirect URL
-  const REDIRECT_URL = "https://www.mican.life/courses-en";
-
   if (isSubmitting) {
     return <LoadingState />;
   }
@@ -154,7 +151,6 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
         open={showResults}
         onOpenChange={setShowResults}
         result={showResults ? getResultData() : null}
-        onManualRedirect={() => window.location.href = REDIRECT_URL}
         language={effectiveLanguage}
       />
     </div>
