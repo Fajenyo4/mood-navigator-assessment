@@ -24,24 +24,23 @@ const ResultActions: React.FC<ResultActionsProps> = ({
   // Use useCallback to prevent recreation on each render
   const handleRedirect = useCallback(() => {
     try {
-      // Use our preventPageRefresh utility to block any automatic refreshes
+      // First remove any page refresh prevention for clean navigation
       const cleanup = preventPageRefresh();
+      cleanup();
       
+      // Process the redirect URL
       const redirectUrlWithRef = new URL(redirectUrl);
       redirectUrlWithRef.searchParams.append('ref', 'mood-assessment');
       redirectUrlWithRef.searchParams.append('completed', 'true');
       
-      // Use a short timeout to ensure UI updates before redirect
-      setTimeout(() => {
-        // Cleanup the refresh prevention when redirecting
-        cleanup();
-        // Use window.location.replace for cleaner navigation without back history
-        window.location.replace(redirectUrlWithRef.toString());
-      }, 100);
+      console.log("Redirecting to:", redirectUrlWithRef.toString());
+      
+      // Use window.open for better compatibility with cross-origin links
+      window.open(redirectUrlWithRef.toString(), '_blank');
     } catch (error) {
       console.error("Redirect error:", error);
       // Fallback with direct open if URL parsing fails
-      window.location.replace(redirectUrl);
+      window.open(redirectUrl, '_blank');
     }
   }, [redirectUrl]);
 

@@ -60,7 +60,7 @@ export const useAssessment = ({
       const numericValue = parseInt(value);
       const questions = QUESTIONS_MAP[defaultLanguage as keyof typeof QUESTIONS_MAP] || QUESTIONS_MAP['en'];
       
-      // Update answers with current selection
+      // Update answers with current selection 
       const updatedAnswers = {
         ...answers,
         [currentQuestion + 1]: numericValue
@@ -72,10 +72,12 @@ export const useAssessment = ({
 
       // Check if we're at the last question
       if (currentQuestion < questions.length - 1) {
-        // Move to the next question
-        setCurrentQuestion(prev => prev + 1);
-        // Reset selected option for the next question
-        setSelectedOption("");
+        // Move to the next question with a slight delay for better UX
+        setTimeout(() => {
+          setCurrentQuestion(prev => prev + 1);
+          // Reset selected option for the next question
+          setSelectedOption("");
+        }, 300);
       } else {
         // We're at the last question, submit the assessment
         handleSubmit(updatedAnswers);
