@@ -69,11 +69,10 @@ serve(async (req) => {
     console.log("Supabase admin client initialized");
     
     try {
-      // First check if the user exists
+      // Check if the user exists
       console.log("Checking if user exists:", email);
       
-      // Try to sign in the user with a magic link token
-      // This will create a session without sending an email
+      // Generate a link with tokens for the user (creates the user if they don't exist)
       const { data, error } = await supabaseAdmin.auth.admin.generateLink({
         type: 'magiclink',
         email: email,
@@ -98,27 +97,23 @@ serve(async (req) => {
         );
       }
       
-      // Success - extract the access and refresh tokens directly
+      // Success - create a proper session object that matches the Supabase client expectations
       console.log("Auth link generated successfully with tokens");
       
-      const session = {
+      // Format the session object to match what supabase.auth.setSession expects
+      const sessionData = {
         access_token: data.properties.access_token,
         refresh_token: data.properties.refresh_token,
-        user: {
-          id: data.user.id,
-          email: data.user.email,
-          user_metadata: {
-            ...data.user.user_metadata,
-            email_verified: true,
-            name: data.user.user_metadata?.name || name || email.split('@')[0]
-          }
-        }
+        expires_in: 3600, // Set a default expiry time (1 hour in seconds)
+        expires_at: Math.floor(Date.now() / 1000) + 3600, // Current time + 1 hour in seconds
+        token_type: 'bearer',
+        user: data.user
       };
       
-      console.log("Session created successfully for user:", session.user.id);
+      console.log("Session created successfully for user:", data.user.id);
       
       return new Response(
-        JSON.stringify({ session, success: true }),
+        JSON.stringify({ session: sessionData, success: true }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } catch (authError) {
