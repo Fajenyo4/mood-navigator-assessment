@@ -6,7 +6,7 @@
   <script>
     // Get the base URL from where this embed is being served
     const baseUrl = new URL(document.baseURI).origin;
-    // Your application's actual domain
+    // Your application's actual domain (either where the embed is served or explicit production URL)
     const appDomain = window.location.origin;
     
     // This function would be called by LearnWorlds when a user is logged in
@@ -22,6 +22,7 @@
       const simpleToken = btoa(`${email}:${Date.now()}`);
       
       // Redirect to SSO login endpoint with token and language
+      // Use the current origin rather than hardcoded domain
       window.location.href = `${appDomain}/sso-login?token=${encodeURIComponent(simpleToken)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&lang=en`;
     }
     
@@ -85,9 +86,10 @@ function launchAssessment() {
       name: userName
     });
   } else {
-    // Direct link fallback
-    window.open('https://mood-navigator-assessment.lovable.app/embed/en-sso.html?email=' + 
-      encodeURIComponent(userEmail) + '&name=' + encodeURIComponent(userName), '_blank');
+    // Direct link fallback - use current origin
+    const currentUrl = window.location.origin + '/embed/en-sso.html?email=' + 
+      encodeURIComponent(userEmail) + '&name=' + encodeURIComponent(userName);
+    window.open(currentUrl, '_blank');
   }
 }
 

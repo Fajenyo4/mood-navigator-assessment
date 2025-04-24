@@ -6,8 +6,8 @@
   <script>
     // Get the base URL from where this embed is being served
     const baseUrl = new URL(document.baseURI).origin;
-    // Your application's actual domain
-    const appDomain = "https://mood-navigator-assessment.lovable.app";
+    // Use the current origin for the app domain
+    const appDomain = window.location.origin;
     
     // This function would be called by LearnWorlds when a user is logged in
     function initSSO(userData) {
@@ -22,7 +22,7 @@
       const simpleToken = btoa(`${email}:${Date.now()}`);
       
       // Redirect to SSO login endpoint with token and language
-      window.location.href = `${appDomain}/sso-login?token=${simpleToken}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&lang=zh-hk`;
+      window.location.href = `${appDomain}/sso-login?token=${encodeURIComponent(simpleToken)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&lang=zh-hk`;
     }
     
     // Sample function to simulate LearnWorlds sending user data
@@ -85,9 +85,10 @@ function launchAssessment() {
       name: userName
     });
   } else {
-    // 直接鏈接備用
-    window.open('https://mood-navigator-assessment.lovable.app/embed/zh-tw-sso.html?email=' + 
-      encodeURIComponent(userEmail) + '&name=' + encodeURIComponent(userName), '_blank');
+    // 直接鏈接備用 - 使用當前域名
+    const currentUrl = window.location.origin + '/embed/zh-tw-sso.html?email=' + 
+      encodeURIComponent(userEmail) + '&name=' + encodeURIComponent(userName);
+    window.open(currentUrl, '_blank');
   }
 }
 

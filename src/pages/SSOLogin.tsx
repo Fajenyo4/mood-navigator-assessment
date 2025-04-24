@@ -20,6 +20,7 @@ const SSOLogin: React.FC = () => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [magicLink, setMagicLink] = useState<string | null>(null);
   const [showManualButton, setShowManualButton] = useState(false);
+  const [attemptedAutoLogin, setAttemptedAutoLogin] = useState(false);
 
   useEffect(() => {
     // If already authenticated, redirect to home page
@@ -50,7 +51,7 @@ const SSOLogin: React.FC = () => {
           const apiEndpoint = `https://thvtgvvwksbxywhdnwcv.supabase.co/functions/v1/verify-sso`;
           console.log("Calling API endpoint:", apiEndpoint);
           
-          // Get current URL to use as redirect URL
+          // Get current URL to use as redirect URL - use window.location.origin to ensure correct domain
           const currentOrigin = window.location.origin;
           const redirectUrl = `${currentOrigin}/${lang}`;
           
@@ -107,31 +108,50 @@ const SSOLogin: React.FC = () => {
             console.log('Magic link received:', data.magicLink);
             setMagicLink(data.magicLink);
             
-            // First attempt: Direct window.location change
-            try {
-              window.location.href = data.magicLink;
-              console.log("Redirected to magic link");
-            } catch (redirectError) {
-              console.error("Direct redirect failed:", redirectError);
+            // Only try auto-login once to prevent infinite loops
+            if (!attemptedAutoLogin) {
+              setAttemptedAutoLogin(true);
               
-              // Second attempt: Try to open in current window
-              window.open(data.magicLink, "_self");
+              // Try multiple approaches to open the magic link automatically
+              
+              // 1. First attempt: Create a popup window
+              try {
+                const popup = window.open(data.magicLink, "loginWindow", "width=600,height=400");
+                
+                // Check if popup was blocked
+                if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+                  console.warn("Popup was blocked, trying direct navigation");
+                  // Fall back to direct navigation
+                  window.location.href = data.magicLink;
+                }
+                
+                console.log("Opened magic link in popup");
+              } catch (popupError) {
+                console.error("Popup failed:", popupError);
+                
+                // 2. Second attempt: Direct window.location change
+                try {
+                  window.location.href = data.magicLink;
+                  console.log("Redirected to magic link");
+                } catch (redirectError) {
+                  console.error("Direct redirect failed:", redirectError);
+                  
+                  // 3. Third attempt: Try to open in current window
+                  window.open(data.magicLink, "_self");
+                }
+              }
             }
             
-            // Show manual button after a delay as backup
-            setTimeout(() => {
-              if (!user) {
-                setShowManualButton(true);
-              }
-            }, 3000);
+            // Show manual button immediately as backup
+            setShowManualButton(true);
             
-            // After 8 seconds, if still not logged in, show error
+            // After 5 seconds, if still not logged in, show error
             setTimeout(() => {
               if (!user) {
                 setError("Automatic login is taking longer than expected. Please use the manual login button below.");
                 setIsLoading(false);
               }
-            }, 8000);
+            }, 5000);
           } else {
             throw new Error('Authentication failed: No magic link returned');
           }
@@ -165,19 +185,20 @@ const SSOLogin: React.FC = () => {
       subscription.unsubscribe();
     };
     
-  }, [searchParams, navigate, user, retryCount, setUser]);
+  }, [searchParams, navigate, user, retryCount, setUser, attemptedAutoLogin]);
 
   const handleManualLogin = () => {
     if (magicLink) {
-      // Open in a new tab
-      window.open(magicLink, '_blank');
+      // Try multiple approaches for manual login
       
-      // Also try in current window
-      setTimeout(() => {
-        if (!user) {
-          window.location.href = magicLink as string;
-        }
-      }, 500);
+      // First try: Open in new tab
+      const newTab = window.open(magicLink, '_blank');
+      
+      // If popup blocked or failed
+      if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
+        // Second try: Open in current window
+        window.location.href = magicLink;
+      }
     }
   };
 
@@ -187,6 +208,7 @@ const SSOLogin: React.FC = () => {
     setErrorDetails(null);
     setDebugInfo(null);
     setMagicLink(null);
+    setAttemptedAutoLogin(false);
     setRetryCount(prevCount => prevCount + 1);
   };
 

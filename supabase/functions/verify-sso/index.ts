@@ -56,9 +56,18 @@ serve(async (req) => {
     if (!finalRedirectUrl) {
       // If no redirectUrl is provided, use the request origin or a fallback
       try {
+        // Extract the origin from the request URL if possible
         finalRedirectUrl = new URL(req.url).origin;
+        
+        // If the request URL is from a Supabase function, it might not be the app URL
+        // In that case, try to extract it from the headers or use a fallback
+        const referer = req.headers.get('referer');
+        if (referer) {
+          const refererUrl = new URL(referer);
+          finalRedirectUrl = refererUrl.origin;
+        }
       } catch (e) {
-        // Fallback to a hardcoded URL if we can't determine the origin
+        // Fallback to the production URL
         finalRedirectUrl = 'https://mood-navigator-assessment.lovable.app';
       }
     }
