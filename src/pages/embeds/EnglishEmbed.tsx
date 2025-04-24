@@ -42,15 +42,22 @@ const EnglishEmbed: React.FC<EnglishEmbedProps> = ({ sso = false }) => {
           name = email.split('@')[0]; // Default to username portion of email
         }
         
-        // Redirect to SSO login endpoint with token and language
-        const appDomain = window.location.origin;
-        const redirectUrl = `${appDomain}/sso-login?token=${encodeURIComponent(simpleToken)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name || email.split('@')[0])}&lang=en`;
+        // Get the current domain or use production domain to avoid localhost issues
+        const currentOrigin = window.location.origin;
+        const productionDomain = 'https://mood-navigator-assessment.lovable.app';
+        const domain = currentOrigin.includes('localhost') ? productionDomain : currentOrigin;
         
-        console.log("Redirecting to:", redirectUrl);
+        // Create redirect URL for after successful authentication
+        const redirectUrl = `${domain}/en`;
+        
+        // Redirect to SSO login endpoint with token, language and explicit redirectUrl
+        const ssoLoginUrl = `${domain}/sso-login?token=${encodeURIComponent(simpleToken)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name || email.split('@')[0])}&lang=en&redirectUrl=${encodeURIComponent(redirectUrl)}`;
+        
+        console.log("Redirecting to:", ssoLoginUrl);
         
         // Add a small delay to allow logs to be sent to console
         setTimeout(() => {
-          window.location.href = redirectUrl;
+          window.location.href = ssoLoginUrl;
         }, 100);
       } catch (error) {
         console.error("Error during SSO redirect:", error);
@@ -62,9 +69,10 @@ const EnglishEmbed: React.FC<EnglishEmbedProps> = ({ sso = false }) => {
   }, []);
 
   // Determine the URL based on whether this is an SSO embed or not
+  const productionDomain = 'https://mood-navigator-assessment.lovable.app';
   const embedUrl = sso 
-    ? "https://mood-navigator-assessment.lovable.app/embed/en-sso.html" 
-    : "https://mood-navigator-assessment.lovable.app/login/en";
+    ? `${productionDomain}/embed/en-sso.html` 
+    : `${productionDomain}/login/en`;
 
   if (error) {
     return (

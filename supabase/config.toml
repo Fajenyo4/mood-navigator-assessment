@@ -43,7 +43,14 @@ file_size_limit = "50MiB"
 # in emails.
 site_url = "https://mood-navigator-assessment.lovable.app"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://mood-navigator-assessment.lovable.app/login/en", "https://mood-navigator-assessment.lovable.app/login/zh-cn", "https://mood-navigator-assessment.lovable.app/login/zh-hk"]
+additional_redirect_urls = [
+  "https://mood-navigator-assessment.lovable.app/login/en", 
+  "https://mood-navigator-assessment.lovable.app/login/zh-cn", 
+  "https://mood-navigator-assessment.lovable.app/login/zh-hk",
+  "https://mood-navigator-assessment.lovable.app/en",
+  "https://mood-navigator-assessment.lovable.app/zh-cn",
+  "https://mood-navigator-assessment.lovable.app/zh-hk"
+]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 seconds (one
 # week).
 jwt_expiry = 3600

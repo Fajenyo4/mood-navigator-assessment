@@ -8,6 +8,8 @@
     const baseUrl = new URL(document.baseURI).origin;
     // Your application's actual domain (either where the embed is served or explicit production URL)
     const appDomain = window.location.origin;
+    // Production domain for fallback
+    const productionDomain = 'https://mood-navigator-assessment.lovable.app';
     
     // This function would be called by LearnWorlds when a user is logged in
     function initSSO(userData) {
@@ -21,9 +23,12 @@
       // In production, this should be replaced with a proper JWT from LearnWorlds
       const simpleToken = btoa(`${email}:${Date.now()}`);
       
-      // Redirect to SSO login endpoint with token and language
-      // Use the current origin rather than hardcoded domain
-      window.location.href = `${appDomain}/sso-login?token=${encodeURIComponent(simpleToken)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&lang=en`;
+      // Use the production domain rather than the current origin to avoid localhost issues
+      const domain = appDomain.includes('localhost') ? productionDomain : appDomain;
+      
+      // Redirect to SSO login endpoint with token, language, and full redirect URL for after auth
+      const redirectUrl = `${domain}/en`;
+      window.location.href = `${domain}/sso-login?token=${encodeURIComponent(simpleToken)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&lang=en&redirectUrl=${encodeURIComponent(redirectUrl)}`;
     }
     
     // Sample function to simulate LearnWorlds sending user data
@@ -86,8 +91,8 @@ function launchAssessment() {
       name: userName
     });
   } else {
-    // Direct link fallback - use current origin
-    const currentUrl = window.location.origin + '/embed/en-sso.html?email=' + 
+    // Direct link fallback - use production domain
+    const currentUrl = 'https://mood-navigator-assessment.lovable.app/embed/en-sso.html?email=' + 
       encodeURIComponent(userEmail) + '&name=' + encodeURIComponent(userName);
     window.open(currentUrl, '_blank');
   }

@@ -51,25 +51,16 @@ serve(async (req) => {
       );
     }
 
-    // Get the redirect URL or default to the app domain
-    let finalRedirectUrl = redirectUrl;
-    if (!finalRedirectUrl) {
-      // If no redirectUrl is provided, use the request origin or a fallback
-      try {
-        // Extract the origin from the request URL if possible
-        finalRedirectUrl = new URL(req.url).origin;
-        
-        // If the request URL is from a Supabase function, it might not be the app URL
-        // In that case, try to extract it from the headers or use a fallback
-        const referer = req.headers.get('referer');
-        if (referer) {
-          const refererUrl = new URL(referer);
-          finalRedirectUrl = refererUrl.origin;
-        }
-      } catch (e) {
-        // Fallback to the production URL
-        finalRedirectUrl = 'https://mood-navigator-assessment.lovable.app';
-      }
+    // Set production domain as the default redirect URL
+    const productionDomain = 'https://mood-navigator-assessment.lovable.app';
+    
+    // Get the redirect URL from the request or use the production domain
+    let finalRedirectUrl = redirectUrl || productionDomain;
+    
+    // Ensure we never use localhost
+    if (finalRedirectUrl.includes('localhost')) {
+      console.warn("Detected localhost in redirect URL, replacing with production domain");
+      finalRedirectUrl = productionDomain;
     }
     
     console.log("Processing SSO for email:", email, "name:", name, "redirect:", finalRedirectUrl);
@@ -164,6 +155,7 @@ serve(async (req) => {
       
       console.log("Final redirect URL with language:", finalRedirectUrl);
       
+      // IMPORTANT: Always set the redirectTo option explicitly to the production URL
       const { data: signInData, error: signInError } = await supabaseAdmin.auth.admin.generateLink({
         type: 'magiclink',
         email: email,
@@ -180,7 +172,7 @@ serve(async (req) => {
         );
       }
       
-      console.log("Sign-in link generated successfully");
+      console.log("Sign-in link generated successfully:", signInData.properties.action_link);
       
       // Return the sign-in link to the client
       return new Response(

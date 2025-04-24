@@ -32,11 +32,12 @@ const SSOLogin: React.FC = () => {
 
     const authenticateWithSSO = async () => {
       try {
-        // Get token, email and name from URL params
+        // Get token, email, name and redirectUrl from URL params
         const token = searchParams.get('token');
         const email = searchParams.get('email');
         const name = searchParams.get('name');
         const lang = searchParams.get('lang') || 'en';
+        const redirectUrl = searchParams.get('redirectUrl');
 
         if (!token || !email) {
           setError('Missing required parameters. Please ensure the URL contains token and email.');
@@ -44,18 +45,21 @@ const SSOLogin: React.FC = () => {
           return;
         }
 
-        console.log('Attempting SSO login with:', { email, name });
+        console.log('Attempting SSO login with:', { email, name, redirectUrl });
 
         try {
           // Make sure to use the fully qualified URL to the edge function
           const apiEndpoint = `https://thvtgvvwksbxywhdnwcv.supabase.co/functions/v1/verify-sso`;
           console.log("Calling API endpoint:", apiEndpoint);
           
-          // Get current URL to use as redirect URL - use window.location.origin to ensure correct domain
+          // Get current URL to use as redirect URL if not provided
+          // Fall back to production domain to avoid localhost issues
+          const productionDomain = 'https://mood-navigator-assessment.lovable.app';
           const currentOrigin = window.location.origin;
-          const redirectUrl = `${currentOrigin}/${lang}`;
+          const domain = currentOrigin.includes('localhost') ? productionDomain : currentOrigin;
+          const finalRedirectUrl = redirectUrl || `${domain}/${lang}`;
           
-          console.log("Using redirect URL:", redirectUrl);
+          console.log("Using redirect URL:", finalRedirectUrl);
           
           const response = await fetch(apiEndpoint, {
             method: 'POST',
@@ -66,7 +70,7 @@ const SSOLogin: React.FC = () => {
               email, 
               token, 
               name,
-              redirectUrl
+              redirectUrl: finalRedirectUrl
             }),
           });
 

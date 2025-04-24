@@ -8,6 +8,8 @@
     const baseUrl = new URL(document.baseURI).origin;
     // Use the current origin for the app domain
     const appDomain = window.location.origin;
+    // Production domain for fallback
+    const productionDomain = 'https://mood-navigator-assessment.lovable.app';
     
     // This function would be called by LearnWorlds when a user is logged in
     function initSSO(userData) {
@@ -21,8 +23,12 @@
       // In production, this should be replaced with a proper JWT from LearnWorlds
       const simpleToken = btoa(`${email}:${Date.now()}`);
       
-      // Redirect to SSO login endpoint with token and language
-      window.location.href = `${appDomain}/sso-login?token=${encodeURIComponent(simpleToken)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&lang=zh-hk`;
+      // Use the production domain rather than the current origin to avoid localhost issues
+      const domain = appDomain.includes('localhost') ? productionDomain : appDomain;
+      
+      // Redirect to SSO login endpoint with token, language, and full redirect URL for after auth
+      const redirectUrl = `${domain}/zh-hk`;
+      window.location.href = `${domain}/sso-login?token=${encodeURIComponent(simpleToken)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&lang=zh-hk&redirectUrl=${encodeURIComponent(redirectUrl)}`;
     }
     
     // Sample function to simulate LearnWorlds sending user data
@@ -85,8 +91,8 @@ function launchAssessment() {
       name: userName
     });
   } else {
-    // 直接鏈接備用 - 使用當前域名
-    const currentUrl = window.location.origin + '/embed/zh-tw-sso.html?email=' + 
+    // 直接鏈接備用 - 使用生產域名
+    const currentUrl = 'https://mood-navigator-assessment.lovable.app/embed/zh-tw-sso.html?email=' + 
       encodeURIComponent(userEmail) + '&name=' + encodeURIComponent(userName);
     window.open(currentUrl, '_blank');
   }
