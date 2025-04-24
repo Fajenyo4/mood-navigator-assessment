@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import QuestionDisplay from './assessment/QuestionDisplay';
@@ -106,41 +105,8 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     return (currentQuestion / totalQuestions) * 100;
   }, [currentQuestion, totalQuestions]);
 
-  // Prevent refreshes from resetting the assessment state
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (currentQuestion > 0 && !showResults) {
-        e.preventDefault();
-        e.returnValue = '';
-        return '';
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [currentQuestion, showResults]);
-
-  // Calculate scores and results only when needed for the results dialog
-  const getResultData = useCallback(() => {
-    if (!answers || Object.keys(answers).length === 0) {
-      return null;
-    }
-
-    const scores = calculateDassScores(answers);
-    const depressionLevel = determineLevel(scores.depression, 'depression');
-    const anxietyLevel = determineLevel(scores.anxiety, 'anxiety');
-    const stressLevel = determineLevel(scores.stress, 'stress');
-    const satisfactionLevel = determineLevel(scores.lifeSatisfaction, 'satisfaction');
-    
-    return determineMoodResult(
-      depressionLevel,
-      anxietyLevel,
-      stressLevel,
-      satisfactionLevel,
-      scores.isParent || 0,
-      scores.needsHelp || 0
-    );
-  }, [answers]);
+  // Remove the beforeUnload event handler entirely to prevent any browser confirmation dialog
+  // The assessment progress is already being saved to localStorage in the useAssessment hook
 
   // Use the updated redirect URL
   const REDIRECT_URL = "https://www.mican.life/courses-en";

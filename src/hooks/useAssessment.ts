@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/assessmentScoring';
 import { saveAssessmentResult } from '@/services/assessment';
@@ -24,7 +23,6 @@ export const useAssessment = ({
   initialQuestion = 0,
   initialAnswers = {}
 }: UseAssessmentProps) => {
-  // Memoize the questions based on language for better performance
   const getQuestions = useCallback(() => {
     switch (defaultLanguage) {
       case 'zh-CN': 
@@ -43,6 +41,18 @@ export const useAssessment = ({
   const [selectedOption, setSelectedOption] = useState<string>((initialAnswers[initialQuestion + 1]?.toString()) || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Update localStorage on every answer change to ensure progress is always saved
+  useEffect(() => {
+    if (Object.keys(answers).length > 0) {
+      localStorage.setItem('assessment_progress', JSON.stringify({
+        currentQuestion,
+        answers,
+        timestamp: Date.now(),
+        language: defaultLanguage
+      }));
+    }
+  }, [answers, currentQuestion, defaultLanguage]);
+
   const handleAnswer = useCallback((value: string) => {
     const numericValue = parseInt(value);
     const newAnswers = { ...answers, [currentQuestion + 1]: numericValue };
@@ -57,14 +67,6 @@ export const useAssessment = ({
     if (currentQuestion < questionCount - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setSelectedOption("");
-      
-      // Save progress immediately
-      localStorage.setItem('assessment_progress', JSON.stringify({
-        currentQuestion: currentQuestion + 1,
-        answers: newAnswers,
-        timestamp: Date.now(),
-        language: defaultLanguage
-      }));
     } else {
       handleSubmit(newAnswers);
     }
