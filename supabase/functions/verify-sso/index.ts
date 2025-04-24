@@ -69,24 +69,33 @@ serve(async (req) => {
       console.log("Supabase client initialized");
       
       // First, try to find if the user exists
-      let userData;
-      try {
-        console.log("Checking if user exists:", email);
-        const { data, error } = await supabase.auth.admin.getUserByEmail(email);
-        if (error) {
-          console.log("Error fetching user by email:", error.message);
-        } else if (data) {
-          console.log("User found:", data.user?.id);
-          userData = data;
-        }
-      } catch (userFetchError) {
-        console.error("Exception when fetching user:", userFetchError.message);
+      let userId;
+      console.log("Checking if user exists:", email);
+      const { data: existingUser, error: getUserError } = await supabase.auth.admin.getUserByEmail(email);
+      
+      if (getUserError) {
+        console.log("Error fetching user by email:", getUserError.message);
         // Continue with user creation
       }
       
-      let userId;
-      
-      if (!userData || !userData.user) {
+      if (existingUser && existingUser.user) {
+        console.log("User found:", existingUser.user.id);
+        userId = existingUser.user.id;
+        
+        // Optionally update user metadata if needed
+        if (name) {
+          console.log("Updating existing user metadata with name:", name);
+          const { error: updateError } = await supabase.auth.admin.updateUserById(
+            userId,
+            { user_metadata: { name: name || email.split('@')[0] } }
+          );
+          
+          if (updateError) {
+            console.warn("Could not update user metadata:", updateError.message);
+            // Non-critical error, continue with session creation
+          }
+        }
+      } else {
         // User doesn't exist, create them
         console.log("Creating new user:", email);
         try {
@@ -126,9 +135,6 @@ serve(async (req) => {
             { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
           );
         }
-      } else {
-        userId = userData.user.id;
-        console.log("Found existing user with ID:", userId);
       }
       
       // Create a session directly
