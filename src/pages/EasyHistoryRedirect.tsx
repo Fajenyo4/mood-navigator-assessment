@@ -10,14 +10,30 @@ const EasyHistoryRedirect: React.FC = () => {
   useEffect(() => {
     // Get language from URL parameter or default to English
     const lang = searchParams.get('lang') || 'en';
+    // Get optional email and name parameters for SSO-like flow
+    const email = searchParams.get('email');
+    const name = searchParams.get('name');
     
-    // Create a simple token for public access
-    const simpleToken = btoa(`public:${Date.now()}`);
+    // Add detailed logging for debugging
+    console.log("EasyHistoryRedirect: Processing parameters", { lang, email, name });
     
-    console.log("EasyHistoryRedirect: Creating redirect to history with language:", lang);
+    // Create token based on whether we have email (SSO flow) or public access
+    let token, redirectUrl;
     
-    // Redirect to easy access with history view and specified language
-    navigate(`/easy-access?token=${simpleToken}&view=history&lang=${lang}`);
+    if (email && email !== "{{USER_EMAIL}}") {
+      // For SSO-like access with email
+      token = btoa(`${email}:${Date.now()}`);
+      redirectUrl = `/sso-login?token=${token}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name || email)}&lang=${lang}&redirectUrl=${encodeURIComponent(window.location.origin + '/history-chart')}`;
+      console.log("EasyHistoryRedirect: Using SSO flow with", { email, token: token.substring(0, 10) + "..." });
+    } else {
+      // For public access
+      token = btoa(`public:${Date.now()}`);
+      redirectUrl = `/easy-access?token=${token}&view=history&lang=${lang}`;
+      console.log("EasyHistoryRedirect: Using public access with token", token.substring(0, 10) + "...");
+    }
+    
+    console.log("EasyHistoryRedirect: Redirecting to", redirectUrl);
+    navigate(redirectUrl);
   }, [searchParams, navigate]);
 
   return (
