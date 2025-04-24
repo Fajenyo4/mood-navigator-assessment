@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import QuestionDisplay from './assessment/QuestionDisplay';
@@ -41,6 +42,34 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     console.log(`Loaded questions for language: ${effectiveLanguage}`);
   }, [effectiveLanguage]);
   
+  // Create an initial state from localStorage if it exists
+  const getSavedProgressState = () => {
+    const savedProgress = localStorage.getItem('assessment_progress');
+    if (savedProgress) {
+      try {
+        const { currentQuestion: savedQuestion, answers: savedAnswers, timestamp } = JSON.parse(savedProgress);
+        // Only restore if saved within last hour
+        if (Date.now() - timestamp < 3600000) {
+          return {
+            initialQuestion: savedQuestion,
+            initialAnswers: savedAnswers
+          };
+        }
+      } catch (error) {
+        console.error('Error parsing assessment progress:', error);
+      }
+      // Clear invalid progress data
+      localStorage.removeItem('assessment_progress');
+    }
+    return {
+      initialQuestion: 0,
+      initialAnswers: {}
+    };
+  };
+  
+  // Get initial state from localStorage
+  const { initialQuestion, initialAnswers } = getSavedProgressState();
+  
   const {
     currentQuestion,
     showResults,
@@ -54,7 +83,9 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     userId: user?.id,
     userName: user?.user_metadata?.name,
     userEmail: user?.email,
-    defaultLanguage: effectiveLanguage
+    defaultLanguage: effectiveLanguage,
+    initialQuestion, // Pass initial question from saved progress
+    initialAnswers   // Pass initial answers from saved progress
   });
 
   // Set initialization flag after initial render
@@ -90,26 +121,6 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
       localStorage.removeItem('assessment_progress');
     }
   }, [currentQuestion, answers, showResults]);
-
-  // Restore progress on mount
-  useEffect(() => {
-    const savedProgress = localStorage.getItem('assessment_progress');
-    if (savedProgress) {
-      try {
-        const { currentQuestion: savedQuestion, answers: savedAnswers, timestamp } = JSON.parse(savedProgress);
-        // Only restore if saved within last hour
-        if (Date.now() - timestamp < 3600000) {
-          setCurrentQuestion(savedQuestion);
-          setAnswers(savedAnswers);
-        } else {
-          localStorage.removeItem('assessment_progress');
-        }
-      } catch (error) {
-        console.error('Error restoring assessment progress:', error);
-        localStorage.removeItem('assessment_progress');
-      }
-    }
-  }, []);
 
   if (isSubmitting) {
     return <LoadingState />;

@@ -12,18 +12,22 @@ interface UseAssessmentProps {
   userName: string | undefined;
   userEmail: string | undefined;
   defaultLanguage?: string;
+  initialQuestion?: number;
+  initialAnswers?: { [key: number]: number };
 }
 
 export const useAssessment = ({ 
   userId, 
   userName, 
   userEmail, 
-  defaultLanguage = 'en' 
+  defaultLanguage = 'en',
+  initialQuestion = 0,
+  initialAnswers = {}
 }: UseAssessmentProps) => {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<{ [key: number]: number }>({});
+  const [currentQuestion, setCurrentQuestion] = useState(initialQuestion);
+  const [answers, setAnswers] = useState<{ [key: number]: number }>(initialAnswers);
   const [showResults, setShowResults] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<string>("");
+  const [selectedOption, setSelectedOption] = useState<string>((initialAnswers[initialQuestion + 1]?.toString()) || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Get the appropriate question set based on the language
