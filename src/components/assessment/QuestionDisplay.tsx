@@ -17,8 +17,10 @@ interface QuestionDisplayProps {
   onAnswer: (value: string) => void;
   onPrevious?: () => void;
   showPrevious?: boolean;
+  isLoading?: boolean;
 }
 
+// Optimize option rendering with pure component
 const QuestionOption = memo(({ 
   index, 
   option, 
@@ -28,9 +30,7 @@ const QuestionOption = memo(({
   option: string; 
   isSelected: boolean;
 }) => (
-  <div 
-    className="transition-all duration-200 ease-in-out transform hover:scale-[1.01]"
-  >
+  <div className="transition-all duration-200 ease-in-out transform hover:scale-[1.01]">
     <div className={`flex items-center border ${isSelected ? 'border-primary bg-gray-50' : 'border-gray-200'} rounded-lg p-4 hover:border-primary hover:bg-gray-50 cursor-pointer transition-colors duration-200`}>
       <RadioGroupItem 
         value={index.toString()} 
@@ -49,6 +49,7 @@ const QuestionOption = memo(({
 
 QuestionOption.displayName = 'QuestionOption';
 
+// Performance-optimized Question Display component
 const QuestionDisplay = memo(function QuestionDisplay({
   currentQuestion,
   totalQuestions,
@@ -57,7 +58,8 @@ const QuestionDisplay = memo(function QuestionDisplay({
   selectedOption,
   onAnswer,
   onPrevious,
-  showPrevious
+  showPrevious,
+  isLoading = false
 }: QuestionDisplayProps) {
   const handleOptionSelect = useCallback((value: string) => {
     onAnswer(value);
@@ -68,8 +70,22 @@ const QuestionDisplay = memo(function QuestionDisplay({
     if (onPrevious) onPrevious();
   }, [onPrevious]);
 
-  if (!question) {
-    return <div className="w-full max-w-2xl mx-auto text-center p-8">Loading question...</div>;
+  // Display loading state or empty placeholder when question isn't loaded
+  if (isLoading || !question) {
+    return (
+      <div className="w-full max-w-2xl mx-auto text-center p-8">
+        <Logo />
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-6 animate-pulse">
+          <div className="h-4 bg-gray-200 rounded mb-8"></div>
+          <div className="h-6 bg-gray-300 rounded mb-8 w-3/4 mx-auto"></div>
+          <div className="space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-14 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const options = question.options || [];
@@ -95,6 +111,7 @@ const QuestionDisplay = memo(function QuestionDisplay({
         <Progress 
           value={progress} 
           className="mb-8 transition-all duration-500 ease-out" 
+          aria-label={`Question ${currentQuestion + 1} of ${totalQuestions}`}
         />
         
         <h2 className="text-xl font-medium text-gray-900 mb-8 text-center">

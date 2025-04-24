@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+
+import React, { useEffect, useState, useCallback, useMemo, Suspense, lazy } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import QuestionDisplay from './assessment/QuestionDisplay';
 import ResultsDialog from './assessment/ResultsDialog';
@@ -6,62 +7,88 @@ import LoadingState from './assessment/LoadingState';
 import { useAssessment } from '@/hooks/useAssessment';
 import { preventPageRefresh } from '@/utils/preventRefresh';
 
-// Optimize imports by directly importing question sets
-import { questions as enQuestions } from '@/translations/en';
-import { questions as zhCNQuestions } from '@/translations/zh-CN';
-import { questions as zhTWQuestions } from '@/translations/zh-TW';
-
-interface AssessmentProps {
-  defaultLanguage?: string;
-}
+// Optimize imports by lazily loading question sets
+// Use dynamic imports for questions to improve initial load time
+const questionSets = {
+  'en': () => import('@/translations/en').then(module => module.questions),
+  'zh-CN': () => import('@/translations/zh-CN').then(module => module.questions),
+  'zh-HK': () => import('@/translations/zh-TW').then(module => module.questions)
+};
 
 // Cache question counts to avoid recalculation
 const QUESTION_COUNTS = {
-  'en': enQuestions.length,
-  'zh-CN': zhCNQuestions.length,
-  'zh-HK': zhTWQuestions.length
+  'en': 21,  // hardcoded counts for faster initial render
+  'zh-CN': 21,
+  'zh-HK': 21
 };
 
-// Cache questions map for direct access
-const QUESTIONS_MAP = {
-  'en': enQuestions,
-  'zh-CN': zhCNQuestions,
-  'zh-HK': zhTWQuestions
+// Get saved progress state - moved outside component to avoid re-creation
+const getSavedProgressState = (effectiveLanguage) => {
+  try {
+    const savedProgress = localStorage.getItem('assessment_progress');
+    if (savedProgress) {
+      const { currentQuestion, answers, timestamp, language } = JSON.parse(savedProgress);
+      // Only restore if saved within last hour and language matches
+      if (Date.now() - timestamp < 3600000 && language === effectiveLanguage) {
+        return { initialQuestion: currentQuestion, initialAnswers: answers };
+      }
+      // Clear invalid progress data
+      localStorage.removeItem('assessment_progress');
+    }
+  } catch (error) {
+    console.error('Error parsing assessment progress:', error);
+    localStorage.removeItem('assessment_progress');
+  }
+  
+  return { initialQuestion: 0, initialAnswers: {} };
 };
 
 // Prevent Assessment component from re-rendering unnecessarily
-const Assessment = React.memo(function Assessment({ defaultLanguage = 'en' }: AssessmentProps) {
+const Assessment = React.memo(function Assessment({ defaultLanguage = 'en' }) {
   const { user, language: authLanguage } = useAuth();
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [questions, setQuestions] = useState(null);
   
   // Get the effective language - either from props or from auth context
   const effectiveLanguage = useMemo(() => 
     defaultLanguage || authLanguage || 'en'
   , [defaultLanguage, authLanguage]);
   
-  // Optimize progress state retrieval with memoization
-  const getSavedProgressState = useCallback(() => {
-    try {
-      const savedProgress = localStorage.getItem('assessment_progress');
-      if (savedProgress) {
-        const { currentQuestion, answers, timestamp, language } = JSON.parse(savedProgress);
-        // Only restore if saved within last hour and language matches
-        if (Date.now() - timestamp < 3600000 && language === effectiveLanguage) {
-          return { initialQuestion: currentQuestion, initialAnswers: answers };
-        }
-        // Clear invalid progress data
-        localStorage.removeItem('assessment_progress');
-      }
-    } catch (error) {
-      console.error('Error parsing assessment progress:', error);
-      localStorage.removeItem('assessment_progress');
-    }
-    
-    return { initialQuestion: 0, initialAnswers: {} };
-  }, [effectiveLanguage]);
+  // Initialize state only once with initializer function
+  const [initialState] = useState(() => getSavedProgressState(effectiveLanguage));
   
-  // Get initial state from localStorage - do this once on component mount
-  const [initialState] = useState(getSavedProgressState);
+  // Load questions asynchronously
+  useEffect(() => {
+    let isMounted = true;
+    
+    const loadQuestions = async () => {
+      try {
+        setIsLoading(true);
+        const loader = questionSets[effectiveLanguage] || questionSets['en'];
+        const loadedQuestions = await loader();
+        
+        // Only update state if component is still mounted
+        if (isMounted) {
+          setQuestions(loadedQuestions);
+          setIsLoading(false);
+          setIsInitialized(true);
+        }
+      } catch (error) {
+        console.error('Error loading questions:', error);
+        if (isMounted) {
+          setIsLoading(false);
+          setIsInitialized(true);
+        }
+      }
+    };
+    
+    loadQuestions();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [effectiveLanguage]);
   
   const {
     currentQuestion,
@@ -81,30 +108,26 @@ const Assessment = React.memo(function Assessment({ defaultLanguage = 'en' }: As
     initialAnswers: initialState.initialAnswers
   });
 
-  // Prevent page refresh during assessment
+  // Prevent page refresh during assessment - with proper cleanup
   useEffect(() => {
     // Only add the refresh prevention if we're not showing results and have answers
     if (!showResults && Object.keys(answers).length > 0) {
+      console.log('Adding page refresh prevention');
       const cleanup = preventPageRefresh();
       return cleanup;
     }
   }, [showResults, answers]);
 
-  // Immediately mark as initialized on first render
-  useEffect(() => {
-    setIsInitialized(true);
-  }, []);
-
   // Calculate the total number of questions for the current language - memoized
   const totalQuestions = useMemo(() => {
-    return QUESTION_COUNTS[effectiveLanguage as keyof typeof QUESTION_COUNTS] || QUESTION_COUNTS['en'];
+    return QUESTION_COUNTS[effectiveLanguage] || QUESTION_COUNTS['en'];
   }, [effectiveLanguage]);
 
   // Memoize the current question for better performance
   const currentQuestionData = useMemo(() => {
-    const questions = QUESTIONS_MAP[effectiveLanguage as keyof typeof QUESTIONS_MAP] || QUESTIONS_MAP['en'];
+    if (!questions) return null;
     return questions[currentQuestion] || null;
-  }, [currentQuestion, effectiveLanguage]);
+  }, [questions, currentQuestion]);
 
   // Calculate progress percentage - memoized
   const progressPercentage = useMemo(() => {
@@ -127,18 +150,17 @@ const Assessment = React.memo(function Assessment({ defaultLanguage = 'en' }: As
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      {currentQuestionData && (
-        <QuestionDisplay
-          currentQuestion={currentQuestion}
-          totalQuestions={totalQuestions}
-          progress={progressPercentage}
-          question={currentQuestionData}
-          selectedOption={selectedOption}
-          onAnswer={handleAnswer}
-          onPrevious={handlePrevious}
-          showPrevious={currentQuestion > 0}
-        />
-      )}
+      {<QuestionDisplay
+        currentQuestion={currentQuestion}
+        totalQuestions={totalQuestions}
+        progress={progressPercentage}
+        question={currentQuestionData}
+        selectedOption={selectedOption}
+        onAnswer={handleAnswer}
+        onPrevious={handlePrevious}
+        showPrevious={currentQuestion > 0}
+        isLoading={isLoading}
+      />}
       
       <ResultsDialog
         open={showResults}
