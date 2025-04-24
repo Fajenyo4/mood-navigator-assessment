@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -16,16 +15,48 @@
     iframe { border: none; width: 100%; height: 100vh; display: block; }
   </style>
   <script>
-    // Prevent all page refresh dialogs
+    // More robust prevention of refresh dialogs and auto-refreshes
     window.addEventListener('load', function() {
-      // Remove existing handlers
+      // Remove existing handlers more thoroughly
       window.onbeforeunload = null;
-      // Block new handlers
-      var originalAddEventListener = window.addEventListener;
+      
+      // Block new handlers with a more stable approach
+      const originalAddEventListener = window.addEventListener;
       window.addEventListener = function(type, listener, options) {
-        if (type === 'beforeunload') return;
+        if (type === 'beforeunload') {
+          console.log('Blocked beforeunload event registration');
+          return;
+        }
         return originalAddEventListener.call(this, type, listener, options);
       };
+      
+      // Prevent automatic reloads by overriding reload/location methods
+      const originalReload = window.location.reload;
+      window.location.reload = function() {
+        console.log('Blocked automatic reload attempt');
+        return false;
+      };
+      
+      // Prevent common auto-refresh techniques
+      clearInterval(window.pageReloadTimer);
+      window.pageReloadTimer = null;
+    });
+    
+    // Monitor iframe to keep it stable
+    window.addEventListener('DOMContentLoaded', function() {
+      const iframe = document.getElementById('assessment');
+      if (iframe) {
+        // Send keepalive signals to the iframe to prevent session timeouts
+        setInterval(function() {
+          try {
+            if (iframe.contentWindow) {
+              iframe.contentWindow.postMessage('keepalive', '*');
+            }
+          } catch (e) {
+            // Silently handle any cross-origin errors
+          }
+        }, 30000);
+      }
     });
   </script>
 </head>

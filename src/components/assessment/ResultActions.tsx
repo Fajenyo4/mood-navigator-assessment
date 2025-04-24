@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from 'lucide-react';
 import { resultActionsTranslations } from '@/translations/resultActions';
@@ -20,17 +20,29 @@ const ResultActions: React.FC<ResultActionsProps> = ({
   const isMobile = useIsMobile();
   const translations = resultActionsTranslations[language as keyof typeof resultActionsTranslations] || resultActionsTranslations.en;
 
-  const handleRedirect = () => {
+  // Use useCallback to prevent recreation on each render
+  const handleRedirect = useCallback(() => {
     try {
+      // Prevent any pending page refreshes
+      if (window.stopPageRefresh) {
+        window.stopPageRefresh();
+      }
+      
       const redirectUrlWithRef = new URL(redirectUrl);
       redirectUrlWithRef.searchParams.append('ref', 'mood-assessment');
       redirectUrlWithRef.searchParams.append('completed', 'true');
-      window.open(redirectUrlWithRef.toString(), '_blank');
+      
+      // Use a short timeout to ensure UI updates before redirect
+      setTimeout(() => {
+        // Use window.location.replace for cleaner navigation without back history
+        window.location.replace(redirectUrlWithRef.toString());
+      }, 100);
     } catch (error) {
       console.error("Redirect error:", error);
-      window.open(redirectUrl, '_blank');
+      // Fallback with direct open if URL parsing fails
+      window.location.replace(redirectUrl);
     }
-  };
+  }, [redirectUrl]);
 
   return (
     <div className={cn("w-full", className)}>
@@ -47,4 +59,7 @@ const ResultActions: React.FC<ResultActionsProps> = ({
   );
 };
 
-export default ResultActions;
+// Explicitly add displayName to help with debugging
+ResultActions.displayName = 'ResultActions';
+
+export default React.memo(ResultActions);

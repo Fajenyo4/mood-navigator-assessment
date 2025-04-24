@@ -105,6 +105,7 @@ const QuestionDisplay = memo(function QuestionDisplay({
           onValueChange={handleOptionSelect}
           className="space-y-4"
           value={selectedOption}
+          defaultValue={selectedOption} // Add defaultValue to stabilize the component
         >
           {options.map((option, index) => (
             <QuestionOption 
