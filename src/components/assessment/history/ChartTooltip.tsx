@@ -8,6 +8,7 @@ interface ChartTooltipProps {
     value: number;
     name: string;
     dataKey: string;
+    color?: string; // Added color property as optional
   }>;
   label?: string;
 }
