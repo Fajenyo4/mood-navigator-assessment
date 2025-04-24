@@ -1,44 +1,47 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <title>English Assessment Embed</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Preconnect to known domains -->
-  <link rel="preconnect" href="https://mood-navigator-assessment.lovable.app">
+  <!-- Preconnect to known domains for faster resource loading -->
+  <link rel="preconnect" href="https://mood-navigator-assessment.lovable.app" crossorigin>
+  <link rel="dns-prefetch" href="https://mood-navigator-assessment.lovable.app">
   <!-- Disable automatic phone number detection to speed up iOS rendering -->
   <meta name="format-detection" content="telephone=no">
-  <!-- Prevent page reload dialogs -->
+  <style>
+    body, html { margin: 0; padding: 0; overflow: hidden; height: 100%; }
+    .container { position: relative; width: 100%; height: 100%; }
+    iframe { border: none; width: 100%; height: 100vh; display: block; }
+  </style>
   <script>
-    window.addEventListener('load', () => {
-      // Remove any existing beforeunload listeners
+    // Prevent all page refresh dialogs
+    window.addEventListener('load', function() {
+      // Remove existing handlers
       window.onbeforeunload = null;
-      // Prevent adding new ones
-      window.addEventListener('beforeunload', (e) => {
-        e.preventDefault();
-        e.returnValue = '';
-      });
+      // Block new handlers
+      var originalAddEventListener = window.addEventListener;
+      window.addEventListener = function(type, listener, options) {
+        if (type === 'beforeunload') return;
+        return originalAddEventListener.call(this, type, listener, options);
+      };
     });
   </script>
 </head>
-<body style="margin:0;padding:0;overflow:hidden;">
-  <div style="position: relative;">
+<body>
+  <div class="container">
     <iframe 
       id="assessment"
       src="https://mood-navigator-assessment.lovable.app/login/en"
-      width="100%" 
-      height="800"
       loading="eager"
       importance="high"
-      style="border:none;width:100%;height:100vh"
       allow="fullscreen"
     ></iframe>
   </div>
   
-  <!-- Removed console.log for production -->
   <script>
-    // Handle language parameter efficiently
+    // Handle language parameter
     const params = new URLSearchParams(window.location.search);
     const lang = params.get('lang');
     
