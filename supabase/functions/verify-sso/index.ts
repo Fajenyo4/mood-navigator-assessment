@@ -24,10 +24,7 @@ serve(async (req) => {
       console.error("MISSING SUPABASE_SERVICE_ROLE_KEY");
       return new Response(
         JSON.stringify({ error: "Server configuration error: Missing service role key" }),
-        { 
-          headers: { ...corsHeaders, "Content-Type": "application/json" }, 
-          status: 500 
-        }
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
       );
     }
 
@@ -56,151 +53,108 @@ serve(async (req) => {
     
     console.log("Processing SSO for email:", email, "name:", name);
     
+    // Initialize Supabase admin client with service role
+    console.log("Initializing Supabase admin client");
+    const supabaseAdmin = createClient(
+      supabaseUrl,
+      supabaseServiceKey,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
+    
+    console.log("Supabase admin client initialized");
+    
+    // SIMPLIFIED APPROACH:
+    // 1. Try to sign in the user directly (this ignores if they exist or not)
+    // 2. If that fails with "user not found", then create the user
+    // 3. Return the session either way
+    
+    let session;
+    
     try {
-      // Initialize Supabase client with service role for admin operations
-      console.log("Initializing Supabase admin client");
-      const supabaseAdmin = createClient(
-        supabaseUrl,
-        supabaseServiceKey,
-        {
-          auth: {
-            autoRefreshToken: false,
-            persistSession: false
-          }
-        }
-      );
+      console.log("Attempting to create session for:", email);
       
-      console.log("Supabase admin client initialized");
-      
-      // First, try to find if the user exists
-      let userId;
-      console.log("Checking if user exists:", email);
-      
-      const { data: users, error: userLookupError } = await supabaseAdmin
-        .from('auth.users')
-        .select('id, email')
-        .eq('email', email)
-        .maybeSingle();
-      
-      if (userLookupError) {
-        console.error("Error looking up user:", userLookupError);
-        // Continue with user creation
-      }
-      
-      if (users) {
-        console.log("User found:", users.id);
-        userId = users.id;
-        
-        // Optionally update user metadata if needed
-        if (name && userId) {
-          console.log("Updating existing user metadata with name:", name);
-          const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-            userId,
-            { user_metadata: { name: name || email.split('@')[0] } }
-          );
-          
-          if (updateError) {
-            console.warn("Could not update user metadata:", updateError.message);
-            // Non-critical error, continue with session creation
-          }
-        }
-      } else {
-        // User doesn't exist, create them
-        console.log("Creating new user:", email);
-        try {
-          const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-            email,
-            email_confirm: true,
-            user_metadata: { name: name || email.split('@')[0] },
-          });
-          
-          if (createError) {
-            console.error("Error creating user:", createError);
-            return new Response(
-              JSON.stringify({ error: `Failed to create user: ${createError.message}` }),
-              { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-            );
-          }
-          
-          console.log("User creation response:", JSON.stringify(newUser));
-          
-          if (!newUser || !newUser.user) {
-            console.error("User creation returned no user data");
-            return new Response(
-              JSON.stringify({ error: "Failed to create user: No user data returned" }),
-              { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-            );
-          }
-          
-          userId = newUser.user.id;
-          console.log("New user created with ID:", userId);
-        } catch (createUserError) {
-          console.error("Exception during user creation:", createUserError);
-          return new Response(
-            JSON.stringify({ 
-              error: `Exception creating user: ${createUserError.message}`,
-              stack: createUserError.stack
-            }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-          );
-        }
-      }
-      
-      // Create a session directly
-      let sessionData;
+      // Try to create a user first (will fail if user exists, but that's okay)
       try {
-        console.log("Creating session for user ID:", userId);
-        const { data: session, error: sessionError } = await supabaseAdmin.auth.admin.createSession({
-          userId: userId
+        const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+          email,
+          email_confirm: true,
+          user_metadata: { name: name || email.split('@')[0] },
         });
         
-        if (sessionError) {
-          console.error("Session creation error:", sessionError);
-          return new Response(
-            JSON.stringify({ error: `Failed to create session: ${sessionError.message}` }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-          );
+        if (createError) {
+          if (createError.status === 422 || createError.code === "email_exists") {
+            console.log("User already exists (expected):", email);
+          } else {
+            console.error("Unexpected error creating user:", createError);
+          }
+        } else {
+          console.log("New user created:", email);
         }
-        
-        console.log("Session creation response received");
-        
-        if (!session) {
-          console.error("No session data returned");
-          return new Response(
-            JSON.stringify({ error: "Failed to create session: No session data returned" }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-          );
+      } catch (createError) {
+        console.log("Error during user creation (likely already exists):", createError.message);
+      }
+      
+      // Now retrieve the user ID (regardless of whether they were just created or already existed)
+      const { data: user, error: getUserError } = await supabaseAdmin.auth.admin.listUsers({
+        filter: {
+          email: email
         }
-        
-        sessionData = session;
-        console.log("Session created successfully");
-      } catch (sessionCreateError) {
-        console.error("Exception during session creation:", sessionCreateError);
+      });
+      
+      if (getUserError) {
+        console.error("Failed to retrieve user:", getUserError);
         return new Response(
-          JSON.stringify({ 
-            error: `Exception creating session: ${sessionCreateError.message}`,
-            stack: sessionCreateError.stack
-          }),
+          JSON.stringify({ error: `Could not find or create user: ${getUserError.message}` }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
         );
       }
       
-      console.log("Authentication successful for:", email);
-      return new Response(
-        JSON.stringify({ session: sessionData, success: true }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      if (!user || !user.users || user.users.length === 0) {
+        console.error("No user found or created with email:", email);
+        return new Response(
+          JSON.stringify({ error: "Failed to find or create user account" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+        );
+      }
+      
+      const userId = user.users[0].id;
+      console.log("Found user ID:", userId);
+      
+      // Create a session for this user
+      const { data: sessionData, error: sessionError } = await supabaseAdmin.auth.admin.createSession({
+        userId: userId
+      });
+      
+      if (sessionError) {
+        console.error("Session creation error:", sessionError);
+        return new Response(
+          JSON.stringify({ error: `Failed to create session: ${sessionError.message}` }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+        );
+      }
+      
+      session = sessionData;
+      console.log("Session created successfully");
       
     } catch (authError) {
-      console.error("Authentication error:", authError);
+      console.error("Authentication process error:", authError);
       return new Response(
-        JSON.stringify({ 
-          error: `Authentication failed: ${authError.message}`,
-          stack: authError.stack 
-        }),
+        JSON.stringify({ error: `Authentication failed: ${authError.message}` }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
       );
     }
+    
+    console.log("Authentication successful for:", email);
+    return new Response(
+      JSON.stringify({ session, success: true }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+    
   } catch (error) {
     console.error("Unhandled error in SSO function:", error);
     return new Response(
