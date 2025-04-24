@@ -1,8 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
-import { getTableNameByLanguage } from './utils';
 
 export const saveAssessmentResult = async (
   userId: string,
@@ -35,10 +33,8 @@ export const saveAssessmentResult = async (
     lifeSatisfaction: number;
   }
 ) => {
-  const tableName = getTableNameByLanguage(languageCode);
-  
   const { error } = await supabase
-    .from(tableName)
+    .from('assessment_results_unified')
     .insert([
       {
         user_id: userId,
@@ -50,7 +46,8 @@ export const saveAssessmentResult = async (
         anxiety_score: scores.anxiety,
         stress_score: scores.stress,
         life_satisfaction_score: scores.lifeSatisfaction,
-        mental_status: determineMentalStatus(scores)
+        mental_status: determineMentalStatus(scores),
+        language_code: languageCode
       }
     ]);
   

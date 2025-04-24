@@ -3,18 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { AssessmentRecord } from '@/utils/scoring/types';
 import { parseAnswers } from './utils';
 
-const getTableNameByLanguage = (languageCode: string) => {
-  switch (languageCode) {
-    case 'zh-CN':
-      return 'assessment_results_zh_cn';
-    case 'zh-HK':
-      return 'assessment_results_zh_hk';
-    case 'en':
-    default:
-      return 'assessment_results_en';
-  }
-};
-
 export const getAssessmentResults = async (
   userId: string,
   languageCode?: string
@@ -22,12 +10,11 @@ export const getAssessmentResults = async (
   try {
     console.log('Fetching assessment results for userId:', userId);
     
-    const tableName = getTableNameByLanguage(languageCode || 'en');
-    
     const { data, error } = await supabase
-      .from(tableName)
+      .from('assessment_results_unified')
       .select('*')
       .eq('user_id', userId)
+      .eq('language_code', languageCode || 'en')
       .order('created_at', { ascending: false });
     
     if (error) {
@@ -37,7 +24,6 @@ export const getAssessmentResults = async (
     
     console.log('Assessment results fetched:', data);
     
-    // Transform the data to ensure it matches the AssessmentRecord type
     const typedResults: AssessmentRecord[] = (data || []).map(item => ({
       id: item.id,
       created_at: item.created_at,
@@ -46,7 +32,7 @@ export const getAssessmentResults = async (
       email: item.email,
       name: item.name,
       user_id: item.user_id,
-      language_code: languageCode || 'en',
+      language_code: item.language_code,
       depression_score: item.depression_score,
       anxiety_score: item.anxiety_score,
       stress_score: item.stress_score,

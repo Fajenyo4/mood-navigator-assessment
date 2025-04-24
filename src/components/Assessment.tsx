@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import QuestionDisplay from './assessment/QuestionDisplay';
@@ -67,20 +66,50 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (currentQuestion > 0 && !showResults) {
-        // Only prevent if user has started but not finished
-        const message = "Are you sure you want to leave? Your assessment progress will be lost.";
         e.preventDefault();
-        e.returnValue = message;
-        return message;
+        e.returnValue = '';
+        return '';
       }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
-    
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [currentQuestion, showResults]);
+
+  // Local storage for assessment progress
+  useEffect(() => {
+    if (currentQuestion > 0 && !showResults) {
+      // Save progress
+      localStorage.setItem('assessment_progress', JSON.stringify({
+        currentQuestion,
+        answers,
+        timestamp: Date.now()
+      }));
+    } else if (showResults) {
+      // Clear progress when assessment is complete
+      localStorage.removeItem('assessment_progress');
+    }
+  }, [currentQuestion, answers, showResults]);
+
+  // Restore progress on mount
+  useEffect(() => {
+    const savedProgress = localStorage.getItem('assessment_progress');
+    if (savedProgress) {
+      try {
+        const { currentQuestion: savedQuestion, answers: savedAnswers, timestamp } = JSON.parse(savedProgress);
+        // Only restore if saved within last hour
+        if (Date.now() - timestamp < 3600000) {
+          setCurrentQuestion(savedQuestion);
+          setAnswers(savedAnswers);
+        } else {
+          localStorage.removeItem('assessment_progress');
+        }
+      } catch (error) {
+        console.error('Error restoring assessment progress:', error);
+        localStorage.removeItem('assessment_progress');
+      }
+    }
+  }, []);
 
   if (isSubmitting) {
     return <LoadingState />;

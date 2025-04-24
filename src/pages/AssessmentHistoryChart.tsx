@@ -16,7 +16,6 @@ const AssessmentHistoryChart = () => {
 
   return (
     <div className="w-full max-w-6xl mx-auto p-4">
-      <h1 className="text-5xl font-bold mb-12 text-center">Your Mental Health History</h1>
       <TimeSeriesChart data={assessments} />
     </div>
   );

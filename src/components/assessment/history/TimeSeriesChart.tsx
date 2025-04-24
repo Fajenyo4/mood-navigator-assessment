@@ -64,6 +64,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
               dataKey="depression"
               name="Depression"
               stroke="#f43f5e"
+              strokeWidth={2}
               dot={{ fill: '#f43f5e', r: 4 }}
               activeDot={{ r: 6 }}
             />
@@ -72,6 +73,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
               dataKey="anxiety"
               name="Anxiety"
               stroke="#3b82f6"
+              strokeWidth={2}
               dot={{ fill: '#3b82f6', r: 4 }}
               activeDot={{ r: 6 }}
             />
@@ -80,6 +82,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
               dataKey="stress"
               name="Stress"
               stroke="#facc15"
+              strokeWidth={2}
               dot={{ fill: '#facc15', r: 4 }}
               activeDot={{ r: 6 }}
             />
@@ -88,6 +91,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
               dataKey="lifeSatisfaction"
               name="Life Satisfaction"
               stroke="#14b8a6"
+              strokeWidth={2}
               dot={{ fill: '#14b8a6', r: 4 }}
               activeDot={{ r: 6 }}
             />
