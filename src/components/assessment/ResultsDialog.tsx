@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,6 @@ import { MoodResult } from '@/utils/assessmentScoring';
 import MoodIcon from './MoodIcon';
 import ResultMessage from './ResultMessage';
 import ResultActions from './ResultActions';
-import AssessmentChart from './AssessmentChart';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { assessmentResultsTranslations } from '@/translations/assessmentResults';
 
@@ -36,39 +35,12 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   // The redirect URL with proper https protocol to avoid cross-origin issues
   const REDIRECT_URL = "https://www.mican.life/courses-en";
 
-  const hasAssessmentData = result && 
-                          result.depressionResult && 
-                          result.anxietyResult && 
-                          result.stressResult && 
-                          result.satisfactionResult;
-
-  const chartData = hasAssessmentData ? {
-    depression: {
-      score: result.depressionResult!.score,
-      level: result.depressionResult!.level,
-    },
-    anxiety: {
-      score: result.anxietyResult!.score,
-      level: result.anxietyResult!.level,
-    },
-    stress: {
-      score: result.stressResult!.score,
-      level: result.stressResult!.level,
-    },
-    lifeSatisfaction: {
-      score: result.satisfactionResult!.score,
-      level: result.satisfactionResult!.level,
-    }
-  } : null;
-
-  const translations = assessmentResultsTranslations[language as keyof typeof assessmentResultsTranslations] || assessmentResultsTranslations.en;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={`sm:max-w-md md:max-w-lg ${isMobile ? 'max-h-[90vh] overflow-y-auto p-4' : ''}`}>
         <DialogHeader>
           <DialogTitle className={`text-center ${isMobile ? 'text-lg' : 'text-xl'} font-bold`}>
-            {translations.title}
+            {assessmentResultsTranslations[language as keyof typeof assessmentResultsTranslations]?.title || 'Assessment Results'}
           </DialogTitle>
         </DialogHeader>
         {result ? (
@@ -78,15 +50,6 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
             </div>
             
             <ResultMessage message={result.message} language={language} />
-
-            {hasAssessmentData && chartData && (
-              <div className="w-full mt-4">
-                <h3 className={`text-center ${isMobile ? 'text-sm' : 'text-base'} font-medium mb-2`}>
-                  {translations.title}
-                </h3>
-                <AssessmentChart data={chartData} height={isMobile ? 200 : 250} />
-              </div>
-            )}
 
             {!isHistoryPage && (
               <ResultActions 
