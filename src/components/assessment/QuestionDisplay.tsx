@@ -60,7 +60,6 @@ const QuestionDisplay = memo(function QuestionDisplay({
   showPrevious
 }: QuestionDisplayProps) {
   const handleOptionSelect = useCallback((value: string) => {
-    // Handle the option selection
     onAnswer(value);
   }, [onAnswer]);
   

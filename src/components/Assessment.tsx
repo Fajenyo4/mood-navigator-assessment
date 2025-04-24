@@ -5,7 +5,7 @@ import QuestionDisplay from './assessment/QuestionDisplay';
 import ResultsDialog from './assessment/ResultsDialog';
 import LoadingState from './assessment/LoadingState';
 import { useAssessment } from '@/hooks/useAssessment';
-import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/assessmentScoring';
+import { preventPageRefresh } from '@/utils/preventRefresh';
 
 // Optimize imports by directly importing question sets
 import { questions as enQuestions } from '@/translations/en';
@@ -82,6 +82,15 @@ const Assessment = React.memo(function Assessment({ defaultLanguage = 'en' }: As
     initialAnswers: initialState.initialAnswers
   });
 
+  // Prevent page refresh during assessment
+  useEffect(() => {
+    // Only add the refresh prevention if we're not showing results and have answers
+    if (!showResults && Object.keys(answers).length > 0) {
+      const cleanup = preventPageRefresh();
+      return cleanup;
+    }
+  }, [showResults, answers]);
+
   // Immediately mark as initialized on first render
   useEffect(() => {
     setIsInitialized(true);
@@ -100,28 +109,8 @@ const Assessment = React.memo(function Assessment({ defaultLanguage = 'en' }: As
 
   // Calculate progress percentage - memoized
   const progressPercentage = useMemo(() => {
-    return (currentQuestion / totalQuestions) * 100;
+    return Math.max(5, (currentQuestion / totalQuestions) * 100);
   }, [currentQuestion, totalQuestions]);
-
-  // Function to calculate results for display in ResultsDialog - memoized
-  const resultData = useMemo(() => {
-    if (!showResults) return null;
-    
-    const scores = calculateDassScores(answers);
-    const depressionLevel = determineLevel(scores.depression, 'depression');
-    const anxietyLevel = determineLevel(scores.anxiety, 'anxiety');
-    const stressLevel = determineLevel(scores.stress, 'stress');
-    const satisfactionLevel = determineLevel(scores.lifeSatisfaction, 'satisfaction');
-
-    return determineMoodResult(
-      depressionLevel,
-      anxietyLevel,
-      stressLevel,
-      satisfactionLevel,
-      scores.isParent,
-      scores.needsHelp
-    );
-  }, [answers, showResults]);
 
   // Don't render anything until initialized to prevent flashes
   if (!isInitialized) {
@@ -150,11 +139,32 @@ const Assessment = React.memo(function Assessment({ defaultLanguage = 'en' }: As
       <ResultsDialog
         open={showResults}
         onOpenChange={setShowResults}
-        result={resultData}
+        result={showResults ? determineResultData() : null}
         language={effectiveLanguage}
       />
     </div>
   );
+  
+  // Function to calculate results inline for better organization
+  function determineResultData() {
+    if (!showResults) return null;
+    
+    const { calculateDassScores, determineLevel, determineMoodResult } = require('@/utils/assessmentScoring');
+    const scores = calculateDassScores(answers);
+    const depressionLevel = determineLevel(scores.depression, 'depression');
+    const anxietyLevel = determineLevel(scores.anxiety, 'anxiety');
+    const stressLevel = determineLevel(scores.stress, 'stress');
+    const satisfactionLevel = determineLevel(scores.lifeSatisfaction, 'satisfaction');
+
+    return determineMoodResult(
+      depressionLevel,
+      anxietyLevel,
+      stressLevel,
+      satisfactionLevel,
+      scores.isParent,
+      scores.needsHelp
+    );
+  }
 });
 
 Assessment.displayName = 'Assessment';
