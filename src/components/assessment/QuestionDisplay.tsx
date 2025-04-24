@@ -1,4 +1,3 @@
-
 import React, { memo, useCallback } from 'react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -19,7 +18,6 @@ interface QuestionDisplayProps {
   showPrevious?: boolean;
 }
 
-// Memoize the individual option to prevent unnecessary re-renders
 const QuestionOption = memo(({ 
   index, 
   option, 
@@ -50,7 +48,6 @@ const QuestionOption = memo(({
 
 QuestionOption.displayName = 'QuestionOption';
 
-// Memoize the entire QuestionDisplay component to prevent unnecessary re-renders
 const QuestionDisplay = memo(function QuestionDisplay({
   currentQuestion,
   totalQuestions,
@@ -61,16 +58,20 @@ const QuestionDisplay = memo(function QuestionDisplay({
   onPrevious,
   showPrevious
 }: QuestionDisplayProps) {
-  // Use useCallback to prevent recreation of onClick handlers
-  const handleOptionSelect = useCallback((value: string) => {
+  const handleOptionSelect = useCallback((value: string, event?: React.SyntheticEvent) => {
+    if (event && 'preventDefault' in event) {
+      event.preventDefault();
+    }
     onAnswer(value);
   }, [onAnswer]);
   
-  const handlePreviousClick = useCallback(() => {
+  const handlePreviousClick = useCallback((event?: React.SyntheticEvent) => {
+    if (event && 'preventDefault' in event) {
+      event.preventDefault();
+    }
     if (onPrevious) onPrevious();
   }, [onPrevious]);
 
-  // Ensure question is defined before accessing its properties
   if (!question) {
     return <div className="w-full max-w-2xl mx-auto text-center p-8">Loading question...</div>;
   }
@@ -85,9 +86,9 @@ const QuestionDisplay = memo(function QuestionDisplay({
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={handlePreviousClick}
+          onClick={(e) => handlePreviousClick(e)}
           className="mb-6 hover:bg-gray-100 transition-colors duration-200"
-          type="button" // Explicitly set button type to prevent form submission
+          type="button" 
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
@@ -102,10 +103,10 @@ const QuestionDisplay = memo(function QuestionDisplay({
         </h2>
 
         <RadioGroup
-          onValueChange={handleOptionSelect}
+          onValueChange={(value, event) => handleOptionSelect(value, event)}
           className="space-y-4"
           value={selectedOption}
-          defaultValue={selectedOption} // Add defaultValue to stabilize the component
+          defaultValue={selectedOption}
         >
           {options.map((option, index) => (
             <QuestionOption 
