@@ -1,17 +1,15 @@
+
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { ChartContainer } from "@/components/ui/chart";
 import { format } from 'date-fns';
+import { ChartContainer } from "@/components/ui/chart";
 import { AssessmentRecord } from '@/utils/scoring/types';
-import { useIsMobile } from '@/hooks/use-mobile';
+import ChartConfig from './ChartConfig';
 
 interface TimeSeriesChartProps {
   data: AssessmentRecord[];
 }
 
 const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
-  const isMobile = useIsMobile();
-  
   const chartData = data
     .map(record => ({
       date: format(new Date(record.created_at), 'MM/yyyy'),
@@ -58,121 +56,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
             satisfaction: { theme: { light: '#14b8a6', dark: '#2dd4bf' } }
           }}
         >
-          <ResponsiveContainer width="100%" height={isMobile ? 300 : 400}>
-            <LineChart
-              data={chartData}
-              margin={{ 
-                top: 5, 
-                right: isMobile ? 10 : 30, 
-                left: isMobile ? 10 : 20, 
-                bottom: isMobile ? 60 : 25 
-              }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis 
-                dataKey="fullDate"
-                stroke="#6b7280"
-                tick={{ fill: '#6b7280', fontSize: isMobile ? 10 : 12 }}
-                tickLine={{ stroke: '#6b7280' }}
-                height={60}
-                angle={-45}
-                textAnchor="end"
-              />
-              <YAxis
-                stroke="#6b7280"
-                tick={{ fill: '#6b7280', fontSize: isMobile ? 10 : 12 }}
-                tickLine={{ stroke: '#6b7280' }}
-                label={{ 
-                  value: 'Score', 
-                  angle: -90, 
-                  position: 'insideLeft',
-                  style: { fill: '#6b7280', fontSize: isMobile ? 10 : 12 }
-                }}
-              />
-              <Tooltip 
-                formatter={(value, name) => {
-                  const nameStr = String(name);
-                  if (nameStr === 'lifeSatisfaction') return [value, 'Life Satisfaction'];
-                  return [value, nameStr.charAt(0).toUpperCase() + nameStr.slice(1)];
-                }}
-                labelFormatter={(label) => `Date: ${label}`}
-                wrapperStyle={{ 
-                  backgroundColor: '#fff',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '0.5rem',
-                  padding: '0.5rem'
-                }}
-              />
-              <Legend 
-                verticalAlign="bottom" 
-                height={36}
-                wrapperStyle={{
-                  paddingTop: '1rem',
-                  fontSize: isMobile ? '10px' : '12px'
-                }}
-              />
-              
-              <ReferenceLine 
-                y={averages.depression} 
-                stroke="#f43f5e" 
-                strokeDasharray="3 3" 
-                label={{ 
-                  value: 'Avg Depression',
-                  position: 'right',
-                  fill: '#f43f5e',
-                  fontSize: isMobile ? 10 : 12
-                }} 
-              />
-              <ReferenceLine 
-                y={averages.anxiety} 
-                stroke="#3b82f6" 
-                strokeDasharray="3 3" 
-                label={{ 
-                  value: 'Avg Anxiety',
-                  position: 'right',
-                  fill: '#3b82f6',
-                  fontSize: isMobile ? 10 : 12
-                }} 
-              />
-              
-              <Line
-                type="monotone"
-                dataKey="depression"
-                name="Depression"
-                stroke="#f43f5e"
-                strokeWidth={2}
-                dot={{ fill: '#f43f5e', r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="anxiety"
-                name="Anxiety"
-                stroke="#3b82f6"
-                strokeWidth={2}
-                dot={{ fill: '#3b82f6', r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="stress"
-                name="Stress"
-                stroke="#facc15"
-                strokeWidth={2}
-                dot={{ fill: '#facc15', r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="lifeSatisfaction"
-                name="Life Satisfaction"
-                stroke="#14b8a6"
-                strokeWidth={2}
-                dot={{ fill: '#14b8a6', r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <ChartConfig data={chartData} averages={averages} />
         </ChartContainer>
       </div>
       
