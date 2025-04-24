@@ -63,30 +63,6 @@ const App = () => (
             <Route path="/embed/en-sso" element={<EnglishEmbed sso={true} />} />
             <Route path="/embed/zh-cn-sso" element={<SimplifiedChineseEmbed sso={true} />} />
             <Route path="/embed/zh-tw-sso" element={<TraditionalChineseEmbed sso={true} />} />
-            <Route path="/embed/easy-history" element={
-              <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-                <img 
-                  src="/lovable-uploads/32730d45-90eb-4971-b489-51a01e471c37.png" 
-                  alt="ICAN Live Well" 
-                  style={{ width: '80px', height: '80px', marginBottom: '20px' }} 
-                />
-                <p>Redirecting to assessment history...</p>
-                <script dangerouslySetInnerHTML={{ __html: `
-                  // Get the app domain from the current URL
-                  const appDomain = window.location.origin;
-                  
-                  // Create a simple token
-                  const simpleToken = btoa("public:" + Date.now());
-                  
-                  // Get language from URL parameter or default to English
-                  const urlParams = new URLSearchParams(window.location.search);
-                  const lang = urlParams.get('lang') || 'en';
-                  
-                  // Redirect to easy access with history view
-                  window.location.href = \`\${appDomain}/easy-access?token=\${simpleToken}&view=history&lang=\${lang}\`;
-                `}} />
-              </div>
-            } />
             <Route path="/check-auth" element={<CheckAuth />} />
             <Route 
               path="/en" 
