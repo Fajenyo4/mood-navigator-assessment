@@ -49,7 +49,9 @@ additional_redirect_urls = [
   "https://mood-navigator-assessment.lovable.app/login/zh-hk",
   "https://mood-navigator-assessment.lovable.app/en",
   "https://mood-navigator-assessment.lovable.app/zh-cn",
-  "https://mood-navigator-assessment.lovable.app/zh-hk"
+  "https://mood-navigator-assessment.lovable.app/zh-hk",
+  "https://mood-navigator-assessment.lovable.app/sso-login",
+  "https://mood-navigator-assessment.lovable.app/"
 ]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 seconds (one
 # week).

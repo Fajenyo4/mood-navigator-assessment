@@ -51,16 +51,29 @@ serve(async (req) => {
       );
     }
 
-    // Set production domain as the default redirect URL
+    // Production domain is the only supported domain to avoid localhost issues
     const productionDomain = 'https://mood-navigator-assessment.lovable.app';
     
-    // Get the redirect URL from the request or use the production domain
-    let finalRedirectUrl = redirectUrl || productionDomain;
+    // Force using the production domain regardless of what was passed
+    let finalRedirectUrl = productionDomain;
     
-    // Ensure we never use localhost
-    if (finalRedirectUrl.includes('localhost')) {
-      console.warn("Detected localhost in redirect URL, replacing with production domain");
-      finalRedirectUrl = productionDomain;
+    // Extract language from redirectUrl if it was provided
+    if (redirectUrl) {
+      const urlParts = new URL(redirectUrl).pathname.split('/');
+      let lang = 'en'; // Default language
+      if (urlParts.length > 1 && urlParts[1]) {
+        // Check if the path segment matches our supported languages (en, zh-cn, zh-hk)
+        const pathLang = urlParts[1];
+        if (['en', 'zh-cn', 'zh-hk'].includes(pathLang.toLowerCase())) {
+          lang = pathLang.toLowerCase();
+        }
+      }
+      
+      // Ensure the final URL has the language path
+      finalRedirectUrl = `${productionDomain}/${lang}`;
+    } else {
+      // Default to English if no redirectUrl was provided
+      finalRedirectUrl = `${productionDomain}/en`;
     }
     
     console.log("Processing SSO for email:", email, "name:", name, "redirect:", finalRedirectUrl);
@@ -132,36 +145,21 @@ serve(async (req) => {
       
       // 3. Generate a sign-in link with magic link
       console.log("Generating sign-in link for user ID:", userId);
+      console.log("Using explicit redirect URL:", finalRedirectUrl);
       
-      // Extract language from redirectUrl if it matches the pattern /{lang}
-      const urlParts = new URL(finalRedirectUrl).pathname.split('/');
-      let lang = 'en'; // Default language
-      if (urlParts.length > 1 && urlParts[1]) {
-        // Check if the path segment matches our supported languages (en, zh-cn, zh-hk)
-        const pathLang = urlParts[1];
-        if (['en', 'zh-cn', 'zh-hk'].includes(pathLang.toLowerCase())) {
-          lang = pathLang.toLowerCase();
-        }
-      }
+      // IMPORTANT: Set explicit options to ensure the redirect works correctly
+      const options = {
+        redirectTo: finalRedirectUrl,
+        // Add these options to prevent Supabase from using stored browser state
+        shouldCreateUser: false
+      };
       
-      // Ensure the redirectUrl includes the language path
-      if (!finalRedirectUrl.includes(`/${lang}`)) {
-        if (finalRedirectUrl.endsWith('/')) {
-          finalRedirectUrl += lang;
-        } else {
-          finalRedirectUrl += `/${lang}`;
-        }
-      }
+      console.log("Sign-in options:", JSON.stringify(options));
       
-      console.log("Final redirect URL with language:", finalRedirectUrl);
-      
-      // IMPORTANT: Always set the redirectTo option explicitly to the production URL
       const { data: signInData, error: signInError } = await supabaseAdmin.auth.admin.generateLink({
         type: 'magiclink',
         email: email,
-        options: {
-          redirectTo: finalRedirectUrl
-        }
+        options: options
       });
       
       if (signInError) {
@@ -172,12 +170,30 @@ serve(async (req) => {
         );
       }
       
-      console.log("Sign-in link generated successfully:", signInData.properties.action_link);
+      // Extract the magic link from the response
+      const magicLink = signInData.properties.action_link;
+      console.log("Sign-in link generated successfully:", magicLink);
+      
+      // Verify the magic link has the correct redirect URL
+      const magicLinkUrl = new URL(magicLink);
+      const redirectParam = magicLinkUrl.searchParams.get('redirect_to');
+      console.log("Magic link redirect parameter:", redirectParam);
+      
+      // If the redirect is to localhost, replace it with production domain
+      let finalMagicLink = magicLink;
+      if (redirectParam && redirectParam.includes('localhost')) {
+        console.log("Detected localhost in redirect, replacing with production domain");
+        // Remove the problematic redirect parameter
+        magicLinkUrl.searchParams.set('redirect_to', finalRedirectUrl);
+        finalMagicLink = magicLinkUrl.toString();
+      }
+      
+      console.log("Final magic link:", finalMagicLink);
       
       // Return the sign-in link to the client
       return new Response(
         JSON.stringify({ 
-          magicLink: signInData.properties.action_link,
+          magicLink: finalMagicLink,
           success: true 
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
