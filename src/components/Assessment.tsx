@@ -134,12 +134,17 @@ const Assessment = React.memo(function Assessment({ defaultLanguage = 'en' }: As
     return questions[currentQuestion] || null;
   }, [questions, currentQuestion]);
 
-  // Calculate progress percentage - memoized and fixed calculation
+  // Calculate progress percentage - memoized and adjusted to start from 0
   const progressPercentage = useMemo(() => {
-    // Calculate based on current question index + 1 divided by total questions
-    // This ensures the progress bar fills up precisely at the last question
-    return Math.min(((currentQuestion + 1) / totalQuestions) * 100, 100);
-  }, [currentQuestion, totalQuestions]);
+    // Start with 0 for first question before any answers
+    if (Object.keys(answers).length === 0) {
+      return 0;
+    }
+    
+    // Calculate based on current question index divided by total questions
+    const progress = Math.min((currentQuestion / totalQuestions) * 100, 100);
+    return progress;
+  }, [currentQuestion, totalQuestions, answers]);
 
   // Don't render anything until initialized to prevent flashes
   if (!isInitialized) {
