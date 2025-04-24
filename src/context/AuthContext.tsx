@@ -11,6 +11,7 @@ interface AuthContextType {
   signIn: (provider: 'google' | 'github' | 'email', email?: string, password?: string) => Promise<void>;
   signOut: () => Promise<void>;
   signUp: (email: string, password: string, name?: string) => Promise<void>;
+  setUser: (user: User | null) => void; // Add the setUser method to the interface
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -128,7 +129,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signOut, signUp }}>
+    <AuthContext.Provider value={{ user, session, loading, signIn, signOut, signUp, setUser }}>
       {children}
     </AuthContext.Provider>
   );
