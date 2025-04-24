@@ -12,31 +12,77 @@
       margin: 0;
       padding: 20px;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+      background-color: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .logo {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      color: #2563eb;
+      margin-bottom: 20px;
+    }
+    p {
+      color: #4b5563;
+      margin-bottom: 30px;
+      line-height: 1.6;
     }
     .link {
       display: inline-block;
-      padding: 10px 20px;
+      padding: 12px 24px;
       background-color: #2563eb;
       color: white;
       text-decoration: none;
       border-radius: 6px;
       font-weight: 500;
       transition: background-color 0.2s;
+      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
     }
     .link:hover {
       background-color: #1d4ed8;
     }
+    .footer {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #9ca3af;
+    }
   </style>
 </head>
 <body>
-  <a 
-    href="https://thvtgvvwksbxywhdnwcv.supabase.co/auth/v1/authorize?provider=google&redirect_to=https://thvtgvvwksbxywhdnwcv.lovable.app/history-chart" 
-    class="link"
-  >
-    View Mental Health History Chart
-  </a>
+  <div class="container">
+    <img 
+      src="/lovable-uploads/32730d45-90eb-4971-b489-51a01e471c37.png"
+      alt="ICAN Live Well"
+      class="logo"
+    />
+    <h1>View Your Mental Health Progress</h1>
+    <p>
+      Track your mental well-being over time with our interactive progress chart. 
+      Sign in with Google to visualize your assessment history and gain valuable insights.
+    </p>
+    <a 
+      href="https://thvtgvvwksbxywhdnwcv.supabase.co/auth/v1/authorize?provider=google&redirect_to=https://thvtgvvwksbxywhdnwcv.lovable.app/history-chart" 
+      class="link"
+    >
+      View Mental Health History Chart
+    </a>
+    <div class="footer">
+      Your privacy is important to us. All data is securely stored and only accessible to you.
+    </div>
+  </div>
 </body>
 </html>
