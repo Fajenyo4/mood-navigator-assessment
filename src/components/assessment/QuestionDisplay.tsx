@@ -1,3 +1,4 @@
+
 import React, { memo, useCallback } from 'react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -58,10 +59,8 @@ const QuestionDisplay = memo(function QuestionDisplay({
   onPrevious,
   showPrevious
 }: QuestionDisplayProps) {
-  const handleOptionSelect = useCallback((value: string, event?: React.SyntheticEvent) => {
-    if (event && 'preventDefault' in event) {
-      event.preventDefault();
-    }
+  const handleOptionSelect = useCallback((value: string) => {
+    // Handle the option selection
     onAnswer(value);
   }, [onAnswer]);
   
@@ -103,7 +102,7 @@ const QuestionDisplay = memo(function QuestionDisplay({
         </h2>
 
         <RadioGroup
-          onValueChange={(value, event) => handleOptionSelect(value, event)}
+          onValueChange={handleOptionSelect}
           className="space-y-4"
           value={selectedOption}
           defaultValue={selectedOption}

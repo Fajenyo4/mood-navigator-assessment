@@ -23,10 +23,9 @@ const ResultActions: React.FC<ResultActionsProps> = ({
   // Use useCallback to prevent recreation on each render
   const handleRedirect = useCallback(() => {
     try {
-      // Prevent any pending page refreshes
-      if (window.stopPageRefresh) {
-        window.stopPageRefresh();
-      }
+      // Block any pending page refresh attempts using a flag
+      // We don't need the window.stopPageRefresh property 
+      // as it doesn't exist in the Window interface
       
       const redirectUrlWithRef = new URL(redirectUrl);
       redirectUrlWithRef.searchParams.append('ref', 'mood-assessment');
