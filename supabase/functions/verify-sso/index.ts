@@ -68,75 +68,20 @@ serve(async (req) => {
     
     console.log("Supabase admin client initialized");
     
-    // First check if the user exists using the correct method call and error handling
-    console.log("Checking if user exists:", email);
+    // Generate sign-in link regardless of whether user exists or not
+    console.log("Generating sign-in link for:", email);
     
-    // Query the auth.users table directly to find the user by email
-    const { data: users, error: queryError } = await supabaseAdmin
-      .from('auth.users')
-      .select('*')
-      .eq('email', email)
-      .single();
-      
-    if (queryError) {
-      console.error("Error querying for user:", queryError.message);
-    }
-    
-    if (users) {
-      console.log("User exists, creating session for existing user");
-      const existingUser = users;
-      
-      // Create a session for the existing user
-      const { data: sessionData, error: sessionError } = await supabaseAdmin.auth.admin.generateLink({
-        type: 'magiclink',
-        email: email,
-      });
-      
-      if (sessionError) {
-        console.error("Error creating session for existing user:", sessionError);
-        return new Response(
-          JSON.stringify({ error: `Failed to create session: ${sessionError.message}` }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-        );
-      }
-      
-      // Extract just the properties needed for session
-      const session = {
-        access_token: sessionData.properties.access_token,
-        refresh_token: sessionData.properties.refresh_token,
-        expires_in: 3600, // 1 hour
-        user: existingUser
-      };
-      
-      console.log("Session created for existing user");
-      return new Response(
-        JSON.stringify({ session, success: true }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-      
-    } else {
-      console.log("User doesn't exist, creating new user");
-      
-      // Create new user
-      const { data: newUserData, error: createError } = await supabaseAdmin.auth.admin.createUser({
-        email,
-        email_confirm: true,
-        user_metadata: { name: name || email.split('@')[0] },
-      });
-      
-      if (createError) {
-        console.error("Error creating user:", createError);
-        return new Response(
-          JSON.stringify({ error: `Failed to create user: ${createError.message}` }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-        );
-      }
-      
-      // Generate a sign-in link for the new user
-      console.log("User created, generating sign-in link");
+    try {
+      // Generate a magic link for the user, which will create the user if they don't exist
       const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
         type: 'magiclink',
         email: email,
+        options: {
+          // Ensure user is created if they don't exist
+          createUser: true,
+          // Add user metadata if available
+          data: name ? { name: name } : undefined
+        }
       });
       
       if (linkError) {
@@ -152,13 +97,26 @@ serve(async (req) => {
         access_token: linkData.properties.access_token,
         refresh_token: linkData.properties.refresh_token,
         expires_in: 3600, // 1 hour
-        user: newUserData.user
+        user: {
+          id: linkData.user.id,
+          email: linkData.user.email,
+          user_metadata: linkData.user.user_metadata
+        }
       };
       
-      console.log("Session created for new user");
+      console.log("Session created successfully");
       return new Response(
         JSON.stringify({ session, success: true }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    } catch (authError) {
+      console.error("Error in authentication flow:", authError);
+      return new Response(
+        JSON.stringify({ 
+          error: `Authentication error: ${authError.message}`,
+          details: authError.stack
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
       );
     }
   } catch (error) {
