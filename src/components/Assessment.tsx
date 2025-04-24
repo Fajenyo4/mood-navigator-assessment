@@ -6,6 +6,7 @@ import ResultsDialog from './assessment/ResultsDialog';
 import LoadingState from './assessment/LoadingState';
 import { useAssessment } from '@/hooks/useAssessment';
 import { preventPageRefresh } from '@/utils/preventRefresh';
+import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/assessmentScoring';
 
 // Define props interface for Assessment component
 interface AssessmentProps {
@@ -190,7 +191,7 @@ const Assessment = React.memo(function Assessment({ defaultLanguage = 'en' }: As
   function determineResultData() {
     if (!showResults) return null;
     
-    const { calculateDassScores, determineLevel, determineMoodResult } = require('@/utils/assessmentScoring');
+    // Use imported functions instead of require
     const scores = calculateDassScores(answers);
     const depressionLevel = determineLevel(scores.depression, 'depression');
     const anxietyLevel = determineLevel(scores.anxiety, 'anxiety');
