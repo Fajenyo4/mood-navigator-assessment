@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -28,64 +29,18 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   result,
   language,
 }) => {
-  const [countdown, setCountdown] = useState(10);
   const location = useLocation();
   const isHistoryPage = location.pathname === '/history';
   const isMobile = useIsMobile();
 
   // The redirect URL with proper https protocol to avoid cross-origin issues
   const REDIRECT_URL = "https://www.mican.life/courses-en";
-  
-  useEffect(() => {
-    let countdownTimer: NodeJS.Timeout | null = null;
-    
-    if (open && result && !isHistoryPage) {
-      setCountdown(10); // Reset countdown when dialog opens
-      
-      countdownTimer = setInterval(() => {
-        setCountdown((prevCount) => {
-          if (prevCount <= 1) {
-            clearInterval(countdownTimer!);
-            
-            // Add a small delay to ensure the UI shows 0 before redirect
-            setTimeout(() => {
-              console.log("Attempting redirect to:", REDIRECT_URL);
-              
-              try {
-                // Build the full URL with parameters
-                const redirectUrlWithRef = new URL(REDIRECT_URL);
-                redirectUrlWithRef.searchParams.append('ref', 'mood-assessment');
-                redirectUrlWithRef.searchParams.append('completed', 'true');
-                
-                // Open in the current window using window.location.href
-                window.location.href = redirectUrlWithRef.toString();
-              } catch (error) {
-                console.error("Redirect URL construction error:", error);
-                // Fallback to direct redirect
-                window.location.href = REDIRECT_URL;
-              }
-            }, 500);
-            
-            return 0;
-          }
-          return prevCount - 1;
-        });
-      }, 1000);
-    }
-    
-    // Cleanup function
-    return () => {
-      if (countdownTimer) {
-        clearInterval(countdownTimer);
-      }
-    };
-  }, [open, result, isHistoryPage]);
 
   const hasAssessmentData = result && 
-                           result.depressionResult && 
-                           result.anxietyResult && 
-                           result.stressResult && 
-                           result.satisfactionResult;
+                          result.depressionResult && 
+                          result.anxietyResult && 
+                          result.stressResult && 
+                          result.satisfactionResult;
 
   const chartData = hasAssessmentData ? {
     depression: {

@@ -29,12 +29,13 @@ const Login = ({ language = 'en' }: LoginProps) => {
   // Update language in auth context
   useEffect(() => {
     setLanguage(selectedLanguage);
-    console.log(`Language set in Login: ${selectedLanguage}`);
   }, [selectedLanguage, setLanguage]);
 
   useEffect(() => {
     if (user && !authLoading) {
+      // Send message to parent window to notify auth success, but don't show a toast
       window.parent.postMessage({ type: 'AUTH_SUCCESS', user: user.email }, '*');
+      // Silently navigate to assessment page
       navigate(`/${selectedLanguage.toLowerCase()}`);
     }
   }, [user, authLoading, navigate, selectedLanguage]);

@@ -15,55 +15,53 @@ const EnglishEmbed: React.FC<EnglishEmbedProps> = ({ sso = false }) => {
   const PRODUCTION_DOMAIN = 'https://mood-navigator-assessment.lovable.app';
 
   useEffect(() => {
-    // Check URL parameters for direct SSO access
-    const urlParams = new URLSearchParams(window.location.search);
-    let rawEmail = urlParams.get('email');
-    let rawName = urlParams.get('name');
-    
-    // Check and clean up template variables
-    if (rawEmail && (rawEmail.includes('{{') || rawEmail.includes('}}'))) {
-      console.warn("Template variables detected in email:", rawEmail);
-      setError("The URL contains template variables. Please configure LearnWorlds to replace {{USER_EMAIL}} and {{USER_NAME}} with actual values.");
-      return;
-    }
-
-    if (rawName && (rawName.includes('{{') || rawName.includes('}}'))) {
-      console.warn("Template variables detected in name:", rawName);
-      rawName = null; // Reset name if it contains template variables
-    }
-
-    if (rawEmail) {
-      setIsDirectSso(true);
-      setRedirecting(true);
+    // Check URL parameters for direct SSO access (run immediately for faster performance)
+    const performSsoCheck = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      let rawEmail = urlParams.get('email');
+      let rawName = urlParams.get('name');
       
-      console.log("Direct SSO detected with email:", rawEmail);
-      
-      try {
-        // Create a simple token by encoding the email and timestamp
-        const simpleToken = btoa(`${rawEmail}:${Date.now()}`);
-        
-        // Get actual name or default to email username
-        let name = rawName || rawEmail.split('@')[0];
-        
-        // Always use the production domain for redirects
-        const redirectUrl = `${PRODUCTION_DOMAIN}/en`;
-        
-        // Redirect to SSO login endpoint with token, language and explicit redirectUrl
-        const ssoLoginUrl = `${PRODUCTION_DOMAIN}/sso-login?token=${encodeURIComponent(simpleToken)}&email=${encodeURIComponent(rawEmail)}&name=${encodeURIComponent(name)}&lang=en&redirectUrl=${encodeURIComponent(redirectUrl)}`;
-        
-        console.log("Redirecting to:", ssoLoginUrl);
-        
-        // Add a small delay to allow logs to be sent to console
-        setTimeout(() => {
-          window.location.href = ssoLoginUrl;
-        }, 100);
-      } catch (error) {
-        console.error("Error during SSO redirect:", error);
-        // Show error state instead of infinite loading
-        setRedirecting(false);
-        setError("Error processing SSO login. Please try again or contact support.");
+      // Check and clean up template variables
+      if (rawEmail && (rawEmail.includes('{{') || rawEmail.includes('}}'))) {
+        console.warn("Template variables detected in email:", rawEmail);
+        setError("The URL contains template variables. Please configure LearnWorlds to replace {{USER_EMAIL}} and {{USER_NAME}} with actual values.");
+        return;
       }
-    }
+
+      if (rawName && (rawName.includes('{{') || rawName.includes('}}'))) {
+        rawName = null; // Reset name if it contains template variables
+      }
+
+      if (rawEmail) {
+        setIsDirectSso(true);
+        setRedirecting(true);
+        
+        try {
+          // Create a simple token by encoding the email and timestamp
+          const simpleToken = btoa(`${rawEmail}:${Date.now()}`);
+          
+          // Get actual name or default to email username
+          let name = rawName || rawEmail.split('@')[0];
+          
+          // Always use the production domain for redirects
+          const redirectUrl = `${PRODUCTION_DOMAIN}/en`;
+          
+          // Redirect to SSO login endpoint with token, language and explicit redirectUrl
+          const ssoLoginUrl = `${PRODUCTION_DOMAIN}/sso-login?token=${encodeURIComponent(simpleToken)}&email=${encodeURIComponent(rawEmail)}&name=${encodeURIComponent(name)}&lang=en&redirectUrl=${encodeURIComponent(redirectUrl)}`;
+          
+          // Immediately redirect - don't wait
+          window.location.href = ssoLoginUrl;
+        } catch (error) {
+          console.error("Error during SSO redirect:", error);
+          // Show error state instead of infinite loading
+          setRedirecting(false);
+          setError("Error processing SSO login. Please try again or contact support.");
+        }
+      }
+    };
+
+    // Run the check immediately without delay
+    performSsoCheck();
   }, []);
 
   // Determine the URL based on whether this is an SSO embed or not
@@ -88,10 +86,8 @@ const EnglishEmbed: React.FC<EnglishEmbedProps> = ({ sso = false }) => {
   if (redirecting) {
     return (
       <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f9f9f9' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ width: '40px', height: '40px', margin: '0 auto', border: '4px solid #e0e0e0', borderTopColor: '#4f46e5', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-          <p style={{ marginTop: '20px', color: '#4f46e5', fontFamily: 'Arial, sans-serif' }}>Signing you in...</p>
-        </div>
+        {/* Simplified loading indicator - no text to avoid "Signing in" message */}
+        <div style={{ width: '40px', height: '40px', border: '4px solid #e0e0e0', borderTopColor: '#4f46e5', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
         <style>{`
           @keyframes spin {
             to { transform: rotate(360deg); }

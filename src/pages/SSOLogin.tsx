@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, AlertCircle, RefreshCw, Bug, ExternalLink } from 'lucide-react';
-import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 
@@ -29,9 +28,8 @@ const SSOLogin: React.FC = () => {
     
     // Store language in auth context
     setLanguage(lang);
-    console.log(`Language set in SSO login: ${lang}`);
-
-    // If already authenticated, redirect to home page
+    
+    // If already authenticated, redirect to home page silently
     if (user) {
       navigate(`/${lang}`, { replace: true });
       return;
@@ -51,8 +49,6 @@ const SSOLogin: React.FC = () => {
           return;
         }
 
-        console.log('Attempting SSO login with:', { email, name, redirectUrl, lang });
-
         // Always ensure we're using the production domain for redirects
         if (!redirectUrl || redirectUrl.includes('localhost')) {
           // Get the correct language path
@@ -61,7 +57,6 @@ const SSOLogin: React.FC = () => {
           else if (lang === 'zh-hk' || lang === 'zh-tw') langPath = 'zh-hk';
           
           redirectUrl = `https://mood-navigator-assessment.lovable.app/${langPath}`;
-          console.log("Using production redirect URL:", redirectUrl);
         }
 
         try {
@@ -87,14 +82,12 @@ const SSOLogin: React.FC = () => {
             statusText: response.statusText,
             headers: Object.fromEntries(response.headers.entries()),
           };
-          console.log("Response info:", responseInfo);
           setDebugInfo(responseInfo);
 
           // Check for non-JSON responses first
           const contentType = response.headers.get('content-type');
           if (!contentType || !contentType.includes('application/json')) {
             const textResponse = await response.text();
-            console.error('Non-JSON response:', textResponse);
             setDebugInfo(prev => ({ ...prev, textResponse }));
             throw new Error(`Received non-JSON response from server (${response.status}): ${textResponse.substring(0, 100)}...`);
           }
@@ -103,15 +96,12 @@ const SSOLogin: React.FC = () => {
           let data;
           try {
             data = await response.json();
-            console.log("Response data:", data);
             setDebugInfo(prev => ({ ...prev, responseData: data }));
           } catch (jsonError) {
-            console.error("JSON parse error:", jsonError);
             throw new Error(`Failed to parse server response as JSON: ${jsonError.message}`);
           }
           
           if (!response.ok) {
-            console.error('SSO verification error:', data);
             throw new Error(data.error || `Server error: ${response.status}`);
           }
           
@@ -125,7 +115,6 @@ const SSOLogin: React.FC = () => {
               
               if (redirectParam) {
                 if (redirectParam.includes('localhost') || !redirectParam.includes('mood-navigator-assessment.lovable.app')) {
-                  console.warn("Found problematic redirect in magic link, fixing...");
                   // Get the correct language path
                   let langPath = 'en';
                   if (lang === 'zh-cn') langPath = 'zh-cn';
@@ -133,7 +122,6 @@ const SSOLogin: React.FC = () => {
                   
                   magicLinkUrl.searchParams.set('redirect_to', `https://mood-navigator-assessment.lovable.app/${langPath}`);
                   finalMagicLink = magicLinkUrl.toString();
-                  console.log("Fixed magic link:", finalMagicLink);
                 }
               }
             } catch (urlError) {
@@ -148,9 +136,7 @@ const SSOLogin: React.FC = () => {
               
               try {
                 window.location.href = finalMagicLink;
-                console.log("Redirected to magic link");
               } catch (redirectError) {
-                console.error("Direct redirect failed:", redirectError);
                 setError("Automatic login failed. Please use the manual login button below.");
                 setIsLoading(false);
               }
@@ -166,13 +152,11 @@ const SSOLogin: React.FC = () => {
             throw new Error('Authentication failed: No magic link returned');
           }
         } catch (fetchError: any) {
-          console.error('Error during SSO:', fetchError);
           setErrorDetails(fetchError.stack ? fetchError.stack : null);
           setError(`Authentication failed: ${fetchError.message}`);
           setIsLoading(false);
         }
       } catch (err: any) {
-        console.error('SSO login error:', err);
         setError(`Authentication error: ${err.message}`);
         setIsLoading(false);
       }
@@ -180,13 +164,12 @@ const SSOLogin: React.FC = () => {
 
     authenticateWithSSO();
     
-    // Set up auth state listener to detect when magic link succeeds
+    // Set up auth state listener to detect when magic link succeeds (without toast)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed:", event, session?.user?.email);
       if (session?.user) {
         setUser(session.user);
         const lang = searchParams.get('lang') || 'en';
-        toast.success('Successfully signed in!');
+        // Silently navigate to the assessment page without toast
         navigate(`/${lang}`, { replace: true });
       }
     });
