@@ -115,8 +115,10 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
             />
             <Tooltip 
               formatter={(value, name) => {
-                if (name === 'lifeSatisfaction') return [value, 'Life Satisfaction'];
-                return [value, name.charAt(0).toUpperCase() + name.slice(1)];
+                // Convert name to string before using string methods
+                const nameStr = String(name);
+                if (nameStr === 'lifeSatisfaction') return [value, 'Life Satisfaction'];
+                return [value, nameStr.charAt(0).toUpperCase() + nameStr.slice(1)];
               }}
               labelFormatter={(label) => `Date: ${label}`}
             />
