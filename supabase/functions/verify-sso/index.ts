@@ -71,21 +71,28 @@ serve(async (req) => {
       // First, try to find if the user exists
       let userId;
       console.log("Checking if user exists:", email);
-      const { data: existingUser, error: getUserError } = await supabase.auth.admin.getUserByEmail(email);
       
-      if (getUserError) {
-        console.log("Error fetching user by email:", getUserError.message);
+      // Use the correct method to look up a user by email
+      const { data: users, error: userLookupError } = await supabase
+        .from('auth.users')
+        .select('id, email')
+        .eq('email', email)
+        .maybeSingle();
+      
+      if (userLookupError) {
+        console.log("Error looking up user:", userLookupError.message);
         // Continue with user creation
       }
       
-      if (existingUser && existingUser.user) {
-        console.log("User found:", existingUser.user.id);
-        userId = existingUser.user.id;
+      if (users) {
+        console.log("User found:", users.id);
+        userId = users.id;
         
         // Optionally update user metadata if needed
-        if (name) {
+        if (name && userId) {
           console.log("Updating existing user metadata with name:", name);
-          const { error: updateError } = await supabase.auth.admin.updateUserById(
+          // For metadata updates, we'll use the admin.updateUser method
+          const { error: updateError } = await supabase.auth.admin.updateUser(
             userId,
             { user_metadata: { name: name || email.split('@')[0] } }
           );
@@ -141,8 +148,12 @@ serve(async (req) => {
       let sessionData;
       try {
         console.log("Creating session for user ID:", userId);
-        const { data: session, error: sessionError } = await supabase.auth.admin.createSession({
-          userId: userId,
+        const { data: session, error: sessionError } = await supabase.auth.admin.generateLink({
+          type: 'magiclink',
+          email: email,
+          options: {
+            redirectTo: `${supabaseUrl}/auth/v1/callback`
+          }
         });
         
         if (sessionError) {
