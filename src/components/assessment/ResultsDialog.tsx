@@ -12,6 +12,7 @@ import MoodIcon from './MoodIcon';
 import ResultMessage from './ResultMessage';
 import ResultActions from './ResultActions';
 import AssessmentChart from './AssessmentChart';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ResultsDialogProps {
   open: boolean;
@@ -30,6 +31,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   const [countdown, setCountdown] = useState(10);
   const location = useLocation();
   const isHistoryPage = location.pathname === '/history';
+  const isMobile = useIsMobile();
 
   // The redirect URL with proper https protocol to avoid cross-origin issues
   const REDIRECT_URL = "https://www.mican.life/courses-en";
@@ -106,12 +108,12 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md md:max-w-lg">
+      <DialogContent className={`sm:max-w-md md:max-w-lg ${isMobile ? 'max-h-[90vh] overflow-y-auto p-4' : ''}`}>
         <DialogHeader>
-          <DialogTitle className="text-center text-xl font-bold">Assessment Results</DialogTitle>
+          <DialogTitle className={`text-center ${isMobile ? 'text-lg' : 'text-xl'} font-bold`}>Assessment Results</DialogTitle>
         </DialogHeader>
         {result ? (
-          <div className="flex flex-col items-center space-y-4 py-4">
+          <div className="flex flex-col items-center space-y-4 py-2">
             <div className="mb-2">
               <MoodIcon iconType={result.iconType} iconColor={result.iconColor} />
             </div>
@@ -119,9 +121,9 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
             <ResultMessage message={result.message} />
 
             {hasAssessmentData && chartData && (
-              <div className="w-full mt-6">
-                <h3 className="text-center text-base font-medium mb-2">Your Assessment Scores</h3>
-                <AssessmentChart data={chartData} height={250} />
+              <div className="w-full mt-4">
+                <h3 className={`text-center ${isMobile ? 'text-sm' : 'text-base'} font-medium mb-2`}>Your Assessment Scores</h3>
+                <AssessmentChart data={chartData} height={isMobile ? 200 : 250} />
               </div>
             )}
 
@@ -134,7 +136,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
             )}
           </div>
         ) : (
-          <div className="p-6 text-center">
+          <div className="p-4 text-center">
             <p>Loading results...</p>
           </div>
         )}
@@ -144,4 +146,3 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
 };
 
 export default ResultsDialog;
-

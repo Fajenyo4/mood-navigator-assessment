@@ -6,7 +6,6 @@ import ResultsDialog from './assessment/ResultsDialog';
 import LoadingState from './assessment/LoadingState';
 import { useAssessment } from '@/hooks/useAssessment';
 import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/assessmentScoring';
-import { AVAILABLE_LANGUAGES } from '@/constants/languages';
 import { Question } from '@/types/assessment';
 
 // Import all question sets
@@ -21,6 +20,7 @@ interface AssessmentProps {
 const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
   const { user, language: authLanguage } = useAuth();
   const [questions, setQuestions] = useState<Question[]>(enQuestions);
+  const [isInitialized, setIsInitialized] = useState(false);
   
   // Get the effective language - either from props or from auth context
   const effectiveLanguage = defaultLanguage || authLanguage || 'en';
@@ -58,6 +58,30 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     defaultLanguage: effectiveLanguage
   });
 
+  // Set initialization flag after initial render
+  useEffect(() => {
+    setIsInitialized(true);
+  }, []);
+
+  // Prevent refreshes from resetting the assessment state
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (currentQuestion > 0 && !showResults) {
+        // Only prevent if user has started but not finished
+        const message = "Are you sure you want to leave? Your assessment progress will be lost.";
+        e.preventDefault();
+        e.returnValue = message;
+        return message;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [currentQuestion, showResults]);
+
   if (isSubmitting) {
     return <LoadingState />;
   }
@@ -86,6 +110,11 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
 
   // Use the updated redirect URL
   const REDIRECT_URL = "https://www.mican.life/courses-en";
+
+  // Don't render until we're initialized to prevent flickering
+  if (!isInitialized) {
+    return <LoadingState />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
