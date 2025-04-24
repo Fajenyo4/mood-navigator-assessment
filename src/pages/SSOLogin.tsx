@@ -13,6 +13,7 @@ const SSOLogin: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
 
   useEffect(() => {
     const authenticateWithSSO = async () => {
@@ -32,7 +33,10 @@ const SSOLogin: React.FC = () => {
         console.log('Attempting SSO login with:', { email, name });
 
         try {
-          const response = await fetch(`${window.location.origin}/functions/v1/verify-sso`, {
+          const apiEndpoint = `${window.location.origin}/functions/v1/verify-sso`;
+          console.log("Calling API endpoint:", apiEndpoint);
+          
+          const response = await fetch(apiEndpoint, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -40,16 +44,27 @@ const SSOLogin: React.FC = () => {
             body: JSON.stringify({ email, token, name }),
           });
 
+          // Store status and headers for debugging
+          const responseInfo = {
+            status: response.status,
+            statusText: response.statusText,
+            headers: Object.fromEntries(response.headers.entries()),
+          };
+          console.log("Response info:", responseInfo);
+          setDebugInfo(responseInfo);
+
           // Check for non-JSON responses first
           const contentType = response.headers.get('content-type');
           if (!contentType || !contentType.includes('application/json')) {
             const textResponse = await response.text();
             console.error('Non-JSON response:', textResponse);
-            throw new Error(`Received non-JSON response from server`);
+            setDebugInfo(prev => ({ ...prev, textResponse }));
+            throw new Error(`Received non-JSON response from server (${response.status}): ${textResponse.substring(0, 100)}...`);
           }
 
           // Now parse as JSON
           const data = await response.json();
+          console.log("Response data:", data);
           
           if (!response.ok) {
             console.error('SSO verification error:', data);
@@ -116,7 +131,15 @@ const SSOLogin: React.FC = () => {
         <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <div className="text-red-500 mb-4 text-lg font-medium">Authentication Failed</div>
-          <p className="mb-6">{error}</p>
+          <p className="mb-4">{error}</p>
+          
+          {debugInfo && (
+            <div className="mb-6 text-left bg-gray-50 p-4 rounded overflow-auto max-h-60 text-xs">
+              <p className="font-semibold mb-2">Debug Information:</p>
+              <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
+            </div>
+          )}
+          
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
               className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90 transition-colors flex items-center justify-center"

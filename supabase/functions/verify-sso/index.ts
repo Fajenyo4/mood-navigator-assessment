@@ -57,60 +57,99 @@ serve(async (req) => {
       );
     }
     
-    console.log("Processing SSO for email:", email);
+    console.log("Processing SSO for email:", email, "name:", name);
     
     try {
       // First, try to find if the user exists
-      const { data: existingUser, error: fetchError } = await supabase.auth.admin.getUserByEmail(email);
+      let userData;
+      try {
+        const { data, error } = await supabase.auth.admin.getUserByEmail(email);
+        if (error) {
+          console.log("Error fetching user by email:", error.message);
+          // Don't throw here, we'll create the user if not found
+        }
+        userData = data;
+      } catch (userFetchError) {
+        console.log("Exception when fetching user:", userFetchError.message);
+        // Continue with user creation
+      }
       
       let userId;
       
-      if (!existingUser || fetchError) {
+      if (!userData || !userData.user) {
         // User doesn't exist, create them
         console.log("Creating new user:", email);
-        const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-          email,
-          email_confirm: true,
-          user_metadata: { name },
+        try {
+          const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+            email,
+            email_confirm: true,
+            user_metadata: { name: name || email.split('@')[0] },
+          });
+          
+          if (createError) {
+            console.error("Error creating user:", createError);
+            return new Response(
+              JSON.stringify({ error: `Failed to create user: ${createError.message}` }),
+              { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+            );
+          }
+          
+          if (!newUser || !newUser.user) {
+            console.error("User creation returned no user data");
+            return new Response(
+              JSON.stringify({ error: "Failed to create user: No user data returned" }),
+              { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+            );
+          }
+          
+          userId = newUser.user.id;
+        } catch (createUserError) {
+          console.error("Exception during user creation:", createUserError);
+          return new Response(
+            JSON.stringify({ error: `Exception creating user: ${createUserError.message}` }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+          );
+        }
+      } else {
+        userId = userData.user.id;
+        console.log("Found existing user with ID:", userId);
+      }
+      
+      // Create a session directly
+      let sessionData;
+      try {
+        const { data: session, error: sessionError } = await supabase.auth.admin.createSession({
+          userId: userId,
         });
         
-        if (createError) {
-          console.error("Error creating user:", createError);
+        if (sessionError) {
+          console.error("Session creation error:", sessionError);
           return new Response(
-            JSON.stringify({ error: `Failed to create user: ${createError.message}` }),
+            JSON.stringify({ error: `Failed to create session: ${sessionError.message}` }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
           );
         }
         
-        userId = newUser.user.id;
-      } else {
-        userId = existingUser.user.id;
-      }
-      
-      // Create a session directly
-      const { data: session, error: sessionError } = await supabase.auth.admin.createSession({
-        userId: userId,
-      });
-      
-      if (sessionError) {
-        console.error("Session creation error:", sessionError);
+        if (!session) {
+          console.error("No session data returned");
+          return new Response(
+            JSON.stringify({ error: "Failed to create session: No session data returned" }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+          );
+        }
+        
+        sessionData = session;
+      } catch (sessionCreateError) {
+        console.error("Exception during session creation:", sessionCreateError);
         return new Response(
-          JSON.stringify({ error: `Failed to create session: ${sessionError.message}` }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-        );
-      }
-      
-      if (!session) {
-        console.error("No session data returned");
-        return new Response(
-          JSON.stringify({ error: "Failed to create session: No session data returned" }),
+          JSON.stringify({ error: `Exception creating session: ${sessionCreateError.message}` }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
         );
       }
       
       console.log("Authentication successful for:", email);
       return new Response(
-        JSON.stringify({ session, success: true }),
+        JSON.stringify({ session: sessionData, success: true }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
       
