@@ -1,19 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { ChartContainer } from "@/components/ui/chart";
 import { format } from 'date-fns';
 import { AssessmentRecord } from '@/utils/scoring/types';
-import { Button } from '@/components/ui/button';
-import { ZoomIn, ZoomOut } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { toast } from "sonner";
 
 interface TimeSeriesChartProps {
   data: AssessmentRecord[];
 }
 
 const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
-  const [zoomLevel, setZoomLevel] = useState(1);
   const isMobile = useIsMobile();
   
   const chartData = data
@@ -27,20 +23,6 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
       lifeSatisfaction: record.life_satisfaction_score
     }))
     .sort((a, b) => a.timestamp - b.timestamp);
-    
-  const zoomIn = () => {
-    if (zoomLevel < 3) {
-      setZoomLevel(zoomLevel + 0.5);
-      toast.success("Zoomed in");
-    }
-  };
-  
-  const zoomOut = () => {
-    if (zoomLevel > 0.5) {
-      setZoomLevel(zoomLevel - 0.5);
-      toast.success("Zoomed out");
-    }
-  };
 
   // Calculate average scores for reference lines
   const averages = chartData.reduce((acc, item) => {
@@ -65,30 +47,6 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
         <h2 className="text-xl font-semibold text-gray-700" id="chart-title">
           Mental Health Progress Over Time
         </h2>
-        <div className="flex space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={zoomOut}
-            disabled={zoomLevel <= 0.5}
-            className="flex items-center"
-            aria-label="Zoom out"
-          >
-            <ZoomOut className="h-4 w-4 mr-1" />
-            <span className="sm:inline hidden">Zoom Out</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={zoomIn}
-            disabled={zoomLevel >= 3}
-            className="flex items-center"
-            aria-label="Zoom in"
-          >
-            <ZoomIn className="h-4 w-4 mr-1" />
-            <span className="sm:inline hidden">Zoom In</span>
-          </Button>
-        </div>
       </div>
       
       <div aria-label="Mental health progress chart" role="img" className="focus:outline-none">
@@ -100,7 +58,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
             satisfaction: { theme: { light: '#14b8a6', dark: '#2dd4bf' } }
           }}
         >
-          <ResponsiveContainer width="100%" height={isMobile ? 300 * zoomLevel : 400 * zoomLevel}>
+          <ResponsiveContainer width="100%" height={isMobile ? 300 : 400}>
             <LineChart
               data={chartData}
               margin={{ 
@@ -154,7 +112,6 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
                 }}
               />
               
-              {/* Reference lines for averages */}
               <ReferenceLine 
                 y={averages.depression} 
                 stroke="#f43f5e" 

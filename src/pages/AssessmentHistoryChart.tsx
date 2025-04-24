@@ -1,15 +1,12 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { useAssessmentHistory } from '@/hooks/useAssessmentHistory';
 import { useAuth } from '@/context/AuthContext';
 import TimeSeriesChart from '@/components/assessment/history/TimeSeriesChart';
 import HistoryLoadingState from '@/components/assessment/history/HistoryLoadingState';
 import EmptyState from '@/components/assessment/history/EmptyState';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from '@/components/ui/button';
 import { Download, RefreshCw } from 'lucide-react';
 import TimeRangeFilter from '@/components/assessment/history/TimeRangeFilter';
-import { AVAILABLE_LANGUAGES } from '@/components/assessment/AssessmentHistory';
 import { format } from 'date-fns';
 
 const AssessmentHistoryChart = () => {
@@ -19,10 +16,6 @@ const AssessmentHistoryChart = () => {
     allAssessments,
     loading, 
     error, 
-    selectedLanguage, 
-    setSelectedLanguage, 
-    getLanguageLabel,
-    handleDateRangeChange,
     refreshData
   } = useAssessmentHistory(user?.id);
 
@@ -68,19 +61,6 @@ const AssessmentHistoryChart = () => {
           <h1 className="text-2xl font-bold">Mental Health Progress Chart</h1>
           
           <div className="flex items-center gap-2">
-            <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select Language" />
-              </SelectTrigger>
-              <SelectContent>
-                {AVAILABLE_LANGUAGES.map(language => (
-                  <SelectItem key={language.code} value={language.code}>
-                    {language.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
             <Button 
               variant="outline" 
               className="flex items-center gap-2"
@@ -103,7 +83,7 @@ const AssessmentHistoryChart = () => {
           </div>
         </div>
         
-        <TimeRangeFilter onRangeChange={handleDateRangeChange} />
+        <TimeRangeFilter onRangeChange={() => {}} />
       </div>
       
       {loading ? (
@@ -111,7 +91,7 @@ const AssessmentHistoryChart = () => {
       ) : error ? (
         <div className="text-center p-4 text-red-500">{error}</div>
       ) : assessments.length === 0 ? (
-        <EmptyState languageLabel={getLanguageLabel(selectedLanguage)} />
+        <EmptyState languageLabel="English" />
       ) : (
         <TimeSeriesChart data={assessments} />
       )}
