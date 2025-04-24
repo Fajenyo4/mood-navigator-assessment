@@ -22,6 +22,10 @@
     const urlParams = new URLSearchParams(window.location.search);
     const lang = urlParams.get('lang') || 'en';
     
+    // Add console log for debugging
+    console.log("Redirecting to history with language:", lang);
+    console.log("App domain:", appDomain);
+    
     // Redirect immediately to history view
     window.location.href = createDirectAccessLink(lang);
   </script>

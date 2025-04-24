@@ -17,6 +17,8 @@ const EasyAccess = () => {
         const lang = searchParams.get('lang') || 'en';
         const view = searchParams.get('view');
 
+        console.log("EasyAccess: Validating access with params:", { token: token?.substring(0, 10) + "...", lang, view });
+
         if (!token) {
           toast.error('Invalid access link');
           navigate('/login');
@@ -26,6 +28,8 @@ const EasyAccess = () => {
         // Create a unique anonymous email for this session
         const anonymousEmail = `anonymous-${Date.now()}@temp.com`;
         const randomPassword = crypto.randomUUID();
+
+        console.log("EasyAccess: Creating anonymous session");
 
         // For public access, we create an anonymous session
         const { data: { session }, error } = await supabase.auth.signUp({
@@ -38,18 +42,22 @@ const EasyAccess = () => {
           throw new Error('Failed to create anonymous session');
         }
 
+        console.log("EasyAccess: Anonymous session created successfully");
+
         // Set the session in Supabase
         await supabase.auth.setSession({
           access_token: session.access_token,
           refresh_token: session.refresh_token
         });
 
-        console.log('Anonymous session created successfully');
+        console.log('EasyAccess: Session set successfully');
 
         // Navigate to the appropriate view based on the view parameter
         if (view === 'history') {
+          console.log(`EasyAccess: Navigating to history chart with language: ${lang}`);
           navigate(`/history-chart?lang=${lang}`);
         } else {
+          console.log(`EasyAccess: Navigating to assessment with language: ${lang}`);
           navigate(`/${lang}`);
         }
       } catch (error) {
