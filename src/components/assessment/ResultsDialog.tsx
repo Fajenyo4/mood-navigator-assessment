@@ -35,11 +35,8 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   const isHistoryPage = location.pathname === '/history';
   const isMobile = useIsMobile();
 
-  // The redirect URL with proper https protocol to avoid cross-origin issues
-  const REDIRECT_URL = "https://www.mican.life/courses-en";
-
   const handleViewHistory = () => {
-    onOpenChange(false); // Close the dialog
+    onOpenChange(false);
     navigate(`/history-chart?lang=${language}`);
   };
 
@@ -52,8 +49,8 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
           </DialogTitle>
         </DialogHeader>
         {result ? (
-          <div className="flex flex-col items-center space-y-4 py-2">
-            <div className="mb-2">
+          <div className="flex flex-col items-center space-y-4 py-2 animate-fade-in">
+            <div className="mb-2 transform transition-transform hover:scale-110 duration-300">
               <MoodIcon iconType={result.iconType} iconColor={result.iconColor} />
             </div>
             
@@ -62,7 +59,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
             {!isHistoryPage && (
               <div className={`w-full ${isMobile ? 'flex flex-col space-y-3' : 'flex space-x-3'}`}>
                 <ResultActions 
-                  redirectUrl={REDIRECT_URL}
+                  redirectUrl="https://www.mican.life/courses-en"
                   language={language}
                   className={isMobile ? 'w-full' : 'flex-1'}
                 />
