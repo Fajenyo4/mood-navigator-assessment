@@ -46,107 +46,49 @@ serve(async (req) => {
       );
     }
     
-    console.log("Verifying SSO for email:", email);
-    
-    // Generate user metadata with name if provided
-    const userMetadata = name ? { name } : {};
+    console.log("Processing SSO for email:", email);
     
     try {
-      // Try to sign in the user directly first - faster than checking if they exist
-      const { data: signInData, error: signInError } = await supabase.auth.admin.generateLink({
-        type: 'magiclink',
-        email: email,
-        options: {
-          redirectTo: 'https://mood-navigator-assessment.lovable.app/check-auth',
-        }
-      });
+      // First, try to find if the user exists
+      const { data: existingUser, error: fetchError } = await supabase.auth.admin.getUserByEmail(email);
       
-      // If we get a valid session, return it immediately
-      if (signInData && signInData.properties && signInData.properties.hashed_token) {
-        // Instead of sending an email, we'll create a session directly
-        console.log("User exists, creating session directly");
-        
-        // Find the user
-        const { data: userData, error: userError } = await supabase.auth.admin.getUserByEmail(email);
-        
-        if (userError || !userData) {
-          console.error("Error finding user:", userError);
-          throw new Error("Failed to find user");
-        }
-        
-        // Create a session for the existing user
-        const { data: session, error: sessionError } = await supabase.auth.admin.createSession({
-          userId: userData.user.id,
+      let userId;
+      
+      if (!existingUser || fetchError) {
+        // User doesn't exist, create them
+        console.log("Creating new user:", email);
+        const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+          email,
+          email_confirm: true,
+          user_metadata: { name },
         });
         
-        if (sessionError) {
-          console.error("Session creation error:", sessionError);
-          throw new Error("Failed to create session");
+        if (createError) {
+          console.error("Error creating user:", createError);
+          throw new Error("Failed to create user: " + createError.message);
         }
         
-        console.log("Authentication successful for existing user:", email);
-        return new Response(
-          JSON.stringify({ session, success: true }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      } 
-      
-      // If user doesn't exist (or there was an error), create a new one
-      console.log("Creating new user:", email);
-      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-        email,
-        email_confirm: true, // Auto confirm the email
-        user_metadata: userMetadata,
-      });
-      
-      if (createError) {
-        console.error("Error creating user:", createError);
-        
-        // If the error is that the user already exists, try to create a session
-        if (createError.message.includes("already exists")) {
-          // Find the user
-          const { data: existingUser, error: fetchError } = await supabase.auth.admin.getUserByEmail(email);
-          
-          if (fetchError || !existingUser) {
-            console.error("Error finding existing user:", fetchError);
-            throw new Error("Failed to find existing user");
-          }
-          
-          // Create a session for the existing user
-          const { data: session, error: sessionError } = await supabase.auth.admin.createSession({
-            userId: existingUser.user.id,
-          });
-          
-          if (sessionError) {
-            console.error("Session creation error for existing user:", sessionError);
-            throw new Error("Failed to create session for existing user");
-          }
-          
-          console.log("Authentication successful for existing user (after create attempt):", email);
-          return new Response(
-            JSON.stringify({ session, success: true }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        
-        throw new Error("Failed to create user: " + createError.message);
+        userId = newUser.user.id;
+      } else {
+        userId = existingUser.user.id;
       }
       
-      // Create a session for the new user
+      // Create a session directly
       const { data: session, error: sessionError } = await supabase.auth.admin.createSession({
-        userId: newUser.user.id,
+        userId: userId,
       });
       
       if (sessionError) {
-        console.error("Session creation error for new user:", sessionError);
-        throw new Error("Failed to create session for new user");
+        console.error("Session creation error:", sessionError);
+        throw new Error("Failed to create session");
       }
       
-      console.log("Authentication successful for new user:", email);
+      console.log("Authentication successful for:", email);
       return new Response(
         JSON.stringify({ session, success: true }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+      
     } catch (authError) {
       console.error("Authentication error:", authError);
       return new Response(

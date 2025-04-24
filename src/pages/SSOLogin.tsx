@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -12,7 +11,6 @@ const SSOLogin: React.FC = () => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [attempts, setAttempts] = useState(0);
 
   useEffect(() => {
     const authenticateWithSSO = async () => {
@@ -20,7 +18,7 @@ const SSOLogin: React.FC = () => {
         // Get token, email and name from URL params
         const token = searchParams.get('token');
         const email = searchParams.get('email');
-        const name = searchParams.get('name') || '';
+        const name = searchParams.get('name');
         const lang = searchParams.get('lang') || 'en';
 
         if (!token || !email) {
@@ -29,14 +27,8 @@ const SSOLogin: React.FC = () => {
           return;
         }
 
-        console.log('Attempting SSO login with:', { 
-          token: token.substring(0, 10) + '...', 
-          email, 
-          name,
-          lang 
-        });
+        console.log('Attempting SSO login with:', { email, name });
 
-        // For SSO login, use the admin API through the edge function
         try {
           const response = await fetch(`${window.location.origin}/functions/v1/verify-sso`, {
             method: 'POST',
@@ -47,58 +39,30 @@ const SSOLogin: React.FC = () => {
           });
 
           if (!response.ok) {
-            // Check if the response is JSON
-            const contentType = response.headers.get('content-type');
-            let errorData;
-            
-            if (contentType && contentType.includes('application/json')) {
-              errorData = await response.json();
-              console.error('SSO verification error:', errorData);
-              throw new Error(errorData.error || `Server error: ${response.status}`);
-            } else {
-              // Handle non-JSON response
-              const textError = await response.text();
-              console.error('Non-JSON error response:', textError);
-              throw new Error(`Authentication failed: Server returned non-JSON response (${response.status})`);
-            }
+            const errorData = await response.json();
+            console.error('SSO verification error:', errorData);
+            throw new Error(errorData.error || `Server error: ${response.status}`);
           }
 
-          // Parse the JSON response
           const data = await response.json();
           
-          // If we have session data from the edge function, we're authenticated
           if (data.session) {
-            console.log('Authentication successful, redirecting to:', `/${lang}`);
+            console.log('Authentication successful, setting session');
             
-            // Set the session manually in Supabase client
+            // Set the session in Supabase client
             await supabase.auth.setSession({
               access_token: data.session.access_token,
               refresh_token: data.session.refresh_token
             });
             
             toast.success('Successfully signed in!');
-            
-            // Redirect immediately to improve seamlessness
             navigate(`/${lang}`);
           } else {
             throw new Error('Authentication failed: No session data returned');
           }
         } catch (fetchError: any) {
-          console.error('Fetch error during SSO:', fetchError);
-          
-          // If we've tried less than 2 times and it's worth retrying
-          if (attempts < 1) {
-            setAttempts(attempts + 1);
-            setError(`Authentication failed. Retrying...`);
-            
-            // Retry after a short delay
-            setTimeout(() => {
-              authenticateWithSSO();
-            }, 1000);
-            return;
-          }
-          
-          setError(`Authentication failed: ${fetchError.message || 'Unknown error'}`);
+          console.error('Error during SSO:', fetchError);
+          setError(`Authentication failed: ${fetchError.message}`);
           setIsLoading(false);
         }
       } catch (err: any) {
@@ -111,7 +75,7 @@ const SSOLogin: React.FC = () => {
     // If already authenticated, redirect to home page
     if (user) {
       const lang = searchParams.get('lang') || 'en';
-      navigate(`/${lang.toLowerCase()}`);
+      navigate(`/${lang}`);
       return;
     }
 
@@ -121,7 +85,6 @@ const SSOLogin: React.FC = () => {
   const handleRetry = () => {
     setIsLoading(true);
     setError(null);
-    setAttempts(0);
     
     // Force a new authentication attempt
     const authenticateWithSSO = async () => {
