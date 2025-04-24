@@ -82,15 +82,18 @@ const SSOLogin: React.FC = () => {
           }
           
           if (data.session) {
-            console.log('Authentication successful, setting session with data:', data.session);
+            console.log('Authentication successful, setting session directly:', data.session);
             
             try {
-              // Set the session in Supabase client using the complete session object
-              const { data: sessionData, error: sessionError } = await supabase.auth.setSession(data.session);
+              // Set the session directly in Supabase client
+              const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+                access_token: data.session.access_token,
+                refresh_token: data.session.refresh_token
+              });
               
               if (sessionError) {
                 console.error("Error setting session:", sessionError);
-                setErrorDetails(JSON.stringify(sessionError));
+                setErrorDetails(JSON.stringify(sessionError, null, 2));
                 throw new Error(`Failed to set session: ${sessionError.message}`);
               }
               

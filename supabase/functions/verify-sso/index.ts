@@ -69,51 +69,84 @@ serve(async (req) => {
     console.log("Supabase admin client initialized");
     
     try {
-      // Check if the user exists
-      console.log("Checking if user exists:", email);
-      
-      // Generate a link with tokens for the user (creates the user if they don't exist)
-      const { data, error } = await supabaseAdmin.auth.admin.generateLink({
-        type: 'magiclink',
-        email: email,
-        options: {
-          // Create the user if they don't exist
-          createUser: true,
-          // Add user metadata
-          data: name ? { 
-            name: name,
-            email_verified: true  // Mark as verified since we're doing SSO
-          } : {
-            email_verified: true
-          }
+      // 1. Check if user exists
+      console.log("Looking up user by email:", email);
+      const { data: existingUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers({
+        page: 1,
+        perPage: 1,
+        filter: {
+          email: email
         }
       });
       
-      if (error) {
-        console.error("Error generating auth link:", error);
+      if (listError) {
+        console.error("Error listing users:", listError);
         return new Response(
-          JSON.stringify({ error: `Authentication failed: ${error.message}` }),
+          JSON.stringify({ error: `User lookup failed: ${listError.message}` }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
         );
       }
       
-      // Success - create a proper session object that matches the Supabase client expectations
-      console.log("Auth link generated successfully with tokens");
+      console.log("User lookup results:", JSON.stringify(existingUsers));
       
-      // Format the session object to match what supabase.auth.setSession expects
-      const sessionData = {
-        access_token: data.properties.access_token,
-        refresh_token: data.properties.refresh_token,
-        expires_in: 3600, // Set a default expiry time (1 hour in seconds)
-        expires_at: Math.floor(Date.now() / 1000) + 3600, // Current time + 1 hour in seconds
-        token_type: 'bearer',
-        user: data.user
-      };
+      let userId;
+      // Check if user exists
+      if (existingUsers && existingUsers.users && existingUsers.users.length > 0) {
+        console.log("User exists, using existing user");
+        userId = existingUsers.users[0].id;
+      } else {
+        // 2. Create user if not exists
+        console.log("User does not exist, creating new user");
+        const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+          email: email,
+          email_confirm: true,
+          user_metadata: { 
+            name: name || email.split('@')[0],
+            email_verified: true
+          }
+        });
+        
+        if (createError) {
+          console.error("Error creating user:", createError);
+          return new Response(
+            JSON.stringify({ error: `User creation failed: ${createError.message}` }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+          );
+        }
+        
+        console.log("User created successfully:", newUser.user.id);
+        userId = newUser.user.id;
+      }
       
-      console.log("Session created successfully for user:", data.user.id);
+      // 3. Create session token (authenticate the user)
+      console.log("Creating session for user ID:", userId);
+      const { data: sessionData, error: sessionError } = await supabaseAdmin.auth.admin.createSession({
+        userId: userId
+      });
       
+      if (sessionError) {
+        console.error("Error creating session:", sessionError);
+        return new Response(
+          JSON.stringify({ error: `Session creation failed: ${sessionError.message}` }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+        );
+      }
+      
+      console.log("Session created successfully");
+      
+      // Return the session data to the client
       return new Response(
-        JSON.stringify({ session: sessionData, success: true }),
+        JSON.stringify({ 
+          session: {
+            access_token: sessionData.access_token,
+            refresh_token: sessionData.refresh_token,
+            expires_in: sessionData.expires_in, 
+            expires_at: sessionData.expires_at,
+            token_type: 'bearer',
+            user: sessionData.user
+          },
+          success: true 
+        }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } catch (authError) {
