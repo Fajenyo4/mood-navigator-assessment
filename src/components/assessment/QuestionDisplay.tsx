@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -19,7 +19,39 @@ interface QuestionDisplayProps {
   showPrevious?: boolean;
 }
 
-const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
+// Memoize the individual option to prevent unnecessary re-renders
+const QuestionOption = memo(({ 
+  index, 
+  option, 
+  isSelected 
+}: { 
+  index: number; 
+  option: string; 
+  isSelected: boolean;
+}) => (
+  <div 
+    className="transition-all duration-200 ease-in-out transform hover:scale-[1.01]"
+  >
+    <div className={`flex items-center border ${isSelected ? 'border-primary bg-gray-50' : 'border-gray-200'} rounded-lg p-4 hover:border-primary hover:bg-gray-50 cursor-pointer transition-colors duration-200`}>
+      <RadioGroupItem 
+        value={index.toString()} 
+        id={`q${index}`} 
+        className="mr-3"
+      />
+      <Label 
+        htmlFor={`q${index}`} 
+        className="text-gray-700 cursor-pointer flex-grow text-base"
+      >
+        {option}
+      </Label>
+    </div>
+  </div>
+));
+
+QuestionOption.displayName = 'QuestionOption';
+
+// Memoize the entire QuestionDisplay component to prevent unnecessary re-renders
+const QuestionDisplay: React.FC<QuestionDisplayProps> = memo(({
   currentQuestion,
   totalQuestions,
   progress,
@@ -60,29 +92,19 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
           value={selectedOption}
         >
           {options.map((option, index) => (
-            <div 
-              key={index} 
-              className="transition-all duration-200 ease-in-out transform hover:scale-[1.01]"
-            >
-              <div className="flex items-center border border-gray-200 rounded-lg p-4 hover:border-primary hover:bg-gray-50 cursor-pointer transition-colors duration-200">
-                <RadioGroupItem 
-                  value={index.toString()} 
-                  id={`q${index}`} 
-                  className="mr-3"
-                />
-                <Label 
-                  htmlFor={`q${index}`} 
-                  className="text-gray-700 cursor-pointer flex-grow text-base"
-                >
-                  {option}
-                </Label>
-              </div>
-            </div>
+            <QuestionOption 
+              key={index}
+              index={index}
+              option={option}
+              isSelected={selectedOption === index.toString()}
+            />
           ))}
         </RadioGroup>
       </div>
     </div>
   );
-};
+});
+
+QuestionDisplay.displayName = 'QuestionDisplay';
 
 export default QuestionDisplay;

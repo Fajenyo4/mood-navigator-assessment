@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import QuestionDisplay from './assessment/QuestionDisplay';
 import ResultsDialog from './assessment/ResultsDialog';
@@ -16,21 +16,28 @@ interface AssessmentProps {
   defaultLanguage?: string;
 }
 
-// Pre-compute question counts for better performance
-const questionCounts = {
+// Cache question counts to avoid recalculation
+const QUESTION_COUNTS = {
   'en': enQuestions.length,
   'zh-CN': zhCNQuestions.length,
   'zh-HK': zhTWQuestions.length
 };
 
-const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
+// Cache questions map for direct access
+const QUESTIONS_MAP = {
+  'en': enQuestions,
+  'zh-CN': zhCNQuestions,
+  'zh-HK': zhTWQuestions
+};
+
+const Assessment: React.FC<AssessmentProps> = React.memo(({ defaultLanguage = 'en' }) => {
   const { user, language: authLanguage } = useAuth();
   const [isInitialized, setIsInitialized] = useState(false);
   
   // Get the effective language - either from props or from auth context
   const effectiveLanguage = defaultLanguage || authLanguage || 'en';
   
-  // Optimize progress state retrieval
+  // Optimize progress state retrieval with memoization
   const getSavedProgressState = useCallback(() => {
     try {
       const savedProgress = localStorage.getItem('assessment_progress');
@@ -52,7 +59,7 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
   }, [effectiveLanguage]);
   
   // Get initial state from localStorage - do this once on component mount
-  const [initialState] = useState(getSavedProgressState());
+  const [initialState] = useState(getSavedProgressState);
   
   const {
     currentQuestion,
@@ -77,37 +84,24 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     setIsInitialized(true);
   }, []);
 
-  // Get the correct question set based on language
-  const getQuestions = useCallback(() => {
-    switch (effectiveLanguage) {
-      case 'zh-CN':
-        return zhCNQuestions;
-      case 'zh-HK':
-        return zhTWQuestions;
-      case 'en':
-      default:
-        return enQuestions;
-    }
-  }, [effectiveLanguage]);
-
-  // Calculate the total number of questions for the current language
-  const totalQuestions = React.useMemo(() => {
-    return questionCounts[effectiveLanguage as keyof typeof questionCounts] || questionCounts['en'];
+  // Calculate the total number of questions for the current language - memoized
+  const totalQuestions = useMemo(() => {
+    return QUESTION_COUNTS[effectiveLanguage as keyof typeof QUESTION_COUNTS] || QUESTION_COUNTS['en'];
   }, [effectiveLanguage]);
 
   // Memoize the current question for better performance
-  const currentQuestionData = React.useMemo(() => {
-    const questions = getQuestions();
+  const currentQuestionData = useMemo(() => {
+    const questions = QUESTIONS_MAP[effectiveLanguage as keyof typeof QUESTIONS_MAP] || QUESTIONS_MAP['en'];
     return questions[currentQuestion];
-  }, [currentQuestion, getQuestions]);
+  }, [currentQuestion, effectiveLanguage]);
 
-  // Calculate progress percentage
-  const progressPercentage = React.useMemo(() => {
+  // Calculate progress percentage - memoized
+  const progressPercentage = useMemo(() => {
     return (currentQuestion / totalQuestions) * 100;
   }, [currentQuestion, totalQuestions]);
 
-  // Function to calculate results for display in ResultsDialog
-  const getResultData = React.useCallback(() => {
+  // Function to calculate results for display in ResultsDialog - memoized
+  const resultData = useMemo(() => {
     if (!showResults) return null;
     
     const scores = calculateDassScores(answers);
@@ -150,11 +144,13 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
       <ResultsDialog
         open={showResults}
         onOpenChange={setShowResults}
-        result={showResults ? getResultData() : null}
+        result={resultData}
         language={effectiveLanguage}
       />
     </div>
   );
-};
+});
+
+Assessment.displayName = 'Assessment';
 
 export default Assessment;
