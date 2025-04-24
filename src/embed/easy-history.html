@@ -6,15 +6,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script>
-    // Get the app domain
-    const appDomain = "https://mood-navigator-assessment.lovable.app";
+    // Get the app domain from the current URL
+    const appDomain = window.location.origin;
     
     // Function to create a direct access link with default parameters
     function createDirectAccessLink(language = 'en') {
       // Create a simple token by encoding timestamp only since we don't need email
       const simpleToken = btoa(`public:${Date.now()}`);
       
-      // Return the formatted URL for history view
+      // Return the formatted URL for history view with language parameter
       return `${appDomain}/easy-access?token=${simpleToken}&view=history&lang=${language}`;
     }
 
@@ -27,8 +27,13 @@
   </script>
 </head>
 <body>
-  <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
-    <p>Redirecting to your assessment history...</p>
+  <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh;">
+    <img 
+      src="/lovable-uploads/32730d45-90eb-4971-b489-51a01e471c37.png"
+      alt="ICAN Live Well"
+      style="width: 80px; height: 80px; margin-bottom: 20px;"
+    />
+    <p style="font-family: system-ui, -apple-system, sans-serif; color: #4b5563;">Redirecting to your assessment history...</p>
   </div>
 </body>
 </html>

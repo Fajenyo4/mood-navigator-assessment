@@ -10,9 +10,13 @@ if (!rootElement) {
   throw new Error("Root element not found");
 }
 
+// Add console log for debugging
+console.log("App initializing...");
+
 const root = createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
 );
+

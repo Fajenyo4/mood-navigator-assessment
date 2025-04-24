@@ -23,13 +23,18 @@ const EasyAccess = () => {
           return;
         }
 
+        // Create a unique anonymous email for this session
+        const anonymousEmail = `anonymous-${Date.now()}@temp.com`;
+        const randomPassword = crypto.randomUUID();
+
         // For public access, we create an anonymous session
         const { data: { session }, error } = await supabase.auth.signUp({
-          email: `anonymous-${Date.now()}@temp.com`,
-          password: crypto.randomUUID(),
+          email: anonymousEmail,
+          password: randomPassword,
         });
 
         if (error || !session) {
+          console.error('Failed to create anonymous session:', error);
           throw new Error('Failed to create anonymous session');
         }
 
@@ -38,6 +43,8 @@ const EasyAccess = () => {
           access_token: session.access_token,
           refresh_token: session.refresh_token
         });
+
+        console.log('Anonymous session created successfully');
 
         // Navigate to the appropriate view based on the view parameter
         if (view === 'history') {
@@ -62,7 +69,7 @@ const EasyAccess = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading history...</p>
+          <p className="text-gray-600">Loading history chart...</p>
         </div>
       </div>
     );
