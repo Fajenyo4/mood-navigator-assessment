@@ -10,7 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 const SSOLogin: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -91,8 +91,22 @@ const SSOLogin: React.FC = () => {
                 refresh_token: data.session.refresh_token
               });
               
-              toast.success('Successfully signed in!');
-              navigate(`/${lang}`);
+              // Update the user state in AuthContext
+              const { data: { user: authUser } } = await supabase.auth.getUser();
+              if (authUser) {
+                setUser(authUser);
+                console.log("User state updated in AuthContext:", authUser);
+                
+                toast.success('Successfully signed in!');
+                
+                // Add a small delay to ensure state is updated before redirecting
+                setTimeout(() => {
+                  console.log(`Redirecting to /${lang}`);
+                  navigate(`/${lang}`, { replace: true });
+                }, 500);
+              } else {
+                throw new Error("User data not available after setting session");
+              }
             } catch (sessionError: any) {
               console.error('Error setting session:', sessionError);
               setErrorDetails(sessionError.message);
@@ -117,12 +131,12 @@ const SSOLogin: React.FC = () => {
     // If already authenticated, redirect to home page
     if (user) {
       const lang = searchParams.get('lang') || 'en';
-      navigate(`/${lang}`);
+      navigate(`/${lang}`, { replace: true });
       return;
     }
 
     authenticateWithSSO();
-  }, [searchParams, navigate, user, retryCount]);
+  }, [searchParams, navigate, user, retryCount, setUser]);
 
   const handleRetry = () => {
     setIsLoading(true);
