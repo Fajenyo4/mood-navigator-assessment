@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import QuestionDisplay from './assessment/QuestionDisplay';
@@ -105,8 +106,25 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     return (currentQuestion / totalQuestions) * 100;
   }, [currentQuestion, totalQuestions]);
 
-  // Remove the beforeUnload event handler entirely to prevent any browser confirmation dialog
-  // The assessment progress is already being saved to localStorage in the useAssessment hook
+  // Function to calculate results for display in ResultsDialog
+  const getResultData = React.useCallback(() => {
+    if (!showResults) return null;
+    
+    const scores = calculateDassScores(answers);
+    const depressionLevel = determineLevel(scores.depression, 'depression');
+    const anxietyLevel = determineLevel(scores.anxiety, 'anxiety');
+    const stressLevel = determineLevel(scores.stress, 'stress');
+    const satisfactionLevel = determineLevel(scores.lifeSatisfaction, 'satisfaction');
+
+    return determineMoodResult(
+      depressionLevel,
+      anxietyLevel,
+      stressLevel,
+      satisfactionLevel,
+      scores.isParent,
+      scores.needsHelp
+    );
+  }, [answers, showResults]);
 
   // Use the updated redirect URL
   const REDIRECT_URL = "https://www.mican.life/courses-en";
