@@ -12,16 +12,11 @@ const SSOLogin: React.FC = () => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [retrying, setRetrying] = useState(false);
   const [attempts, setAttempts] = useState(0);
 
   useEffect(() => {
     const authenticateWithSSO = async () => {
       try {
-        if (retrying) {
-          setRetrying(false);
-        }
-
         // Get token, email and name from URL params
         const token = searchParams.get('token');
         const email = searchParams.get('email');
@@ -41,7 +36,7 @@ const SSOLogin: React.FC = () => {
           lang 
         });
 
-        // For SSO login, use the admin API through the edge function instead of client-side OTP
+        // For SSO login, use the admin API through the edge function
         try {
           const response = await fetch(`${window.location.origin}/functions/v1/verify-sso`, {
             method: 'POST',
@@ -83,26 +78,23 @@ const SSOLogin: React.FC = () => {
             
             toast.success('Successfully signed in!');
             
-            // Use a small timeout to ensure the toast is visible
-            setTimeout(() => {
-              navigate(`/${lang}`);
-            }, 1000);
+            // Redirect immediately to improve seamlessness
+            navigate(`/${lang}`);
           } else {
             throw new Error('Authentication failed: No session data returned');
           }
         } catch (fetchError: any) {
           console.error('Fetch error during SSO:', fetchError);
           
-          // If we've tried less than 3 times, retry
-          if (attempts < 2) {
+          // If we've tried less than 2 times and it's worth retrying
+          if (attempts < 1) {
             setAttempts(attempts + 1);
-            setRetrying(true);
-            setError(`Authentication attempt failed. Retrying... (${attempts + 1}/3)`);
+            setError(`Authentication failed. Retrying...`);
             
             // Retry after a short delay
             setTimeout(() => {
               authenticateWithSSO();
-            }, 2000);
+            }, 1000);
             return;
           }
           
@@ -123,15 +115,51 @@ const SSOLogin: React.FC = () => {
       return;
     }
 
-    if (!retrying) {
-      authenticateWithSSO();
-    }
-  }, [searchParams, navigate, user, retrying]);
+    authenticateWithSSO();
+  }, [searchParams, navigate, user]);
 
   const handleRetry = () => {
     setIsLoading(true);
     setError(null);
-    setRetrying(true);
+    setAttempts(0);
+    
+    // Force a new authentication attempt
+    const authenticateWithSSO = async () => {
+      const email = searchParams.get('email');
+      const token = searchParams.get('token');
+      const name = searchParams.get('name') || '';
+      const lang = searchParams.get('lang') || 'en';
+      
+      try {
+        const response = await fetch(`${window.location.origin}/functions/v1/verify-sso`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, token, name }),
+        });
+        
+        const data = await response.json();
+        
+        if (data.session) {
+          await supabase.auth.setSession({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token
+          });
+          
+          toast.success('Successfully signed in!');
+          navigate(`/${lang}`);
+        } else {
+          setError('Authentication failed. Please try again.');
+          setIsLoading(false);
+        }
+      } catch (err: any) {
+        setError(`Authentication error: ${err.message}`);
+        setIsLoading(false);
+      }
+    };
+    
+    authenticateWithSSO();
   };
 
   // Display loading state or error message
@@ -140,13 +168,13 @@ const SSOLogin: React.FC = () => {
       {isLoading ? (
         <div className="text-center">
           <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-lg">Authentication in progress{retrying ? ' (retrying)' : ''}...</p>
-          <p className="text-sm text-gray-500 mt-2">Connecting your LearnWorlds account...</p>
+          <p className="text-lg font-medium">Authenticating you...</p>
+          <p className="text-sm text-gray-500 mt-2">This should only take a moment</p>
         </div>
       ) : error ? (
         <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <div className="text-red-500 mb-4 text-lg">Authentication Failed</div>
+          <div className="text-red-500 mb-4 text-lg font-medium">Authentication Failed</div>
           <p className="mb-6">{error}</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
