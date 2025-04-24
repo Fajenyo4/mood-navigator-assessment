@@ -77,3 +77,6 @@ url = ""
 [functions]
 [functions.verify-sso]
 verify_jwt = false
+
+[functions.verify-access]
+verify_jwt = false

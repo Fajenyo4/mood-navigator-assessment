@@ -33,7 +33,8 @@ const SSOLogin: React.FC = () => {
         console.log('Attempting SSO login with:', { email, name });
 
         try {
-          const apiEndpoint = `${window.location.origin}/functions/v1/verify-sso`;
+          // Make sure to use the fully qualified URL to the edge function
+          const apiEndpoint = `https://thvtgvvwksbxywhdnwcv.supabase.co/functions/v1/verify-sso`;
           console.log("Calling API endpoint:", apiEndpoint);
           
           const response = await fetch(apiEndpoint, {
