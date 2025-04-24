@@ -17,11 +17,13 @@ serve(async (req) => {
   }
 
   try {
+    console.log("SSO verification function started");
+    
     // Initialize Supabase with the service role key
     if (!supabaseServiceKey) {
-      console.error("Missing SUPABASE_SERVICE_ROLE_KEY environment variable");
+      console.error("MISSING SUPABASE_SERVICE_ROLE_KEY");
       return new Response(
-        JSON.stringify({ error: "Server configuration error" }),
+        JSON.stringify({ error: "Server configuration error: Missing service role key" }),
         { 
           headers: { ...corsHeaders, "Content-Type": "application/json" }, 
           status: 500 
@@ -29,21 +31,15 @@ serve(async (req) => {
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    });
-
-    // Get the email from the request
+    // Parse request data
     let requestData;
     try {
       requestData = await req.json();
+      console.log("Request data parsed:", JSON.stringify(requestData));
     } catch (parseError) {
       console.error("Error parsing request JSON:", parseError);
       return new Response(
-        JSON.stringify({ error: "Invalid request format" }),
+        JSON.stringify({ error: "Invalid request format", details: parseError.message }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
     }
@@ -51,6 +47,7 @@ serve(async (req) => {
     const { email, token, name } = requestData;
     
     if (!email) {
+      console.error("Missing required email parameter");
       return new Response(
         JSON.stringify({ error: "Email is required" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
@@ -60,17 +57,30 @@ serve(async (req) => {
     console.log("Processing SSO for email:", email, "name:", name);
     
     try {
+      // Initialize Supabase client
+      console.log("Initializing Supabase client");
+      const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      });
+      
+      console.log("Supabase client initialized");
+      
       // First, try to find if the user exists
       let userData;
       try {
+        console.log("Checking if user exists:", email);
         const { data, error } = await supabase.auth.admin.getUserByEmail(email);
         if (error) {
           console.log("Error fetching user by email:", error.message);
-          // Don't throw here, we'll create the user if not found
+        } else if (data) {
+          console.log("User found:", data.user?.id);
+          userData = data;
         }
-        userData = data;
       } catch (userFetchError) {
-        console.log("Exception when fetching user:", userFetchError.message);
+        console.error("Exception when fetching user:", userFetchError.message);
         // Continue with user creation
       }
       
@@ -94,6 +104,8 @@ serve(async (req) => {
             );
           }
           
+          console.log("User creation response:", JSON.stringify(newUser));
+          
           if (!newUser || !newUser.user) {
             console.error("User creation returned no user data");
             return new Response(
@@ -103,10 +115,14 @@ serve(async (req) => {
           }
           
           userId = newUser.user.id;
+          console.log("New user created with ID:", userId);
         } catch (createUserError) {
           console.error("Exception during user creation:", createUserError);
           return new Response(
-            JSON.stringify({ error: `Exception creating user: ${createUserError.message}` }),
+            JSON.stringify({ 
+              error: `Exception creating user: ${createUserError.message}`,
+              stack: createUserError.stack
+            }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
           );
         }
@@ -118,6 +134,7 @@ serve(async (req) => {
       // Create a session directly
       let sessionData;
       try {
+        console.log("Creating session for user ID:", userId);
         const { data: session, error: sessionError } = await supabase.auth.admin.createSession({
           userId: userId,
         });
@@ -130,6 +147,8 @@ serve(async (req) => {
           );
         }
         
+        console.log("Session creation response received");
+        
         if (!session) {
           console.error("No session data returned");
           return new Response(
@@ -139,10 +158,14 @@ serve(async (req) => {
         }
         
         sessionData = session;
+        console.log("Session created successfully");
       } catch (sessionCreateError) {
         console.error("Exception during session creation:", sessionCreateError);
         return new Response(
-          JSON.stringify({ error: `Exception creating session: ${sessionCreateError.message}` }),
+          JSON.stringify({ 
+            error: `Exception creating session: ${sessionCreateError.message}`,
+            stack: sessionCreateError.stack
+          }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
         );
       }
@@ -156,14 +179,20 @@ serve(async (req) => {
     } catch (authError) {
       console.error("Authentication error:", authError);
       return new Response(
-        JSON.stringify({ error: `Authentication failed: ${authError.message}` }),
+        JSON.stringify({ 
+          error: `Authentication failed: ${authError.message}`,
+          stack: authError.stack 
+        }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
       );
     }
   } catch (error) {
     console.error("Unhandled error in SSO function:", error);
     return new Response(
-      JSON.stringify({ error: `Authentication failed: ${error.message}` }),
+      JSON.stringify({ 
+        error: `Authentication failed: ${error.message}`,
+        stack: error.stack
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
     );
   }

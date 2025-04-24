@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>繁體中文評估 (SSO)</title>
+  <script>
+    // Get the base URL from where this embed is being served
+    const baseUrl = new URL(document.baseURI).origin;
+    // Your application's actual domain
+    const appDomain = "https://mood-navigator-assessment.lovable.app";
+    
+    // This function would be called by LearnWorlds when a user is logged in
+    function initSSO(userData) {
+      console.log("SSO initiated with user data:", userData);
+      
+      // Example userData from LearnWorlds would include email and name
+      const email = userData.email;
+      const name = userData.name || '學生';
+      
+      // Create a simple token by encoding the email and timestamp
+      // In production, this should be replaced with a proper JWT from LearnWorlds
+      const simpleToken = btoa(`${email}:${Date.now()}`);
+      
+      // Redirect to SSO login endpoint with token and language
+      window.location.href = `${appDomain}/sso-login?token=${simpleToken}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&lang=zh-hk`;
+    }
+    
+    // Sample function to simulate LearnWorlds sending user data
+    // This would typically be called by the LearnWorlds platform
+    function simulateLearnWorldsLogin() {
+      const testEmail = prompt("請輸入測試電子郵件進行SSO登錄:", "student@example.com");
+      if (testEmail) {
+        initSSO({
+          email: testEmail,
+          name: "測試用戶"
+        });
+      }
+    }
+    
+    // If this page is directly loaded without iframe (direct link usage)
+    // Check for URL parameters that might contain user information
+    window.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const email = urlParams.get('email');
+      const name = urlParams.get('name');
+      
+      if (email) {
+        console.log("Direct link SSO detected with email:", email);
+        initSSO({
+          email: email,
+          name: name || email.split('@')[0]
+        });
+      }
+    });
+  </script>
+</head>
+<body style="text-align: center; font-family: Arial, sans-serif; margin: 40px; line-height: 1.6;">
+  <h1>LearnWorlds SSO 整合</h1>
+  
+  <div style="max-width: 600px; margin: 0 auto; background: #f9f9f9; padding: 20px; border-radius: 8px;">
+    <p>此頁面支持與 LearnWorlds 的單點登錄 (SSO) 整合。</p>
+    <p>當正確整合後，用戶登入 LearnWorlds 後將自動被重定向到評估。</p>
+    
+    <h2>整合說明</h2>
+    <ol style="text-align: left;">
+      <li>將此頁面添加到您的 LearnWorlds 網站作為自定義 HTML 頁面</li>
+      <li>在您的 LearnWorlds 網站中創建一個 JavaScript 片段，當用戶點擊評估連結時調用 initSSO 函數</li>
+      <li>將用戶的電子郵件和姓名傳遞給 initSSO 函數</li>
+    </ol>
+    
+    <div style="margin: 30px 0; padding: 15px; background: #e9f5ff; border-radius: 6px;">
+      <h3>LearnWorlds 的示例 JavaScript</h3>
+      <pre style="background: #f0f0f0; padding: 10px; overflow-x: auto; text-align: left;">
+// 添加到您的 LearnWorlds 自定義 JavaScript
+function launchAssessment() {
+  // 從 LearnWorlds 獲取用戶數據
+  const userEmail = LW.getUserEmail(); // LearnWorlds 函數 (示例)
+  const userName = LW.getUserName(); // LearnWorlds 函數 (示例)
+  
+  // 調用嵌入中的 SSO 功能
+  const assessmentFrame = document.getElementById('assessment-frame');
+  if (assessmentFrame && assessmentFrame.contentWindow) {
+    assessmentFrame.contentWindow.initSSO({
+      email: userEmail,
+      name: userName
+    });
+  } else {
+    // 直接連結後備方案
+    window.open('https://mood-navigator-assessment.lovable.app/embed/zh-hk-sso.html?email=' + 
+      encodeURIComponent(userEmail) + '&name=' + encodeURIComponent(userName), '_blank');
+  }
+}
+
+// 示例：將此添加到您的評估按鈕
+document.getElementById('assessment-button').addEventListener('click', launchAssessment);
+      </pre>
+    </div>
+  </div>
+  
+  <!-- For testing purposes only - would be removed in production -->
+  <button 
+    onclick="simulateLearnWorldsLogin()" 
+    style="margin-top: 20px; background: #4f46e5; color: white; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-size: 16px;"
+  >
+    測試 SSO 登錄
+  </button>
+</body>
+</html>

@@ -3,8 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Loader2, AlertCircle, RefreshCw, Bug } from 'lucide-react';
 import { toast } from 'sonner';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const SSOLogin: React.FC = () => {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ const SSOLogin: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
 
   useEffect(() => {
     const authenticateWithSSO = async () => {
@@ -64,8 +66,15 @@ const SSOLogin: React.FC = () => {
           }
 
           // Now parse as JSON
-          const data = await response.json();
-          console.log("Response data:", data);
+          let data;
+          try {
+            data = await response.json();
+            console.log("Response data:", data);
+            setDebugInfo(prev => ({ ...prev, responseData: data }));
+          } catch (jsonError) {
+            console.error("JSON parse error:", jsonError);
+            throw new Error(`Failed to parse server response as JSON: ${jsonError.message}`);
+          }
           
           if (!response.ok) {
             console.error('SSO verification error:', data);
@@ -86,6 +95,7 @@ const SSOLogin: React.FC = () => {
               navigate(`/${lang}`);
             } catch (sessionError: any) {
               console.error('Error setting session:', sessionError);
+              setErrorDetails(sessionError.message);
               throw new Error(`Failed to set session: ${sessionError.message}`);
             }
           } else {
@@ -93,6 +103,7 @@ const SSOLogin: React.FC = () => {
           }
         } catch (fetchError: any) {
           console.error('Error during SSO:', fetchError);
+          setErrorDetails(fetchError.stack ? fetchError.stack : null);
           setError(`Authentication failed: ${fetchError.message}`);
           setIsLoading(false);
         }
@@ -116,12 +127,14 @@ const SSOLogin: React.FC = () => {
   const handleRetry = () => {
     setIsLoading(true);
     setError(null);
+    setErrorDetails(null);
+    setDebugInfo(null);
     setRetryCount(prevCount => prevCount + 1);
   };
 
   // Display loading state or error message
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
       {isLoading ? (
         <div className="text-center">
           <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
@@ -134,10 +147,24 @@ const SSOLogin: React.FC = () => {
           <div className="text-red-500 mb-4 text-lg font-medium">Authentication Failed</div>
           <p className="mb-4">{error}</p>
           
+          {errorDetails && (
+            <Alert variant="destructive" className="mb-4 text-left">
+              <AlertTitle className="flex items-center gap-2">
+                <Bug className="h-4 w-4" />
+                Error Details
+              </AlertTitle>
+              <AlertDescription className="mt-2">
+                <div className="whitespace-pre-wrap text-xs font-mono">
+                  {errorDetails}
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+          
           {debugInfo && (
             <div className="mb-6 text-left bg-gray-50 p-4 rounded overflow-auto max-h-60 text-xs">
               <p className="font-semibold mb-2">Debug Information:</p>
-              <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
+              <pre className="whitespace-pre-wrap">{JSON.stringify(debugInfo, null, 2)}</pre>
             </div>
           )}
           
