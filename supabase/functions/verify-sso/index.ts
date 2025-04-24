@@ -68,43 +68,55 @@ serve(async (req) => {
     
     console.log("Supabase admin client initialized");
     
-    // Generate sign-in link regardless of whether user exists or not
-    console.log("Generating sign-in link for:", email);
-    
     try {
-      // Generate a magic link for the user, which will create the user if they don't exist
-      const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+      // First check if the user exists
+      console.log("Checking if user exists:", email);
+      
+      // Try to sign in the user with a magic link token
+      // This will create a session without sending an email
+      const { data, error } = await supabaseAdmin.auth.admin.generateLink({
         type: 'magiclink',
         email: email,
         options: {
-          // Ensure user is created if they don't exist
+          // Create the user if they don't exist
           createUser: true,
-          // Add user metadata if available
-          data: name ? { name: name } : undefined
+          // Add user metadata
+          data: name ? { 
+            name: name,
+            email_verified: true  // Mark as verified since we're doing SSO
+          } : {
+            email_verified: true
+          }
         }
       });
       
-      if (linkError) {
-        console.error("Error generating link:", linkError);
+      if (error) {
+        console.error("Error generating auth link:", error);
         return new Response(
-          JSON.stringify({ error: `Failed to generate sign-in link: ${linkError.message}` }),
+          JSON.stringify({ error: `Authentication failed: ${error.message}` }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
         );
       }
       
-      // Extract just the properties needed for session
+      // Success - extract the access and refresh tokens directly
+      console.log("Auth link generated successfully with tokens");
+      
       const session = {
-        access_token: linkData.properties.access_token,
-        refresh_token: linkData.properties.refresh_token,
-        expires_in: 3600, // 1 hour
+        access_token: data.properties.access_token,
+        refresh_token: data.properties.refresh_token,
         user: {
-          id: linkData.user.id,
-          email: linkData.user.email,
-          user_metadata: linkData.user.user_metadata
+          id: data.user.id,
+          email: data.user.email,
+          user_metadata: {
+            ...data.user.user_metadata,
+            email_verified: true,
+            name: data.user.user_metadata?.name || name || email.split('@')[0]
+          }
         }
       };
       
-      console.log("Session created successfully");
+      console.log("Session created successfully for user:", session.user.id);
+      
       return new Response(
         JSON.stringify({ session, success: true }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }

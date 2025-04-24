@@ -85,27 +85,36 @@ const SSOLogin: React.FC = () => {
             console.log('Authentication successful, setting session');
             
             try {
+              // Extract the session data from the response
+              const { access_token, refresh_token } = data.session;
+              
               // Set the session in Supabase client
-              await supabase.auth.setSession({
-                access_token: data.session.access_token,
-                refresh_token: data.session.refresh_token
+              const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+                access_token,
+                refresh_token
               });
               
-              // Update the user state in AuthContext
-              const { data: { user: authUser } } = await supabase.auth.getUser();
-              if (authUser) {
-                setUser(authUser);
-                console.log("User state updated in AuthContext:", authUser);
+              if (sessionError) {
+                console.error("Error setting session:", sessionError);
+                throw sessionError;
+              }
+              
+              console.log("Session set successfully:", sessionData);
+              
+              // Get the user from the session data
+              if (sessionData.user) {
+                setUser(sessionData.user);
+                console.log("User state updated in AuthContext:", sessionData.user);
                 
                 toast.success('Successfully signed in!');
                 
-                // Add a small delay to ensure state is updated before redirecting
+                // Add a slightly longer delay to ensure state is updated before redirecting
                 setTimeout(() => {
                   console.log(`Redirecting to /${lang}`);
                   navigate(`/${lang}`, { replace: true });
-                }, 500);
+                }, 800);
               } else {
-                throw new Error("User data not available after setting session");
+                throw new Error("User data not available in session after setting it");
               }
             } catch (sessionError: any) {
               console.error('Error setting session:', sessionError);
