@@ -68,18 +68,49 @@ serve(async (req) => {
     
     console.log("Supabase admin client initialized");
     
-    // ALTERNATIVE APPROACH: Use signInWithEmail directly
-    // This method will authenticate without requiring a password since we're using the admin client
-    console.log("Attempting to sign in user directly:", email);
+    // First, check if the user exists
+    console.log("Checking if user exists:", email);
+    const { data: existingUser, error: getUserError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
     
-    const { data: signInData, error: signInError } = await supabaseAdmin.auth.signInWithEmail({
-      email: email,
-    });
+    if (getUserError) {
+      console.error("Error checking if user exists:", getUserError.message);
+    }
     
-    if (signInError) {
-      console.log("Sign-in failed, attempting to create user:", signInError.message);
+    if (existingUser && existingUser.user) {
+      console.log("User exists, creating session for existing user");
       
-      // If sign-in fails, try to create the user
+      // Create a session for the existing user
+      const { data: sessionData, error: sessionError } = await supabaseAdmin.auth.admin.generateLink({
+        type: 'magiclink',
+        email: email,
+      });
+      
+      if (sessionError) {
+        console.error("Error creating session for existing user:", sessionError);
+        return new Response(
+          JSON.stringify({ error: `Failed to create session: ${sessionError.message}` }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+        );
+      }
+      
+      // Extract just the properties needed for session
+      const session = {
+        access_token: sessionData.properties.access_token,
+        refresh_token: sessionData.properties.refresh_token,
+        expires_in: 3600, // 1 hour
+        user: existingUser.user
+      };
+      
+      console.log("Session created for existing user");
+      return new Response(
+        JSON.stringify({ session, success: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+      
+    } else {
+      console.log("User doesn't exist, creating new user");
+      
+      // Create new user
       const { data: newUserData, error: createError } = await supabaseAdmin.auth.admin.createUser({
         email,
         email_confirm: true,
@@ -94,7 +125,7 @@ serve(async (req) => {
         );
       }
       
-      // Use the admin.generateLink method to create a sign-in link for the user
+      // Generate a sign-in link for the new user
       console.log("User created, generating sign-in link");
       const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
         type: 'magiclink',
@@ -120,12 +151,6 @@ serve(async (req) => {
       console.log("Session created for new user");
       return new Response(
         JSON.stringify({ session, success: true }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    } else {
-      console.log("User signed in successfully");
-      return new Response(
-        JSON.stringify({ session: signInData.session, success: true }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
