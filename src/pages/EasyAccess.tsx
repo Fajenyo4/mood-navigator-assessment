@@ -1,106 +1,77 @@
 
 import React, { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { isTokenValid, parseAccessToken } from '@/utils/accessTokens';
 
-const EasyAccess: React.FC = () => {
-  const navigate = useNavigate();
+const EasyAccess = () => {
   const [searchParams] = useSearchParams();
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const [isValidating, setIsValidating] = useState(true);
 
   useEffect(() => {
-    const authenticateWithToken = async () => {
+    const validateAccess = async () => {
       try {
-        // Get token and email from URL params
         const token = searchParams.get('token');
         const email = searchParams.get('email');
         const lang = searchParams.get('lang') || 'en';
+        const view = searchParams.get('view');
 
         if (!token || !email) {
-          setError('Missing required parameters. Please ensure the URL contains token and email.');
-          setIsLoading(false);
+          toast.error('Invalid access link');
+          navigate('/login');
           return;
         }
 
-        // Validate token
-        if (!isTokenValid(token)) {
-          setError('Access link has expired. Please request a new one.');
-          setIsLoading(false);
-          return;
-        }
-
-        console.log('Authenticating with easy access link:', { 
-          email, 
-          lang 
+        const response = await fetch('https://thvtgvvwksbxywhdnwcv.functions.supabase.co/verify-access', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, token })
         });
 
-        // Sign in or create user account
-        const { data, error: signInError } = await supabase.auth.signInWithOtp({
-          email,
-          options: {
-            shouldCreateUser: true,
-            data: {
-              name: email.split('@')[0],
-              source: 'easy_access'
-            },
-            // We won't send an email, we'll use the return value
-            emailRedirectTo: `${window.location.origin}/${lang}`
-          }
-        });
-
-        if (signInError) {
-          console.error('Authentication error:', signInError);
-          setError(`Authentication failed: ${signInError.message}`);
-          setIsLoading(false);
-          return;
+        if (!response.ok) {
+          throw new Error('Access validation failed');
         }
 
-        // If we have user data, we're authenticated
-        if (data) {
-          console.log('Authentication successful, redirecting to:', `/${lang}`);
-          toast.success('Successfully signed in!');
-          navigate(`/${lang}`);
+        const { session } = await response.json();
+
+        // Set the session in Supabase
+        await supabase.auth.setSession({
+          access_token: session.access_token,
+          refresh_token: session.refresh_token
+        });
+
+        // Navigate to the appropriate view based on the view parameter
+        if (view === 'history') {
+          navigate(`/history-chart?lang=${lang}`);
         } else {
-          setError('Authentication failed. Please try again.');
-          setIsLoading(false);
+          navigate(`/${lang}`);
         }
-      } catch (err: any) {
-        console.error('Authentication error:', err);
-        setError(`Error: ${err.message}`);
-        setIsLoading(false);
+      } catch (error) {
+        console.error('Access validation error:', error);
+        toast.error('Failed to validate access');
+        navigate('/login');
+      } finally {
+        setIsValidating(false);
       }
     };
 
-    authenticateWithToken();
+    validateAccess();
   }, [searchParams, navigate]);
 
-  // Display loading state or error message
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-      {isLoading ? (
+  if (isValidating) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-lg">Authenticating you...</p>
-          <p className="text-sm text-gray-500 mt-2">You will be redirected automatically.</p>
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Validating access...</p>
         </div>
-      ) : error ? (
-        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
-          <div className="text-red-500 mb-4 text-lg">Authentication Failed</div>
-          <p className="mb-4">{error}</p>
-          <button
-            className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90 transition-colors"
-            onClick={() => navigate('/login/en')}
-          >
-            Go to Login Page
-          </button>
-        </div>
-      ) : null}
-    </div>
-  );
+      </div>
+    );
+  }
+
+  return null;
 };
 
 export default EasyAccess;
