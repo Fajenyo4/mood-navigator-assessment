@@ -33,14 +33,15 @@ const ResultActions: React.FC<ResultActionsProps> = ({
   };
 
   return (
-    <div className={cn("w-full px-4 sm:px-6", className)}>
+    <div className={cn("w-full", className)}>
       <Button 
         onClick={handleRedirect}
-        className={`w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700
+        variant="default"
+        className={`w-full flex items-center justify-center gap-2
           ${isMobile ? 'py-4 text-base' : ''}`}
       >
         <ExternalLink className={`${isMobile ? 'w-5 h-5' : 'w-4 h-4'}`} />
-        <span>{translations.goToCourses}</span>
+        <span className="truncate">{translations.goToCourses}</span>
       </Button>
     </div>
   );

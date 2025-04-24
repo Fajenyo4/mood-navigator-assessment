@@ -60,18 +60,18 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
             <ResultMessage message={result.message} language={language} />
 
             {!isHistoryPage && (
-              <div className="w-full flex space-x-4">
+              <div className={`w-full ${isMobile ? 'flex flex-col space-y-3' : 'flex space-x-3'}`}>
                 <ResultActions 
                   redirectUrl={REDIRECT_URL}
                   language={language}
-                  className="flex-1"
+                  className={isMobile ? 'w-full' : 'flex-1'}
                 />
                 <Button 
                   variant="outline" 
-                  className="flex items-center justify-center gap-2 flex-1"
+                  className={`flex items-center justify-center gap-2 ${isMobile ? 'w-full' : 'flex-1'}`}
                   onClick={handleViewHistory}
                 >
-                  <History className="w-4 h-4" />
+                  <History className={`${isMobile ? 'w-5 h-5' : 'w-4 h-4'}`} />
                   <span className="truncate">
                     {assessmentResultsTranslations[language as keyof typeof assessmentResultsTranslations]?.viewHistory || 'View Assessment History'}
                   </span>
