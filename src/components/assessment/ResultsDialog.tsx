@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import {
   Dialog,
@@ -135,8 +136,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
 
             {!isHistoryPage && (
               <ResultActions 
-                redirectUrl={REDIRECT_URL} 
-                countdown={countdown}
+                redirectUrl={REDIRECT_URL}
                 language={language}
               />
             )}

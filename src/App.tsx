@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -18,7 +19,7 @@ import { CheckAuth } from './pages/CheckAuth';
 import EnglishEmbed from './pages/embeds/EnglishEmbed';
 import SimplifiedChineseEmbed from './pages/embeds/SimplifiedChineseEmbed';
 import TraditionalChineseEmbed from './pages/embeds/TraditionalChineseEmbed';
-import AssessmentHistoryChart from './components/assessment/AssessmentHistoryChart';
+import AssessmentHistoryChart from './pages/AssessmentHistoryChart';
 
 const queryClient = new QueryClient();
 
