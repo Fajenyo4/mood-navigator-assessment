@@ -6,12 +6,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { MoodResult } from '@/utils/assessmentScoring';
 import MoodIcon from './MoodIcon';
 import ResultMessage from './ResultMessage';
 import ResultActions from './ResultActions';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { History } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { assessmentResultsTranslations } from '@/translations/assessmentResults';
 
 interface ResultsDialogProps {
@@ -29,11 +31,17 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   language,
 }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isHistoryPage = location.pathname === '/history';
   const isMobile = useIsMobile();
 
   // The redirect URL with proper https protocol to avoid cross-origin issues
   const REDIRECT_URL = "https://www.mican.life/courses-en";
+
+  const handleViewHistory = () => {
+    onOpenChange(false); // Close the dialog
+    navigate(`/history-chart?lang=${language}`);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -52,10 +60,20 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
             <ResultMessage message={result.message} language={language} />
 
             {!isHistoryPage && (
-              <ResultActions 
-                redirectUrl={REDIRECT_URL}
-                language={language}
-              />
+              <div className="w-full space-y-4">
+                <ResultActions 
+                  redirectUrl={REDIRECT_URL}
+                  language={language}
+                />
+                <Button 
+                  variant="outline" 
+                  className="w-full flex items-center justify-center gap-2"
+                  onClick={handleViewHistory}
+                >
+                  <History className="w-4 h-4" />
+                  <span>{assessmentResultsTranslations[language as keyof typeof assessmentResultsTranslations]?.viewHistory || 'View Assessment History'}</span>
+                </Button>
+              </div>
             )}
           </div>
         ) : (
