@@ -57,30 +57,33 @@ serve(async (req) => {
     console.log("Processing SSO for email:", email, "name:", name);
     
     try {
-      // Initialize Supabase client
-      console.log("Initializing Supabase client");
-      const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
+      // Initialize Supabase client with service role for admin operations
+      console.log("Initializing Supabase admin client");
+      const supabaseAdmin = createClient(
+        supabaseUrl,
+        supabaseServiceKey,
+        {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false
+          }
         }
-      });
+      );
       
-      console.log("Supabase client initialized");
+      console.log("Supabase admin client initialized");
       
       // First, try to find if the user exists
       let userId;
       console.log("Checking if user exists:", email);
       
-      // Use the correct method to look up a user by email
-      const { data: users, error: userLookupError } = await supabase
+      const { data: users, error: userLookupError } = await supabaseAdmin
         .from('auth.users')
         .select('id, email')
         .eq('email', email)
         .maybeSingle();
       
       if (userLookupError) {
-        console.log("Error looking up user:", userLookupError.message);
+        console.error("Error looking up user:", userLookupError);
         // Continue with user creation
       }
       
@@ -91,8 +94,7 @@ serve(async (req) => {
         // Optionally update user metadata if needed
         if (name && userId) {
           console.log("Updating existing user metadata with name:", name);
-          // For metadata updates, we'll use the admin.updateUser method
-          const { error: updateError } = await supabase.auth.admin.updateUser(
+          const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
             userId,
             { user_metadata: { name: name || email.split('@')[0] } }
           );
@@ -106,7 +108,7 @@ serve(async (req) => {
         // User doesn't exist, create them
         console.log("Creating new user:", email);
         try {
-          const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+          const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
             email,
             email_confirm: true,
             user_metadata: { name: name || email.split('@')[0] },
@@ -148,12 +150,8 @@ serve(async (req) => {
       let sessionData;
       try {
         console.log("Creating session for user ID:", userId);
-        const { data: session, error: sessionError } = await supabase.auth.admin.generateLink({
-          type: 'magiclink',
-          email: email,
-          options: {
-            redirectTo: `${supabaseUrl}/auth/v1/callback`
-          }
+        const { data: session, error: sessionError } = await supabaseAdmin.auth.admin.createSession({
+          userId: userId
         });
         
         if (sessionError) {
