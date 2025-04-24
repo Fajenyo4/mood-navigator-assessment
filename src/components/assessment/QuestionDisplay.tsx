@@ -80,12 +80,6 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
             </div>
           ))}
         </RadioGroup>
-
-        <div className="mt-6 flex justify-center">
-          <span className="text-sm text-gray-500">
-            Question {currentQuestion + 1} of {totalQuestions}
-          </span>
-        </div>
       </div>
     </div>
   );
