@@ -14,7 +14,7 @@ interface LoginProps {
 }
 
 const Login = ({ language = 'en' }: LoginProps) => {
-  const { signIn, signUp, user, loading: authLoading } = useAuth();
+  const { signIn, signUp, user, loading: authLoading, setLanguage } = useAuth();
   const navigate = useNavigate();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
@@ -26,10 +26,11 @@ const Login = ({ language = 'en' }: LoginProps) => {
   const selectedLanguage = language || 'en';
   const t = loginTranslations[selectedLanguage as keyof typeof loginTranslations] || loginTranslations.en;
 
-  // Store the selected language in localStorage
+  // Update language in auth context
   useEffect(() => {
-    localStorage.setItem('selectedLanguage', selectedLanguage);
-  }, [selectedLanguage]);
+    setLanguage(selectedLanguage);
+    console.log(`Language set in Login: ${selectedLanguage}`);
+  }, [selectedLanguage, setLanguage]);
 
   useEffect(() => {
     if (user && !authLoading) {

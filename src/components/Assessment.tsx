@@ -19,12 +19,15 @@ interface AssessmentProps {
 }
 
 const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
-  const { user } = useAuth();
+  const { user, language: authLanguage } = useAuth();
   const [questions, setQuestions] = useState<Question[]>(enQuestions);
+  
+  // Get the effective language - either from props or from auth context
+  const effectiveLanguage = defaultLanguage || authLanguage || 'en';
   
   // Select the appropriate question set based on language
   useEffect(() => {
-    switch (defaultLanguage) {
+    switch (effectiveLanguage) {
       case 'zh-CN':
         setQuestions(zhCNQuestions);
         break;
@@ -36,8 +39,8 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
         setQuestions(enQuestions);
         break;
     }
-    console.log(`Loaded questions for language: ${defaultLanguage}`);
-  }, [defaultLanguage]);
+    console.log(`Loaded questions for language: ${effectiveLanguage}`);
+  }, [effectiveLanguage]);
   
   const {
     currentQuestion,
@@ -52,7 +55,7 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     userId: user?.id,
     userName: user?.user_metadata?.name,
     userEmail: user?.email,
-    defaultLanguage
+    defaultLanguage: effectiveLanguage
   });
 
   if (isSubmitting) {
@@ -102,11 +105,10 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
         onOpenChange={setShowResults}
         result={showResults ? getResultData() : null}
         onManualRedirect={() => window.location.href = REDIRECT_URL}
-        language={defaultLanguage}
+        language={effectiveLanguage}
       />
     </div>
   );
 };
 
 export default Assessment;
-

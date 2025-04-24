@@ -8,10 +8,12 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  language: string;
+  setLanguage: (lang: string) => void;
   signIn: (provider: 'google' | 'github' | 'email', email?: string, password?: string) => Promise<void>;
   signOut: () => Promise<void>;
   signUp: (email: string, password: string, name?: string) => Promise<void>;
-  setUser: (user: User | null) => void; // Add the setUser method to the interface
+  setUser: (user: User | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,6 +22,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [language, setLanguage] = useState(() => {
+    // Get language from localStorage or default to 'en'
+    return localStorage.getItem('selectedLanguage') || 'en';
+  });
+
+  useEffect(() => {
+    // Store language in localStorage whenever it changes
+    localStorage.setItem('selectedLanguage', language);
+  }, [language]);
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -129,7 +140,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signOut, signUp, setUser }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      loading, 
+      language, 
+      setLanguage, 
+      signIn, 
+      signOut, 
+      signUp, 
+      setUser 
+    }}>
       {children}
     </AuthContext.Provider>
   );

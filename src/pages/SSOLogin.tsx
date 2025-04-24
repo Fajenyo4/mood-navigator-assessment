@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 const SSOLogin: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, setUser } = useAuth();
+  const { user, setUser, setLanguage } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -24,9 +24,15 @@ const SSOLogin: React.FC = () => {
   const PRODUCTION_DOMAIN = 'https://mood-navigator-assessment.lovable.app';
 
   useEffect(() => {
+    // Get language from URL params
+    const lang = searchParams.get('lang') || 'en';
+    
+    // Store language in auth context
+    setLanguage(lang);
+    console.log(`Language set in SSO login: ${lang}`);
+
     // If already authenticated, redirect to home page
     if (user) {
-      const lang = searchParams.get('lang') || 'en';
       navigate(`/${lang}`, { replace: true });
       return;
     }
@@ -189,7 +195,7 @@ const SSOLogin: React.FC = () => {
       subscription.unsubscribe();
     };
     
-  }, [searchParams, navigate, user, retryCount, setUser, attemptedAutoLogin]);
+  }, [searchParams, navigate, user, retryCount, setUser, setLanguage, attemptedAutoLogin]);
 
   const handleManualLogin = () => {
     if (magicLink) {
@@ -291,7 +297,7 @@ const SSOLogin: React.FC = () => {
           
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
-              className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90 transition-colors flex items-center justify-center"
+              className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
               onClick={handleRetry}
             >
               <RefreshCw className="h-4 w-4 mr-2" />
