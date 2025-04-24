@@ -89,6 +89,9 @@ const QuestionDisplay = memo(function QuestionDisplay({
   }
 
   const options = question.options || [];
+  
+  // Calculate question number to display (1-indexed)
+  const questionNumber = currentQuestion + 1;
 
   return (
     <div className="w-full max-w-2xl mx-auto transition-all duration-300 ease-in-out">
@@ -108,10 +111,19 @@ const QuestionDisplay = memo(function QuestionDisplay({
       )}
 
       <div className="bg-white rounded-xl shadow-lg p-8 mb-6 hover:shadow-xl transition-all duration-300">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm text-gray-500">
+            Question {questionNumber} of {totalQuestions}
+          </span>
+          <span className="text-sm text-gray-500">
+            {Math.round(progress)}%
+          </span>
+        </div>
+        
         <Progress 
           value={progress} 
           className="mb-8 transition-all duration-500 ease-out" 
-          aria-label={`Question ${currentQuestion + 1} of ${totalQuestions}`}
+          aria-label={`Question ${questionNumber} of ${totalQuestions}`}
         />
         
         <h2 className="text-xl font-medium text-gray-900 mb-8 text-center">
