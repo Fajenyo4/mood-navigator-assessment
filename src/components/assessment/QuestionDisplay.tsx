@@ -1,5 +1,5 @@
 
-import React, { memo } from 'react';
+import React, { memo, useCallback } from 'react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -51,7 +51,7 @@ const QuestionOption = memo(({
 QuestionOption.displayName = 'QuestionOption';
 
 // Memoize the entire QuestionDisplay component to prevent unnecessary re-renders
-const QuestionDisplay: React.FC<QuestionDisplayProps> = memo(({
+const QuestionDisplay = memo(function QuestionDisplay({
   currentQuestion,
   totalQuestions,
   progress,
@@ -60,8 +60,22 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = memo(({
   onAnswer,
   onPrevious,
   showPrevious
-}) => {
-  const options = question?.options || [];
+}: QuestionDisplayProps) {
+  // Use useCallback to prevent recreation of onClick handlers
+  const handleOptionSelect = useCallback((value: string) => {
+    onAnswer(value);
+  }, [onAnswer]);
+  
+  const handlePreviousClick = useCallback(() => {
+    if (onPrevious) onPrevious();
+  }, [onPrevious]);
+
+  // Ensure question is defined before accessing its properties
+  if (!question) {
+    return <div className="w-full max-w-2xl mx-auto text-center p-8">Loading question...</div>;
+  }
+
+  const options = question.options || [];
 
   return (
     <div className="w-full max-w-2xl mx-auto transition-all duration-300 ease-in-out">
@@ -71,8 +85,9 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = memo(({
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={onPrevious}
+          onClick={handlePreviousClick}
           className="mb-6 hover:bg-gray-100 transition-colors duration-200"
+          type="button" // Explicitly set button type to prevent form submission
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
@@ -87,7 +102,7 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = memo(({
         </h2>
 
         <RadioGroup
-          onValueChange={onAnswer}
+          onValueChange={handleOptionSelect}
           className="space-y-4"
           value={selectedOption}
         >

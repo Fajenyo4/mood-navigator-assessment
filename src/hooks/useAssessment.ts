@@ -48,36 +48,71 @@ export const useAssessment = ({
   // Cache the question count for better performance
   const questionCount = useMemo(() => questions.length, [questions]);
 
-  // Use debounced save to reduce localStorage writes
+  // Store progress in localStorage with debouncing to prevent excessive writes
   useEffect(() => {
+    if (Object.keys(answers).length === 0) return;
+    
     const saveTimeout = setTimeout(() => {
-      if (Object.keys(answers).length > 0) {
+      try {
         localStorage.setItem('assessment_progress', JSON.stringify({
           currentQuestion,
           answers,
           timestamp: Date.now(),
           language: defaultLanguage
         }));
+      } catch (error) {
+        console.error('Error saving assessment progress to localStorage:', error);
       }
     }, 300); // Debounce localStorage writes by 300ms
     
     return () => clearTimeout(saveTimeout);
   }, [answers, currentQuestion, defaultLanguage]);
 
+  // Handle browser beforeunload event to warn about losing progress
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (Object.keys(answers).length > 0 && !showResults) {
+        // Standard way to show a confirmation dialog
+        e.preventDefault();
+        e.returnValue = ''; // Chrome requires returnValue to be set
+        return ''; // This message isn't actually displayed in modern browsers
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [answers, showResults]);
+
   // Memoize answers processing to avoid unnecessary recalculations
   const handleAnswer = useCallback((value: string) => {
-    const numericValue = parseInt(value);
-    setAnswers(prev => ({ ...prev, [currentQuestion + 1]: numericValue }));
-    setSelectedOption(value);
+    try {
+      const numericValue = parseInt(value);
+      
+      setAnswers(prev => {
+        const newAnswers = { ...prev, [currentQuestion + 1]: numericValue };
+        return newAnswers;
+      });
+      
+      setSelectedOption(value);
 
-    // Move to next question or submit
-    if (currentQuestion < questionCount - 1) {
-      setCurrentQuestion(currentQ => currentQ + 1);
-      setSelectedOption("");
-    } else {
-      // Create new answers object with the latest answer
-      const finalAnswers = { ...answers, [currentQuestion + 1]: numericValue };
-      handleSubmit(finalAnswers);
+      // Move to next question or submit
+      if (currentQuestion < questionCount - 1) {
+        setCurrentQuestion(currentQ => {
+          const nextQuestion = currentQ + 1;
+          return nextQuestion;
+        });
+        setSelectedOption("");
+      } else {
+        // Create new answers object with the latest answer
+        const finalAnswers = { ...answers, [currentQuestion + 1]: numericValue };
+        handleSubmit(finalAnswers);
+      }
+    } catch (error) {
+      console.error('Error handling answer:', error);
+      toast.error('There was an error processing your answer. Please try again.');
     }
   }, [currentQuestion, answers, questionCount]);
 
@@ -93,12 +128,11 @@ export const useAssessment = ({
   // Optimize textAnswers creation with memoization
   const createTextAnswers = useCallback((finalAnswers: { [key: number]: number }) => {
     const textAnswers: { [key: string]: string } = {};
-    Object.keys(finalAnswers).forEach(questionNum => {
-      const qNum = parseInt(questionNum);
+    Object.entries(finalAnswers).forEach(([questionNumStr, optionIndex]) => {
+      const qNum = parseInt(questionNumStr);
       const question = questions.find(q => q.id === qNum);
-      if (question) {
-        const optionIndex = finalAnswers[qNum];
-        textAnswers[qNum] = question.options[optionIndex] || '';
+      if (question && question.options && question.options[optionIndex]) {
+        textAnswers[qNum] = question.options[optionIndex];
       }
     });
     return textAnswers;
@@ -107,8 +141,12 @@ export const useAssessment = ({
   // Optimize the submission process
   const handleSubmit = async (finalAnswers: { [key: number]: number }) => {
     // Prevent duplicate submissions
-    if (isSubmittingRef.current || !userId) {
-      if (!userId) toast.error("You must be logged in to submit the assessment");
+    if (isSubmittingRef.current) {
+      return;
+    }
+    
+    if (!userId) {
+      toast.error("You must be logged in to submit the assessment");
       return;
     }
     
@@ -138,7 +176,7 @@ export const useAssessment = ({
       // Show results immediately
       setShowResults(true);
       
-      // Clear progress
+      // Clear progress to prevent reloading data after completion
       localStorage.removeItem('assessment_progress');
 
       // Save results in background

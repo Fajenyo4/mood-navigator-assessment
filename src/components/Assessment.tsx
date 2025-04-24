@@ -30,12 +30,15 @@ const QUESTIONS_MAP = {
   'zh-HK': zhTWQuestions
 };
 
-const Assessment: React.FC<AssessmentProps> = React.memo(({ defaultLanguage = 'en' }) => {
+// Prevent Assessment component from re-rendering unnecessarily
+const Assessment = React.memo(function Assessment({ defaultLanguage = 'en' }: AssessmentProps) {
   const { user, language: authLanguage } = useAuth();
   const [isInitialized, setIsInitialized] = useState(false);
   
   // Get the effective language - either from props or from auth context
-  const effectiveLanguage = defaultLanguage || authLanguage || 'en';
+  const effectiveLanguage = useMemo(() => 
+    defaultLanguage || authLanguage || 'en'
+  , [defaultLanguage, authLanguage]);
   
   // Optimize progress state retrieval with memoization
   const getSavedProgressState = useCallback(() => {
@@ -92,7 +95,7 @@ const Assessment: React.FC<AssessmentProps> = React.memo(({ defaultLanguage = 'e
   // Memoize the current question for better performance
   const currentQuestionData = useMemo(() => {
     const questions = QUESTIONS_MAP[effectiveLanguage as keyof typeof QUESTIONS_MAP] || QUESTIONS_MAP['en'];
-    return questions[currentQuestion];
+    return questions[currentQuestion] || null;
   }, [currentQuestion, effectiveLanguage]);
 
   // Calculate progress percentage - memoized
@@ -120,26 +123,29 @@ const Assessment: React.FC<AssessmentProps> = React.memo(({ defaultLanguage = 'e
     );
   }, [answers, showResults]);
 
-  if (isSubmitting) {
-    return <LoadingState />;
-  }
-
+  // Don't render anything until initialized to prevent flashes
   if (!isInitialized) {
     return null;
   }
 
+  if (isSubmitting) {
+    return <LoadingState />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <QuestionDisplay
-        currentQuestion={currentQuestion}
-        totalQuestions={totalQuestions}
-        progress={progressPercentage}
-        question={currentQuestionData}
-        selectedOption={selectedOption}
-        onAnswer={handleAnswer}
-        onPrevious={handlePrevious}
-        showPrevious={currentQuestion > 0}
-      />
+      {currentQuestionData && (
+        <QuestionDisplay
+          currentQuestion={currentQuestion}
+          totalQuestions={totalQuestions}
+          progress={progressPercentage}
+          question={currentQuestionData}
+          selectedOption={selectedOption}
+          onAnswer={handleAnswer}
+          onPrevious={handlePrevious}
+          showPrevious={currentQuestion > 0}
+        />
+      )}
       
       <ResultsDialog
         open={showResults}
