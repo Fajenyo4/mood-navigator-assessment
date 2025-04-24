@@ -68,16 +68,23 @@ serve(async (req) => {
     
     console.log("Supabase admin client initialized");
     
-    // First, check if the user exists
+    // First check if the user exists using the correct method call and error handling
     console.log("Checking if user exists:", email);
-    const { data: existingUser, error: getUserError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
     
-    if (getUserError) {
-      console.error("Error checking if user exists:", getUserError.message);
+    // Query the auth.users table directly to find the user by email
+    const { data: users, error: queryError } = await supabaseAdmin
+      .from('auth.users')
+      .select('*')
+      .eq('email', email)
+      .single();
+      
+    if (queryError) {
+      console.error("Error querying for user:", queryError.message);
     }
     
-    if (existingUser && existingUser.user) {
+    if (users) {
       console.log("User exists, creating session for existing user");
+      const existingUser = users;
       
       // Create a session for the existing user
       const { data: sessionData, error: sessionError } = await supabaseAdmin.auth.admin.generateLink({
@@ -98,7 +105,7 @@ serve(async (req) => {
         access_token: sessionData.properties.access_token,
         refresh_token: sessionData.properties.refresh_token,
         expires_in: 3600, // 1 hour
-        user: existingUser.user
+        user: existingUser
       };
       
       console.log("Session created for existing user");
