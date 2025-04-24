@@ -5,6 +5,7 @@ import { ExternalLink } from 'lucide-react';
 import { resultActionsTranslations } from '@/translations/resultActions';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { preventPageRefresh } from '@/utils/preventRefresh';
 
 interface ResultActionsProps {
   redirectUrl: string;
@@ -23,9 +24,8 @@ const ResultActions: React.FC<ResultActionsProps> = ({
   // Use useCallback to prevent recreation on each render
   const handleRedirect = useCallback(() => {
     try {
-      // Block any pending page refresh attempts using a flag
-      // We don't need the window.stopPageRefresh property 
-      // as it doesn't exist in the Window interface
+      // Use our preventPageRefresh utility to block any automatic refreshes
+      const cleanup = preventPageRefresh();
       
       const redirectUrlWithRef = new URL(redirectUrl);
       redirectUrlWithRef.searchParams.append('ref', 'mood-assessment');
@@ -33,6 +33,8 @@ const ResultActions: React.FC<ResultActionsProps> = ({
       
       // Use a short timeout to ensure UI updates before redirect
       setTimeout(() => {
+        // Cleanup the refresh prevention when redirecting
+        cleanup();
         // Use window.location.replace for cleaner navigation without back history
         window.location.replace(redirectUrlWithRef.toString());
       }, 100);
