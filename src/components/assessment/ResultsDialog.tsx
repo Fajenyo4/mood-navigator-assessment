@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import {
   Dialog,
@@ -13,6 +12,7 @@ import ResultMessage from './ResultMessage';
 import ResultActions from './ResultActions';
 import AssessmentChart from './AssessmentChart';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { assessmentResultsTranslations } from '@/translations/assessmentResults';
 
 interface ResultsDialogProps {
   open: boolean;
@@ -26,7 +26,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   open,
   onOpenChange,
   result,
-  language
+  language,
 }) => {
   const [countdown, setCountdown] = useState(10);
   const location = useLocation();
@@ -106,11 +106,15 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
     }
   } : null;
 
+  const translations = assessmentResultsTranslations[language as keyof typeof assessmentResultsTranslations] || assessmentResultsTranslations.en;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={`sm:max-w-md md:max-w-lg ${isMobile ? 'max-h-[90vh] overflow-y-auto p-4' : ''}`}>
         <DialogHeader>
-          <DialogTitle className={`text-center ${isMobile ? 'text-lg' : 'text-xl'} font-bold`}>Assessment Results</DialogTitle>
+          <DialogTitle className={`text-center ${isMobile ? 'text-lg' : 'text-xl'} font-bold`}>
+            {translations.title}
+          </DialogTitle>
         </DialogHeader>
         {result ? (
           <div className="flex flex-col items-center space-y-4 py-2">
@@ -118,11 +122,13 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
               <MoodIcon iconType={result.iconType} iconColor={result.iconColor} />
             </div>
             
-            <ResultMessage message={result.message} />
+            <ResultMessage message={result.message} language={language} />
 
             {hasAssessmentData && chartData && (
               <div className="w-full mt-4">
-                <h3 className={`text-center ${isMobile ? 'text-sm' : 'text-base'} font-medium mb-2`}>Your Assessment Scores</h3>
+                <h3 className={`text-center ${isMobile ? 'text-sm' : 'text-base'} font-medium mb-2`}>
+                  {translations.title}
+                </h3>
                 <AssessmentChart data={chartData} height={isMobile ? 200 : 250} />
               </div>
             )}
