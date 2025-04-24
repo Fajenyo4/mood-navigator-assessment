@@ -20,8 +20,8 @@ interface ResultsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   result: MoodResult | null;
-  onManualRedirect: () => void;
   language: string;
+  onManualRedirect?: () => void; // Make this prop optional
 }
 
 const ResultsDialog: React.FC<ResultsDialogProps> = ({
