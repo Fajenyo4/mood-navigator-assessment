@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useCallback, useMemo, Suspense, lazy } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import QuestionDisplay from './assessment/QuestionDisplay';
@@ -6,6 +5,11 @@ import ResultsDialog from './assessment/ResultsDialog';
 import LoadingState from './assessment/LoadingState';
 import { useAssessment } from '@/hooks/useAssessment';
 import { preventPageRefresh } from '@/utils/preventRefresh';
+
+// Define props interface for Assessment component
+interface AssessmentProps {
+  defaultLanguage?: string;
+}
 
 // Optimize imports by lazily loading question sets
 // Use dynamic imports for questions to improve initial load time
@@ -44,7 +48,7 @@ const getSavedProgressState = (effectiveLanguage) => {
 };
 
 // Prevent Assessment component from re-rendering unnecessarily
-const Assessment = React.memo(function Assessment({ defaultLanguage = 'en' }) {
+const Assessment = React.memo(function Assessment({ defaultLanguage = 'en' }: AssessmentProps) {
   const { user, language: authLanguage } = useAuth();
   const [isInitialized, setIsInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);

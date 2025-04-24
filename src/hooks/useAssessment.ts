@@ -7,7 +7,7 @@ import { questions as enQuestions } from '@/translations/en';
 import { questions as zhCNQuestions } from '@/translations/zh-CN';
 import { questions as zhTWQuestions } from '@/translations/zh-TW';
 
-interface UseAssessmentProps {
+export interface UseAssessmentProps {
   userId: string | undefined;
   userName: string | undefined;
   userEmail: string | undefined;

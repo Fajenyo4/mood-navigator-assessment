@@ -12,7 +12,7 @@ interface QuestionDisplayProps {
   currentQuestion: number;
   totalQuestions: number;
   progress: number;
-  question: Question;
+  question: Question | null;
   selectedOption: string;
   onAnswer: (value: string) => void;
   onPrevious?: () => void;
