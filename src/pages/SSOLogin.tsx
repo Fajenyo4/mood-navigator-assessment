@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -34,7 +33,6 @@ const SSOLogin: React.FC = () => {
 
     const authenticateWithSSO = async () => {
       try {
-        // Get token, email, name and redirectUrl from URL params
         const token = searchParams.get('token');
         const email = searchParams.get('email');
         const name = searchParams.get('name');
@@ -47,19 +45,21 @@ const SSOLogin: React.FC = () => {
           return;
         }
 
-        console.log('Attempting SSO login with:', { email, name, redirectUrl });
+        console.log('Attempting SSO login with:', { email, name, redirectUrl, lang });
 
         // Always ensure we're using the production domain for redirects
-        // If redirectUrl contains localhost or is not set, use the production domain
         if (!redirectUrl || redirectUrl.includes('localhost')) {
-          redirectUrl = `${PRODUCTION_DOMAIN}/${lang}`;
-          console.log("Replaced localhost/missing redirect with:", redirectUrl);
+          // Get the correct language path
+          let langPath = 'en';
+          if (lang === 'zh-cn') langPath = 'zh-cn';
+          else if (lang === 'zh-hk' || lang === 'zh-tw') langPath = 'zh-hk';
+          
+          redirectUrl = `https://mood-navigator-assessment.lovable.app/${langPath}`;
+          console.log("Using production redirect URL:", redirectUrl);
         }
 
         try {
-          // Make sure to use the fully qualified URL to the edge function
           const apiEndpoint = `https://thvtgvvwksbxywhdnwcv.supabase.co/functions/v1/verify-sso`;
-          console.log("Calling API endpoint:", apiEndpoint);
           
           const response = await fetch(apiEndpoint, {
             method: 'POST',
@@ -70,7 +70,8 @@ const SSOLogin: React.FC = () => {
               email, 
               token, 
               name,
-              redirectUrl
+              redirectUrl,
+              lang
             }),
           });
 
@@ -117,9 +118,14 @@ const SSOLogin: React.FC = () => {
               const redirectParam = magicLinkUrl.searchParams.get('redirect_to');
               
               if (redirectParam) {
-                if (redirectParam.includes('localhost') || !redirectParam.includes(PRODUCTION_DOMAIN)) {
+                if (redirectParam.includes('localhost') || !redirectParam.includes('mood-navigator-assessment.lovable.app')) {
                   console.warn("Found problematic redirect in magic link, fixing...");
-                  magicLinkUrl.searchParams.set('redirect_to', `${PRODUCTION_DOMAIN}/${lang}`);
+                  // Get the correct language path
+                  let langPath = 'en';
+                  if (lang === 'zh-cn') langPath = 'zh-cn';
+                  else if (lang === 'zh-hk' || lang === 'zh-tw') langPath = 'zh-hk';
+                  
+                  magicLinkUrl.searchParams.set('redirect_to', `https://mood-navigator-assessment.lovable.app/${langPath}`);
                   finalMagicLink = magicLinkUrl.toString();
                   console.log("Fixed magic link:", finalMagicLink);
                 }
@@ -128,43 +134,22 @@ const SSOLogin: React.FC = () => {
               console.error("Error parsing magic link URL:", urlError);
             }
             
-            console.log('Final magic link to use:', finalMagicLink);
             setMagicLink(finalMagicLink);
-            
-            // Show manual button immediately as backup
             setShowManualButton(true);
             
-            // Only try auto-login once to prevent infinite loops
             if (!attemptedAutoLogin) {
               setAttemptedAutoLogin(true);
               
-              // Direct window.location change is most reliable
               try {
                 window.location.href = finalMagicLink;
                 console.log("Redirected to magic link");
               } catch (redirectError) {
                 console.error("Direct redirect failed:", redirectError);
-                
-                // Fall back to other methods if direct redirect fails
-                try {
-                  const popup = window.open(finalMagicLink, "_blank");
-                  if (!popup || popup.closed || typeof popup.closed === 'undefined') {
-                    console.warn("Popup was blocked or failed");
-                    // Try iframe as last resort
-                    const iframe = document.createElement('iframe');
-                    iframe.style.display = 'none';
-                    iframe.src = finalMagicLink;
-                    document.body.appendChild(iframe);
-                  }
-                } catch (popupError) {
-                  console.error("All redirect attempts failed:", popupError);
-                  setError("Automatic login failed. Please use the manual login button below.");
-                  setIsLoading(false);
-                }
+                setError("Automatic login failed. Please use the manual login button below.");
+                setIsLoading(false);
               }
             }
             
-            // After 5 seconds, if still not logged in, show error
             setTimeout(() => {
               if (!user) {
                 setError("Automatic login is taking longer than expected. Please use the manual login button below.");

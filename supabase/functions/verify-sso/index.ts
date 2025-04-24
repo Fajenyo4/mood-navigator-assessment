@@ -13,6 +13,16 @@ const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 // Always use the production domain for redirects
 const PRODUCTION_DOMAIN = 'https://mood-navigator-assessment.lovable.app';
 
+// Helper function to get the correct redirect URL based on language
+function getRedirectUrl(lang = 'en') {
+  // Normalize language code
+  let langPath = 'en';
+  if (lang === 'zh-cn') langPath = 'zh-cn';
+  else if (lang === 'zh-hk' || lang === 'zh-tw') langPath = 'zh-hk';
+  
+  return `${PRODUCTION_DOMAIN}/${langPath}`;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -22,7 +32,6 @@ serve(async (req) => {
   try {
     console.log("SSO verification function started");
     
-    // Initialize Supabase with the service role key
     if (!supabaseServiceKey) {
       console.error("MISSING SUPABASE_SERVICE_ROLE_KEY");
       return new Response(
@@ -44,7 +53,7 @@ serve(async (req) => {
       );
     }
     
-    const { email, token, name, redirectUrl } = requestData;
+    const { email, token, name, lang = 'en' } = requestData;
     
     if (!email) {
       console.error("Missing required email parameter");
@@ -54,31 +63,11 @@ serve(async (req) => {
       );
     }
     
-    // Extract language from redirectUrl if it was provided
-    let lang = 'en'; // Default language
-    if (redirectUrl) {
-      try {
-        const urlParts = new URL(redirectUrl).pathname.split('/');
-        if (urlParts.length > 1 && urlParts[1]) {
-          // Check if the path segment matches our supported languages
-          const pathLang = urlParts[1];
-          if (['en', 'zh-cn', 'zh-hk'].includes(pathLang.toLowerCase())) {
-            lang = pathLang.toLowerCase();
-          }
-        }
-      } catch (urlError) {
-        console.error("Error parsing redirect URL:", urlError);
-        // Continue with default language
-      }
-    }
+    // Get the correct redirect URL based on language
+    const finalRedirectUrl = getRedirectUrl(lang);
+    console.log("Using redirect URL:", finalRedirectUrl);
     
-    // Always use the production domain with the appropriate language path
-    const finalRedirectUrl = `${PRODUCTION_DOMAIN}/${lang}`;
-    
-    console.log("Processing SSO for email:", email, "name:", name, "redirect:", finalRedirectUrl);
-    
-    // Initialize Supabase admin client with service role
-    console.log("Initializing Supabase admin client");
+    // Initialize Supabase admin client
     const supabaseAdmin = createClient(
       supabaseUrl,
       supabaseServiceKey,
@@ -90,11 +79,8 @@ serve(async (req) => {
       }
     );
     
-    console.log("Supabase admin client initialized");
-    
     try {
-      // 1. Check if user exists
-      console.log("Looking up user by email:", email);
+      // Check if user exists
       const { data: existingUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers({
         page: 1,
         perPage: 1,
@@ -111,16 +97,11 @@ serve(async (req) => {
         );
       }
       
-      console.log("User lookup results:", JSON.stringify(existingUsers));
-      
       let userId;
-      // Check if user exists
-      if (existingUsers && existingUsers.users && existingUsers.users.length > 0) {
-        console.log("User exists, using existing user");
+      if (existingUsers?.users && existingUsers.users.length > 0) {
         userId = existingUsers.users[0].id;
       } else {
-        // 2. Create user if not exists
-        console.log("User does not exist, creating new user");
+        // Create user if not exists
         const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
           email: email,
           email_confirm: true,
@@ -138,22 +119,16 @@ serve(async (req) => {
           );
         }
         
-        console.log("User created successfully:", newUser.user.id);
         userId = newUser.user.id;
       }
       
-      // 3. Generate a sign-in link with magic link
-      console.log("Generating sign-in link for user ID:", userId);
-      console.log("Using explicit redirect URL:", finalRedirectUrl);
-      
-      // IMPORTANT: Use explicit options with our final production redirect
+      // Generate sign-in link with the language-specific redirect URL
       const options = {
         redirectTo: finalRedirectUrl,
-        shouldCreateUser: false,
-        // Add any other options needed for authentication
+        shouldCreateUser: false
       };
       
-      console.log("Sign-in options:", JSON.stringify(options));
+      console.log("Generating sign-in link with options:", JSON.stringify(options));
       
       const { data: signInData, error: signInError } = await supabaseAdmin.auth.admin.generateLink({
         type: 'magiclink',
@@ -169,20 +144,16 @@ serve(async (req) => {
         );
       }
       
-      // Extract the magic link from the response
+      // Extract and verify the magic link
       let magicLink = signInData.properties.action_link;
-      console.log("Sign-in link generated successfully:", magicLink);
       
-      // Double-check the magic link to ensure it doesn't contain localhost
+      // Double-check the magic link and ensure it uses the production domain
       try {
         const magicLinkUrl = new URL(magicLink);
         const redirectParam = magicLinkUrl.searchParams.get('redirect_to');
-        console.log("Magic link redirect parameter:", redirectParam);
         
         if (redirectParam) {
-          // Force the redirect_to parameter to be our production URL
           if (redirectParam.includes('localhost') || !redirectParam.includes(PRODUCTION_DOMAIN)) {
-            console.log("Replacing redirect parameter with production domain");
             magicLinkUrl.searchParams.set('redirect_to', finalRedirectUrl);
             magicLink = magicLinkUrl.toString();
           }
@@ -191,14 +162,11 @@ serve(async (req) => {
         console.error("Error processing magic link URL:", urlError);
       }
       
-      console.log("Final magic link:", magicLink);
-      
-      // Return the sign-in link to the client
       return new Response(
         JSON.stringify({ 
           magicLink: magicLink,
           success: true,
-          redirectUrl: finalRedirectUrl // Include the redirect URL for client-side verification
+          redirectUrl: finalRedirectUrl
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
