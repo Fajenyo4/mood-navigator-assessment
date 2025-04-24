@@ -47,32 +47,32 @@ export const calculateDassScores = (answers: { [key: number]: number }): DassSco
 export const determineLevel = (score: number, type: AssessmentType): AssessmentResult => {
   switch (type) {
     case 'depression':
-      if (score < 10) return { score, level: "Normal", message: "normal depression levels" };
-      if (score < 14) return { score, level: "Mild", message: "mild depression" };
-      if (score < 21) return { score, level: "Moderate", message: "moderate depression" };
-      if (score < 28) return { score, level: "Severe", message: "severe depression" };
-      return { score, level: "Very Severe", message: "very severe depression" };
+      if (score < 10) return { score, level: "Normal", message: "normal" };
+      if (score < 14) return { score, level: "Mild", message: "mild" };
+      if (score < 21) return { score, level: "Moderate", message: "moderate" };
+      if (score < 28) return { score, level: "Severe", message: "severe" };
+      return { score, level: "Very Severe", message: "very severe" };
     
     case 'anxiety':
-      if (score < 11) return { score, level: "Normal", message: "normal anxiety levels" };
-      if (score < 14) return { score, level: "Mild", message: "mild anxiety" };
-      if (score < 21) return { score, level: "Moderate", message: "moderate anxiety" };
-      if (score < 28) return { score, level: "Severe", message: "severe anxiety" };
-      return { score, level: "Very Severe", message: "very severe anxiety" };
+      if (score < 11) return { score, level: "Normal", message: "normal" };
+      if (score < 14) return { score, level: "Mild", message: "mild" };
+      if (score < 21) return { score, level: "Moderate", message: "moderate" };
+      if (score < 28) return { score, level: "Severe", message: "severe" };
+      return { score, level: "Very Severe", message: "very severe" };
     
     case 'stress':
-      if (score < 17) return { score, level: "Normal", message: "normal stress levels" };
-      if (score < 21) return { score, level: "Mild", message: "mild stress" };
-      if (score < 29) return { score, level: "Moderate", message: "moderate stress" };
-      if (score < 38) return { score, level: "Severe", message: "severe stress" };
-      return { score, level: "Very Severe", message: "very severe stress" };
+      if (score < 17) return { score, level: "Normal", message: "normal" };
+      if (score < 21) return { score, level: "Mild", message: "mild" };
+      if (score < 29) return { score, level: "Moderate", message: "moderate" };
+      if (score < 38) return { score, level: "Severe", message: "severe" };
+      return { score, level: "Very Severe", message: "very severe" };
     
     case 'satisfaction':
-      if (score < 14) return { score, level: "Very dissatisfied", message: "very dissatisfied with life" };
-      if (score < 20) return { score, level: "Dissatisfied", message: "dissatisfied with life" };
-      if (score < 27) return { score, level: "Neutral", message: "neutral about life" };
-      if (score < 33) return { score, level: "Satisfied", message: "satisfied with life" };
-      return { score, level: "Very Satisfied", message: "very satisfied with life" };
+      if (score < 14) return { score, level: "Very dissatisfied", message: "very dissatisfied" };
+      if (score < 20) return { score, level: "Dissatisfied", message: "dissatisfied" };
+      if (score < 27) return { score, level: "Neutral", message: "neutral" };
+      if (score < 33) return { score, level: "Satisfied", message: "satisfied" };
+      return { score, level: "Very Satisfied", message: "very satisfied" };
   }
 };
 

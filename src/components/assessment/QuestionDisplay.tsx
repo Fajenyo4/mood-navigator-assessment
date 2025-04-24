@@ -19,8 +19,6 @@ interface QuestionDisplayProps {
 }
 
 const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
-  currentQuestion,
-  totalQuestions,
   progress,
   question,
   selectedOption,
@@ -28,7 +26,6 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   onPrevious,
   showPrevious
 }) => {
-  // Use the options directly from the question
   const options = question?.options || [];
 
   return (
@@ -36,35 +33,29 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
       <Progress value={progress} className="mb-8" />
       
       <div className="mb-8">
-        <div className="flex items-center gap-4 mb-4">
-          {showPrevious && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={onPrevious}
-              className="p-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          )}
-          <h2 className="text-2xl font-semibold text-gray-800">
-            Question {currentQuestion + 1} of {totalQuestions}
-          </h2>
-        </div>
-        <p className="text-lg text-gray-700">{question.text}</p>
+        {showPrevious && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onPrevious}
+            className="p-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        )}
+        <p className="text-lg text-gray-700 mt-4">{question.text}</p>
       </div>
 
       <RadioGroup
         onValueChange={onAnswer}
         className="space-y-4"
-        name={`question-${currentQuestion}`}
         value={selectedOption}
       >
         {options.map((option, index) => (
           <div key={index} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-            <RadioGroupItem value={index.toString()} id={`q${currentQuestion}-${index}`} />
+            <RadioGroupItem value={index.toString()} id={`q${index}`} />
             <Label 
-              htmlFor={`q${currentQuestion}-${index}`} 
+              htmlFor={`q${index}`} 
               className="text-gray-700 cursor-pointer flex-grow"
             >
               {option}
