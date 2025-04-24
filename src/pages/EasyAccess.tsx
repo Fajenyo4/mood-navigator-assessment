@@ -14,27 +14,24 @@ const EasyAccess = () => {
     const validateAccess = async () => {
       try {
         const token = searchParams.get('token');
-        const email = searchParams.get('email');
         const lang = searchParams.get('lang') || 'en';
         const view = searchParams.get('view');
 
-        if (!token || !email) {
+        if (!token) {
           toast.error('Invalid access link');
           navigate('/login');
           return;
         }
 
-        const response = await fetch('https://thvtgvvwksbxywhdnwcv.functions.supabase.co/verify-access', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, token })
+        // For public access, we create an anonymous session
+        const { data: { session }, error } = await supabase.auth.signUp({
+          email: `anonymous-${Date.now()}@temp.com`,
+          password: crypto.randomUUID(),
         });
 
-        if (!response.ok) {
-          throw new Error('Access validation failed');
+        if (error || !session) {
+          throw new Error('Failed to create anonymous session');
         }
-
-        const { session } = await response.json();
 
         // Set the session in Supabase
         await supabase.auth.setSession({
@@ -65,7 +62,7 @@ const EasyAccess = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Validating access...</p>
+          <p className="text-gray-600">Loading history...</p>
         </div>
       </div>
     );
