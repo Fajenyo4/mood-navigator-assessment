@@ -17,13 +17,12 @@ const SSOLogin: React.FC = () => {
   const [retryCount, setRetryCount] = useState(0);
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [magicLink, setMagicLink] = useState<string | null>(null);
   const [showManualButton, setShowManualButton] = useState(false);
   const [attemptedAutoLogin, setAttemptedAutoLogin] = useState(false);
 
   // Production domain to use for redirects
-  const productionDomain = 'https://mood-navigator-assessment.lovable.app';
+  const PRODUCTION_DOMAIN = 'https://mood-navigator-assessment.lovable.app';
 
   useEffect(() => {
     // If already authenticated, redirect to home page
@@ -40,7 +39,7 @@ const SSOLogin: React.FC = () => {
         const email = searchParams.get('email');
         const name = searchParams.get('name');
         const lang = searchParams.get('lang') || 'en';
-        const redirectUrl = searchParams.get('redirectUrl');
+        let redirectUrl = searchParams.get('redirectUrl');
 
         if (!token || !email) {
           setError('Missing required parameters. Please ensure the URL contains token and email.');
@@ -50,15 +49,17 @@ const SSOLogin: React.FC = () => {
 
         console.log('Attempting SSO login with:', { email, name, redirectUrl });
 
+        // Always ensure we're using the production domain for redirects
+        // If redirectUrl contains localhost or is not set, use the production domain
+        if (!redirectUrl || redirectUrl.includes('localhost')) {
+          redirectUrl = `${PRODUCTION_DOMAIN}/${lang}`;
+          console.log("Replaced localhost/missing redirect with:", redirectUrl);
+        }
+
         try {
           // Make sure to use the fully qualified URL to the edge function
           const apiEndpoint = `https://thvtgvvwksbxywhdnwcv.supabase.co/functions/v1/verify-sso`;
           console.log("Calling API endpoint:", apiEndpoint);
-          
-          // Always use production domain for redirect to avoid localhost issues
-          const finalRedirectUrl = `${productionDomain}/${lang}`;
-          
-          console.log("Using production redirect URL:", finalRedirectUrl);
           
           const response = await fetch(apiEndpoint, {
             method: 'POST',
@@ -69,7 +70,7 @@ const SSOLogin: React.FC = () => {
               email, 
               token, 
               name,
-              redirectUrl: finalRedirectUrl
+              redirectUrl
             }),
           });
 
@@ -91,7 +92,7 @@ const SSOLogin: React.FC = () => {
             throw new Error(`Received non-JSON response from server (${response.status}): ${textResponse.substring(0, 100)}...`);
           }
 
-          // Now parse as JSON
+          // Parse response as JSON
           let data;
           try {
             data = await response.json();
@@ -108,62 +109,60 @@ const SSOLogin: React.FC = () => {
           }
           
           if (data.magicLink) {
-            // Check if the magic link contains localhost and fix it if needed
             let finalMagicLink = data.magicLink;
             
+            // Double-verify the magic link doesn't contain localhost
             try {
-              const magicLinkUrl = new URL(data.magicLink);
+              const magicLinkUrl = new URL(finalMagicLink);
               const redirectParam = magicLinkUrl.searchParams.get('redirect_to');
               
-              if (redirectParam && redirectParam.includes('localhost')) {
-                console.warn("Detected localhost in magic link redirect, fixing...");
-                magicLinkUrl.searchParams.set('redirect_to', finalRedirectUrl);
-                finalMagicLink = magicLinkUrl.toString();
-                console.log("Fixed magic link:", finalMagicLink);
+              if (redirectParam) {
+                if (redirectParam.includes('localhost') || !redirectParam.includes(PRODUCTION_DOMAIN)) {
+                  console.warn("Found problematic redirect in magic link, fixing...");
+                  magicLinkUrl.searchParams.set('redirect_to', `${PRODUCTION_DOMAIN}/${lang}`);
+                  finalMagicLink = magicLinkUrl.toString();
+                  console.log("Fixed magic link:", finalMagicLink);
+                }
               }
             } catch (urlError) {
               console.error("Error parsing magic link URL:", urlError);
             }
             
-            console.log('Magic link to use:', finalMagicLink);
+            console.log('Final magic link to use:', finalMagicLink);
             setMagicLink(finalMagicLink);
+            
+            // Show manual button immediately as backup
+            setShowManualButton(true);
             
             // Only try auto-login once to prevent infinite loops
             if (!attemptedAutoLogin) {
               setAttemptedAutoLogin(true);
               
-              // Try multiple approaches to open the magic link automatically
-              
-              // 1. First attempt: Create a popup window
+              // Direct window.location change is most reliable
               try {
-                const popup = window.open(finalMagicLink, "loginWindow", "width=600,height=400");
+                window.location.href = finalMagicLink;
+                console.log("Redirected to magic link");
+              } catch (redirectError) {
+                console.error("Direct redirect failed:", redirectError);
                 
-                // Check if popup was blocked
-                if (!popup || popup.closed || typeof popup.closed === 'undefined') {
-                  console.warn("Popup was blocked, trying direct navigation");
-                  // Fall back to direct navigation
-                  window.location.href = finalMagicLink;
-                }
-                
-                console.log("Opened magic link in popup");
-              } catch (popupError) {
-                console.error("Popup failed:", popupError);
-                
-                // 2. Second attempt: Direct window.location change
+                // Fall back to other methods if direct redirect fails
                 try {
-                  window.location.href = finalMagicLink;
-                  console.log("Redirected to magic link");
-                } catch (redirectError) {
-                  console.error("Direct redirect failed:", redirectError);
-                  
-                  // 3. Third attempt: Try to open in current window
-                  window.open(finalMagicLink, "_self");
+                  const popup = window.open(finalMagicLink, "_blank");
+                  if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+                    console.warn("Popup was blocked or failed");
+                    // Try iframe as last resort
+                    const iframe = document.createElement('iframe');
+                    iframe.style.display = 'none';
+                    iframe.src = finalMagicLink;
+                    document.body.appendChild(iframe);
+                  }
+                } catch (popupError) {
+                  console.error("All redirect attempts failed:", popupError);
+                  setError("Automatic login failed. Please use the manual login button below.");
+                  setIsLoading(false);
                 }
               }
             }
-            
-            // Show manual button immediately as backup
-            setShowManualButton(true);
             
             // After 5 seconds, if still not logged in, show error
             setTimeout(() => {
@@ -209,33 +208,27 @@ const SSOLogin: React.FC = () => {
 
   const handleManualLogin = () => {
     if (magicLink) {
-      // Make sure we're not using localhost for manual login attempts
+      // Double-check the magic link doesn't contain localhost
       let finalLink = magicLink;
+      const lang = searchParams.get('lang') || 'en';
       
       try {
-        const linkUrl = new URL(magicLink);
-        const redirectTo = linkUrl.searchParams.get('redirect_to');
+        const linkUrl = new URL(finalLink);
+        const redirectParam = linkUrl.searchParams.get('redirect_to');
         
-        if (redirectTo && redirectTo.includes('localhost')) {
-          const lang = searchParams.get('lang') || 'en';
-          linkUrl.searchParams.set('redirect_to', `${productionDomain}/${lang}`);
-          finalLink = linkUrl.toString();
-          console.log("Fixed manual login link:", finalLink);
+        if (redirectParam) {
+          if (redirectParam.includes('localhost') || !redirectParam.includes(PRODUCTION_DOMAIN)) {
+            linkUrl.searchParams.set('redirect_to', `${PRODUCTION_DOMAIN}/${lang}`);
+            finalLink = linkUrl.toString();
+            console.log("Fixed manual login link:", finalLink);
+          }
         }
       } catch (urlError) {
         console.error("Error parsing manual login URL:", urlError);
       }
       
-      // Try multiple approaches for manual login
-      
-      // First try: Open in new tab
-      const newTab = window.open(finalLink, '_blank');
-      
-      // If popup blocked or failed
-      if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
-        // Second try: Open in current window
-        window.location.href = finalLink;
-      }
+      // Open in current window - most reliable method for manual click
+      window.location.href = finalLink;
     }
   };
 

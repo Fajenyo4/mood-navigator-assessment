@@ -11,6 +11,9 @@ const EnglishEmbed: React.FC<EnglishEmbedProps> = ({ sso = false }) => {
   const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Production domain to use for redirects
+  const PRODUCTION_DOMAIN = 'https://mood-navigator-assessment.lovable.app';
+
   useEffect(() => {
     // Check URL parameters for direct SSO access
     const urlParams = new URLSearchParams(window.location.search);
@@ -42,16 +45,11 @@ const EnglishEmbed: React.FC<EnglishEmbedProps> = ({ sso = false }) => {
         // Get actual name or default to email username
         let name = rawName || rawEmail.split('@')[0];
         
-        // Get the current domain or use production domain to avoid localhost issues
-        const currentOrigin = window.location.origin;
-        const productionDomain = 'https://mood-navigator-assessment.lovable.app';
-        const domain = currentOrigin.includes('localhost') ? productionDomain : currentOrigin;
-        
-        // Create redirect URL for after successful authentication
-        const redirectUrl = `${domain}/en`;
+        // Always use the production domain for redirects
+        const redirectUrl = `${PRODUCTION_DOMAIN}/en`;
         
         // Redirect to SSO login endpoint with token, language and explicit redirectUrl
-        const ssoLoginUrl = `${domain}/sso-login?token=${encodeURIComponent(simpleToken)}&email=${encodeURIComponent(rawEmail)}&name=${encodeURIComponent(name)}&lang=en&redirectUrl=${encodeURIComponent(redirectUrl)}`;
+        const ssoLoginUrl = `${PRODUCTION_DOMAIN}/sso-login?token=${encodeURIComponent(simpleToken)}&email=${encodeURIComponent(rawEmail)}&name=${encodeURIComponent(name)}&lang=en&redirectUrl=${encodeURIComponent(redirectUrl)}`;
         
         console.log("Redirecting to:", ssoLoginUrl);
         
@@ -69,10 +67,9 @@ const EnglishEmbed: React.FC<EnglishEmbedProps> = ({ sso = false }) => {
   }, []);
 
   // Determine the URL based on whether this is an SSO embed or not
-  const productionDomain = 'https://mood-navigator-assessment.lovable.app';
   const embedUrl = sso 
-    ? `${productionDomain}/embed/en-sso.html` 
-    : `${productionDomain}/login/en`;
+    ? `${PRODUCTION_DOMAIN}/embed/en-sso.html` 
+    : `${PRODUCTION_DOMAIN}/login/en`;
 
   if (error) {
     return (

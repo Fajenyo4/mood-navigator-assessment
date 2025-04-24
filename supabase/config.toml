@@ -83,7 +83,6 @@ redirect_uri = ""
 # or any other third-party OIDC providers.
 url = ""
 
-[functions]
 [functions.verify-sso]
 verify_jwt = false
 

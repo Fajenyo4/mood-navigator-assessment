@@ -4,12 +4,8 @@
 <head>
   <title>English Assessment (SSO)</title>
   <script>
-    // Get the base URL from where this embed is being served
-    const baseUrl = new URL(document.baseURI).origin;
-    // Your application's actual domain (either where the embed is served or explicit production URL)
-    const appDomain = window.location.origin;
-    // Production domain for fallback
-    const productionDomain = 'https://mood-navigator-assessment.lovable.app';
+    // Production domain to use for redirects
+    const PRODUCTION_DOMAIN = 'https://mood-navigator-assessment.lovable.app';
     
     // This function would be called by LearnWorlds when a user is logged in
     function initSSO(userData) {
@@ -23,12 +19,12 @@
       // In production, this should be replaced with a proper JWT from LearnWorlds
       const simpleToken = btoa(`${email}:${Date.now()}`);
       
-      // Use the production domain rather than the current origin to avoid localhost issues
-      const domain = appDomain.includes('localhost') ? productionDomain : appDomain;
+      // Always use the production domain rather than the current origin
+      const redirectUrl = `${PRODUCTION_DOMAIN}/en`;
+      const ssoLoginUrl = `${PRODUCTION_DOMAIN}/sso-login?token=${encodeURIComponent(simpleToken)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&lang=en&redirectUrl=${encodeURIComponent(redirectUrl)}`;
       
-      // Redirect to SSO login endpoint with token, language, and full redirect URL for after auth
-      const redirectUrl = `${domain}/en`;
-      window.location.href = `${domain}/sso-login?token=${encodeURIComponent(simpleToken)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&lang=en&redirectUrl=${encodeURIComponent(redirectUrl)}`;
+      console.log("Redirecting to SSO login:", ssoLoginUrl);
+      window.location.href = ssoLoginUrl;
     }
     
     // Sample function to simulate LearnWorlds sending user data
