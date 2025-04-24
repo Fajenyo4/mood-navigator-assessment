@@ -3,9 +3,10 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, AlertCircle, RefreshCw, Bug } from 'lucide-react';
+import { Loader2, AlertCircle, RefreshCw, Bug, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 
 const SSOLogin: React.FC = () => {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const SSOLogin: React.FC = () => {
   const [errorDetails, setErrorDetails] = useState<string | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [magicLink, setMagicLink] = useState<string | null>(null);
+  const [showManualButton, setShowManualButton] = useState(false);
 
   useEffect(() => {
     // If already authenticated, redirect to home page
@@ -49,7 +51,10 @@ const SSOLogin: React.FC = () => {
           console.log("Calling API endpoint:", apiEndpoint);
           
           // Get current URL to use as redirect URL
-          const currentUrl = window.location.origin + `/${lang}`;
+          const currentOrigin = window.location.origin;
+          const redirectUrl = `${currentOrigin}/${lang}`;
+          
+          console.log("Using redirect URL:", redirectUrl);
           
           const response = await fetch(apiEndpoint, {
             method: 'POST',
@@ -60,7 +65,7 @@ const SSOLogin: React.FC = () => {
               email, 
               token, 
               name,
-              redirectUrl: currentUrl
+              redirectUrl
             }),
           });
 
@@ -102,15 +107,31 @@ const SSOLogin: React.FC = () => {
             console.log('Magic link received:', data.magicLink);
             setMagicLink(data.magicLink);
             
-            // Create a hidden iframe to automatically load the magic link
-            // This will trigger the auth flow without user interaction
+            // First attempt: Direct window.location change
+            try {
+              window.location.href = data.magicLink;
+              console.log("Redirected to magic link");
+            } catch (redirectError) {
+              console.error("Direct redirect failed:", redirectError);
+              
+              // Second attempt: Try to open in current window
+              window.open(data.magicLink, "_self");
+            }
+            
+            // Show manual button after a delay as backup
             setTimeout(() => {
               if (!user) {
-                // After 5 seconds, if still not logged in, show a message
-                setError("Automatic login is taking longer than expected. Please wait or try refreshing the page.");
+                setShowManualButton(true);
+              }
+            }, 3000);
+            
+            // After 8 seconds, if still not logged in, show error
+            setTimeout(() => {
+              if (!user) {
+                setError("Automatic login is taking longer than expected. Please use the manual login button below.");
                 setIsLoading(false);
               }
-            }, 5000);
+            }, 8000);
           } else {
             throw new Error('Authentication failed: No magic link returned');
           }
@@ -146,23 +167,19 @@ const SSOLogin: React.FC = () => {
     
   }, [searchParams, navigate, user, retryCount, setUser]);
 
-  // Auto-open magic link when it's available
-  useEffect(() => {
+  const handleManualLogin = () => {
     if (magicLink) {
-      // Use an iframe to silently process the magic link
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = magicLink;
-      document.body.appendChild(iframe);
+      // Open in a new tab
+      window.open(magicLink, '_blank');
       
-      // Fallback: If iframe doesn't work, open in a new tab or redirect
+      // Also try in current window
       setTimeout(() => {
         if (!user) {
-          window.open(magicLink, '_blank');
+          window.location.href = magicLink as string;
         }
-      }, 3000);
+      }, 500);
     }
-  }, [magicLink, user]);
+  };
 
   const handleRetry = () => {
     setIsLoading(true);
@@ -181,12 +198,38 @@ const SSOLogin: React.FC = () => {
           <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
           <p className="text-lg font-medium">Authenticating you...</p>
           <p className="text-sm text-gray-500 mt-2">This should only take a moment</p>
+          
+          {showManualButton && magicLink && (
+            <Button 
+              onClick={handleManualLogin}
+              className="mt-6 flex items-center gap-2"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Click here to login manually
+            </Button>
+          )}
         </div>
       ) : error ? (
         <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <div className="text-red-500 mb-4 text-lg font-medium">Authentication Failed</div>
           <p className="mb-4">{error}</p>
+          
+          {magicLink && (
+            <div className="mb-6">
+              <Button 
+                onClick={handleManualLogin} 
+                className="w-full mb-4 flex items-center justify-center gap-2"
+                size="lg"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Login Manually
+              </Button>
+              <p className="text-sm text-gray-500">
+                Click the button above to open the login link in a new tab
+              </p>
+            </div>
+          )}
           
           {errorDetails && (
             <Alert variant="destructive" className="mb-4 text-left">
@@ -226,16 +269,6 @@ const SSOLogin: React.FC = () => {
           </div>
         </div>
       ) : null}
-      
-      {/* Hidden iframe to load the magic link */}
-      {magicLink && (
-        <iframe 
-          ref={iframeRef}
-          src={magicLink}
-          style={{ display: 'none', width: 0, height: 0, border: 0 }}
-          title="SSO Authentication"
-        />
-      )}
     </div>
   );
 };

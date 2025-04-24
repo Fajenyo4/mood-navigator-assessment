@@ -52,7 +52,16 @@ serve(async (req) => {
     }
 
     // Get the redirect URL or default to the app domain
-    const finalRedirectUrl = redirectUrl || new URL(req.url).origin;
+    let finalRedirectUrl = redirectUrl;
+    if (!finalRedirectUrl) {
+      // If no redirectUrl is provided, use the request origin or a fallback
+      try {
+        finalRedirectUrl = new URL(req.url).origin;
+      } catch (e) {
+        // Fallback to a hardcoded URL if we can't determine the origin
+        finalRedirectUrl = 'https://mood-navigator-assessment.lovable.app';
+      }
+    }
     
     console.log("Processing SSO for email:", email, "name:", name, "redirect:", finalRedirectUrl);
     
@@ -123,6 +132,29 @@ serve(async (req) => {
       
       // 3. Generate a sign-in link with magic link
       console.log("Generating sign-in link for user ID:", userId);
+      
+      // Extract language from redirectUrl if it matches the pattern /{lang}
+      const urlParts = new URL(finalRedirectUrl).pathname.split('/');
+      let lang = 'en'; // Default language
+      if (urlParts.length > 1 && urlParts[1]) {
+        // Check if the path segment matches our supported languages (en, zh-cn, zh-hk)
+        const pathLang = urlParts[1];
+        if (['en', 'zh-cn', 'zh-hk'].includes(pathLang.toLowerCase())) {
+          lang = pathLang.toLowerCase();
+        }
+      }
+      
+      // Ensure the redirectUrl includes the language path
+      if (!finalRedirectUrl.includes(`/${lang}`)) {
+        if (finalRedirectUrl.endsWith('/')) {
+          finalRedirectUrl += lang;
+        } else {
+          finalRedirectUrl += `/${lang}`;
+        }
+      }
+      
+      console.log("Final redirect URL with language:", finalRedirectUrl);
+      
       const { data: signInData, error: signInError } = await supabaseAdmin.auth.admin.generateLink({
         type: 'magiclink',
         email: email,
