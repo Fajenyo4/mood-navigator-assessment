@@ -4,6 +4,17 @@ import { saveAssessmentResult } from '@/services/assessment';
 import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/assessmentScoring';
 import { toast } from 'sonner';
 
+// Add the missing createTextAnswers function
+const createTextAnswers = (numericAnswers: { [key: number]: number }): { [key: number]: string } => {
+  const textAnswers: { [key: number]: string } = {};
+  
+  Object.entries(numericAnswers).forEach(([key, value]) => {
+    textAnswers[parseInt(key)] = value.toString();
+  });
+  
+  return textAnswers;
+};
+
 export const useAssessmentSubmission = (
   userId: string | undefined,
   userName: string | undefined,
