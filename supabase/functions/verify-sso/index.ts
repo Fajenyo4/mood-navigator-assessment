@@ -68,93 +68,67 @@ serve(async (req) => {
     
     console.log("Supabase admin client initialized");
     
-    // SIMPLIFIED APPROACH:
-    // 1. Try to sign in the user directly (this ignores if they exist or not)
-    // 2. If that fails with "user not found", then create the user
-    // 3. Return the session either way
+    // ALTERNATIVE APPROACH: Use signInWithEmail directly
+    // This method will authenticate without requiring a password since we're using the admin client
+    console.log("Attempting to sign in user directly:", email);
     
-    let session;
+    const { data: signInData, error: signInError } = await supabaseAdmin.auth.signInWithEmail({
+      email: email,
+    });
     
-    try {
-      console.log("Attempting to create session for:", email);
+    if (signInError) {
+      console.log("Sign-in failed, attempting to create user:", signInError.message);
       
-      // Try to create a user first (will fail if user exists, but that's okay)
-      try {
-        const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-          email,
-          email_confirm: true,
-          user_metadata: { name: name || email.split('@')[0] },
-        });
-        
-        if (createError) {
-          if (createError.status === 422 || createError.code === "email_exists") {
-            console.log("User already exists (expected):", email);
-          } else {
-            console.error("Unexpected error creating user:", createError);
-          }
-        } else {
-          console.log("New user created:", email);
-        }
-      } catch (createError) {
-        console.log("Error during user creation (likely already exists):", createError.message);
-      }
-      
-      // Now retrieve the user ID (regardless of whether they were just created or already existed)
-      const { data: user, error: getUserError } = await supabaseAdmin.auth.admin.listUsers({
-        filter: {
-          email: email
-        }
+      // If sign-in fails, try to create the user
+      const { data: newUserData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        email_confirm: true,
+        user_metadata: { name: name || email.split('@')[0] },
       });
       
-      if (getUserError) {
-        console.error("Failed to retrieve user:", getUserError);
+      if (createError) {
+        console.error("Error creating user:", createError);
         return new Response(
-          JSON.stringify({ error: `Could not find or create user: ${getUserError.message}` }),
+          JSON.stringify({ error: `Failed to create user: ${createError.message}` }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
         );
       }
       
-      if (!user || !user.users || user.users.length === 0) {
-        console.error("No user found or created with email:", email);
-        return new Response(
-          JSON.stringify({ error: "Failed to find or create user account" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-        );
-      }
-      
-      const userId = user.users[0].id;
-      console.log("Found user ID:", userId);
-      
-      // Create a session for this user
-      const { data: sessionData, error: sessionError } = await supabaseAdmin.auth.admin.createSession({
-        userId: userId
+      // Use the admin.generateLink method to create a sign-in link for the user
+      console.log("User created, generating sign-in link");
+      const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+        type: 'magiclink',
+        email: email,
       });
       
-      if (sessionError) {
-        console.error("Session creation error:", sessionError);
+      if (linkError) {
+        console.error("Error generating link:", linkError);
         return new Response(
-          JSON.stringify({ error: `Failed to create session: ${sessionError.message}` }),
+          JSON.stringify({ error: `Failed to generate sign-in link: ${linkError.message}` }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
         );
       }
       
-      session = sessionData;
-      console.log("Session created successfully");
+      // Extract just the properties needed for session
+      const session = {
+        access_token: linkData.properties.access_token,
+        refresh_token: linkData.properties.refresh_token,
+        expires_in: 3600, // 1 hour
+        user: newUserData.user
+      };
       
-    } catch (authError) {
-      console.error("Authentication process error:", authError);
+      console.log("Session created for new user");
       return new Response(
-        JSON.stringify({ error: `Authentication failed: ${authError.message}` }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+        JSON.stringify({ session, success: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    } else {
+      console.log("User signed in successfully");
+      return new Response(
+        JSON.stringify({ session: signInData.session, success: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-    
-    console.log("Authentication successful for:", email);
-    return new Response(
-      JSON.stringify({ session, success: true }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-    
   } catch (error) {
     console.error("Unhandled error in SSO function:", error);
     return new Response(
