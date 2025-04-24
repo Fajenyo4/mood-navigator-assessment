@@ -126,7 +126,11 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
             )}
 
             {!isHistoryPage && (
-              <ResultActions redirectUrl={REDIRECT_URL} countdown={countdown} />
+              <ResultActions 
+                redirectUrl={REDIRECT_URL} 
+                countdown={countdown}
+                language={language}
+              />
             )}
           </div>
         ) : (
