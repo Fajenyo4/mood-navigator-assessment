@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 import { questions as enQuestions } from '@/translations/en';
 import { questions as zhCNQuestions } from '@/translations/zh-CN';
@@ -59,22 +60,24 @@ export const useAssessment = ({
       const numericValue = parseInt(value);
       const questions = QUESTIONS_MAP[defaultLanguage as keyof typeof QUESTIONS_MAP] || QUESTIONS_MAP['en'];
       
-      setAnswers(prev => ({
-        ...prev,
+      // First save the answer to the current question
+      const updatedAnswers = {
+        ...answers,
         [currentQuestion + 1]: numericValue
-      }));
+      };
+      setAnswers(updatedAnswers);
       
       setSelectedOption(value);
 
       if (currentQuestion < questions.length - 1) {
-        setCurrentQuestion(prev => prev + 1);
-        setSelectedOption("");
+        // Advance to next question after a short delay to show progress updating
+        setTimeout(() => {
+          setCurrentQuestion(prev => prev + 1);
+          setSelectedOption("");
+        }, 300);
       } else {
-        const finalAnswers = { 
-          ...answers, 
-          [currentQuestion + 1]: numericValue 
-        };
-        handleSubmit(finalAnswers);
+        // We're at the last question, submit the assessment
+        handleSubmit(updatedAnswers);
       }
     } catch (error) {
       console.error('Error handling answer:', error);
