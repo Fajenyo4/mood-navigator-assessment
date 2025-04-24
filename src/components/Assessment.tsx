@@ -1,14 +1,13 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import QuestionDisplay from './assessment/QuestionDisplay';
 import ResultsDialog from './assessment/ResultsDialog';
 import LoadingState from './assessment/LoadingState';
 import { useAssessment } from '@/hooks/useAssessment';
 import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/assessmentScoring';
-import { Question } from '@/types/assessment';
 
-// Import all question sets
+// Preloading question sets for faster access
 import { questions as enQuestions } from '@/translations/en';
 import { questions as zhCNQuestions } from '@/translations/zh-CN';
 import { questions as zhTWQuestions } from '@/translations/zh-TW';
@@ -17,58 +16,43 @@ interface AssessmentProps {
   defaultLanguage?: string;
 }
 
+// Optimize initial loading by precomputing total questions for each language
+const questionCounts = {
+  'en': enQuestions.length,
+  'zh-CN': zhCNQuestions.length,
+  'zh-HK': zhTWQuestions.length
+};
+
 const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
   const { user, language: authLanguage } = useAuth();
-  const [questions, setQuestions] = useState<Question[]>(enQuestions);
   const [isInitialized, setIsInitialized] = useState(false);
   
   // Get the effective language - either from props or from auth context
   const effectiveLanguage = defaultLanguage || authLanguage || 'en';
   
-  // Select the appropriate question set based on language
-  useEffect(() => {
-    switch (effectiveLanguage) {
-      case 'zh-CN':
-        setQuestions(zhCNQuestions);
-        break;
-      case 'zh-HK':
-        setQuestions(zhTWQuestions); // Using zh-TW questions for zh-HK
-        break;
-      case 'en':
-      default:
-        setQuestions(enQuestions);
-        break;
-    }
-    console.log(`Loaded questions for language: ${effectiveLanguage}`);
-  }, [effectiveLanguage]);
-  
-  // Create an initial state from localStorage if it exists
-  const getSavedProgressState = () => {
-    const savedProgress = localStorage.getItem('assessment_progress');
-    if (savedProgress) {
-      try {
-        const { currentQuestion: savedQuestion, answers: savedAnswers, timestamp } = JSON.parse(savedProgress);
-        // Only restore if saved within last hour
-        if (Date.now() - timestamp < 3600000) {
-          return {
-            initialQuestion: savedQuestion,
-            initialAnswers: savedAnswers
-          };
+  // Create an optimized function to get saved progress state
+  const getSavedProgressState = useCallback(() => {
+    try {
+      const savedProgress = localStorage.getItem('assessment_progress');
+      if (savedProgress) {
+        const { currentQuestion, answers, timestamp, language } = JSON.parse(savedProgress);
+        // Only restore if saved within last hour and language matches
+        if (Date.now() - timestamp < 3600000 && language === effectiveLanguage) {
+          return { initialQuestion: currentQuestion, initialAnswers: answers };
         }
-      } catch (error) {
-        console.error('Error parsing assessment progress:', error);
+        // Clear invalid progress data
+        localStorage.removeItem('assessment_progress');
       }
-      // Clear invalid progress data
+    } catch (error) {
+      console.error('Error parsing assessment progress:', error);
       localStorage.removeItem('assessment_progress');
     }
-    return {
-      initialQuestion: 0,
-      initialAnswers: {}
-    };
-  };
+    
+    return { initialQuestion: 0, initialAnswers: {} };
+  }, [effectiveLanguage]);
   
-  // Get initial state from localStorage
-  const { initialQuestion, initialAnswers } = getSavedProgressState();
+  // Get initial state from localStorage - do this once on component mount
+  const [initialState] = useState(getSavedProgressState());
   
   const {
     currentQuestion,
@@ -84,14 +68,40 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     userName: user?.user_metadata?.name,
     userEmail: user?.email,
     defaultLanguage: effectiveLanguage,
-    initialQuestion, // Pass initial question from saved progress
-    initialAnswers   // Pass initial answers from saved progress
+    initialQuestion: initialState.initialQuestion,
+    initialAnswers: initialState.initialAnswers
   });
 
-  // Set initialization flag after initial render
+  // Immediately mark as initialized on first render
   useEffect(() => {
     setIsInitialized(true);
   }, []);
+
+  // Get the correct question set based on language
+  const getQuestions = useCallback(() => {
+    switch (effectiveLanguage) {
+      case 'zh-CN':
+        return zhCNQuestions;
+      case 'zh-HK':
+        return zhTWQuestions;
+      case 'en':
+      default:
+        return enQuestions;
+    }
+  }, [effectiveLanguage]);
+
+  // Memoize the current question for better performance
+  const currentQuestionData = React.useMemo(() => {
+    const questions = getQuestions();
+    return questions[currentQuestion];
+  }, [currentQuestion, getQuestions]);
+
+  // Calculate progress percentage
+  const progressPercentage = React.useMemo(() => {
+    const totalQuestions = questionCounts[effectiveLanguage as keyof typeof questionCounts] || 
+                           questionCounts['en'];
+    return (currentQuestion / totalQuestions) * 100;
+  }, [currentQuestion, effectiveLanguage]);
 
   // Prevent refreshes from resetting the assessment state
   useEffect(() => {
@@ -107,27 +117,8 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [currentQuestion, showResults]);
 
-  // Local storage for assessment progress
-  useEffect(() => {
-    if (currentQuestion > 0 && !showResults) {
-      // Save progress
-      localStorage.setItem('assessment_progress', JSON.stringify({
-        currentQuestion,
-        answers,
-        timestamp: Date.now()
-      }));
-    } else if (showResults) {
-      // Clear progress when assessment is complete
-      localStorage.removeItem('assessment_progress');
-    }
-  }, [currentQuestion, answers, showResults]);
-
-  if (isSubmitting) {
-    return <LoadingState />;
-  }
-
   // Calculate scores and results only when needed for the results dialog
-  const getResultData = () => {
+  const getResultData = useCallback(() => {
     if (!answers || Object.keys(answers).length === 0) {
       return null;
     }
@@ -146,23 +137,31 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
       scores.isParent || 0,
       scores.needsHelp || 0
     );
-  };
+  }, [answers]);
 
   // Use the updated redirect URL
   const REDIRECT_URL = "https://www.mican.life/courses-en";
 
-  // Don't render until we're initialized to prevent flickering
-  if (!isInitialized) {
+  if (isSubmitting) {
     return <LoadingState />;
   }
+
+  // Don't render until we're initialized to prevent flickering
+  if (!isInitialized) {
+    return null; // Return nothing instead of loading state for faster initial render
+  }
+
+  // Get the total questions count for current language
+  const totalQuestions = questionCounts[effectiveLanguage as keyof typeof questionCounts] || 
+                         questionCounts['en'];
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
       <QuestionDisplay
         currentQuestion={currentQuestion}
-        totalQuestions={questions.length}
-        progress={(currentQuestion / questions.length) * 100}
-        question={questions[currentQuestion]}
+        totalQuestions={totalQuestions}
+        progress={progressPercentage}
+        question={currentQuestionData}
         selectedOption={selectedOption}
         onAnswer={handleAnswer}
         onPrevious={handlePrevious}
