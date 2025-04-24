@@ -17,9 +17,14 @@ const EasyAccess = () => {
         const lang = searchParams.get('lang') || 'en';
         const view = searchParams.get('view');
 
-        console.log("EasyAccess: Validating access with params:", { token: token?.substring(0, 10) + "...", lang, view });
+        console.log("EasyAccess: Validating access with params:", { 
+          token: token ? (token.substring(0, 10) + "...") : "missing",
+          lang, 
+          view 
+        });
 
         if (!token) {
+          console.error("No token provided in URL");
           toast.error('Invalid access link');
           navigate('/login');
           return;
@@ -29,7 +34,7 @@ const EasyAccess = () => {
         const anonymousEmail = `anonymous-${Date.now()}@temp.com`;
         const randomPassword = crypto.randomUUID();
 
-        console.log("EasyAccess: Creating anonymous session");
+        console.log("EasyAccess: Creating anonymous session with", anonymousEmail);
 
         // For public access, we create an anonymous session
         const { data: { session }, error } = await supabase.auth.signUp({
