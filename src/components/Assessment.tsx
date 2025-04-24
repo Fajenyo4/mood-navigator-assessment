@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import QuestionDisplay from './assessment/QuestionDisplay';
@@ -146,17 +145,12 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     return <LoadingState />;
   }
 
-  // Don't render until we're initialized to prevent flickering
   if (!isInitialized) {
-    return null; // Return nothing instead of loading state for faster initial render
+    return null;
   }
 
-  // Get the total questions count for current language
-  const totalQuestions = questionCounts[effectiveLanguage as keyof typeof questionCounts] || 
-                         questionCounts['en'];
-
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4">
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <QuestionDisplay
         currentQuestion={currentQuestion}
         totalQuestions={totalQuestions}
