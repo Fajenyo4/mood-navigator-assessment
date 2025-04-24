@@ -30,8 +30,8 @@ const QuestionOption = memo(({
   option: string; 
   isSelected: boolean;
 }) => (
-  <div className="transition-all duration-200 ease-in-out transform hover:scale-[1.01]">
-    <div className={`flex items-center border ${isSelected ? 'border-primary bg-gray-50' : 'border-gray-200'} rounded-lg p-4 hover:border-primary hover:bg-gray-50 cursor-pointer transition-colors duration-200`}>
+  <div>
+    <div className={`flex items-center border ${isSelected ? 'border-primary bg-gray-50' : 'border-gray-200'} rounded-lg p-4 hover:border-primary hover:bg-gray-50 cursor-pointer`}>
       <RadioGroupItem 
         value={index.toString()} 
         id={`q${index}`} 
@@ -75,7 +75,7 @@ const QuestionDisplay = memo(function QuestionDisplay({
     return (
       <div className="w-full max-w-2xl mx-auto text-center p-8">
         <Logo />
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-6 animate-pulse">
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
           <div className="h-4 bg-gray-200 rounded mb-8"></div>
           <div className="h-6 bg-gray-300 rounded mb-8 w-3/4 mx-auto"></div>
           <div className="space-y-4">
@@ -91,7 +91,7 @@ const QuestionDisplay = memo(function QuestionDisplay({
   const options = question.options || [];
 
   return (
-    <div className="w-full max-w-2xl mx-auto transition-all duration-300 ease-in-out">
+    <div className="w-full max-w-2xl mx-auto">
       <Logo />
       
       {showPrevious && (
@@ -99,7 +99,7 @@ const QuestionDisplay = memo(function QuestionDisplay({
           variant="ghost" 
           size="sm" 
           onClick={handlePreviousClick}
-          className="mb-6 hover:bg-gray-100 transition-colors duration-200"
+          className="mb-6"
           type="button" 
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -107,10 +107,10 @@ const QuestionDisplay = memo(function QuestionDisplay({
         </Button>
       )}
 
-      <div className="bg-white rounded-xl shadow-lg p-8 mb-6 hover:shadow-xl transition-all duration-300">
+      <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
         <Progress 
           value={progress} 
-          className="mb-8 transition-all duration-500 ease-out" 
+          className="mb-8" 
           aria-label="Assessment progress"
         />
         
