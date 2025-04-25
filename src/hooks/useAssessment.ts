@@ -1,21 +1,13 @@
 
-import { useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/assessmentScoring';
+import { saveAssessmentResult } from '@/services/assessment';
+import { toast } from 'sonner';
 import { questions as enQuestions } from '@/translations/en';
 import { questions as zhCNQuestions } from '@/translations/zh-CN';
 import { questions as zhTWQuestions } from '@/translations/zh-TW';
-import { useAssessmentState } from './assessment/useAssessmentState';
-import { useProgressPersistence, getSavedProgressState } from './assessment/useProgressPersistence';
-import { useAssessmentSubmission } from './assessment/useAssessmentSubmission';
-import { toast } from 'sonner';
 
-// Preload questions for better performance
-const QUESTIONS_MAP = {
-  'en': enQuestions,
-  'zh-CN': zhCNQuestions,
-  'zh-HK': zhTWQuestions
-};
-
-export interface UseAssessmentProps {
+interface UseAssessmentProps {
   userId: string | undefined;
   userName: string | undefined;
   userEmail: string | undefined;
@@ -32,73 +24,137 @@ export const useAssessment = ({
   initialQuestion = 0,
   initialAnswers = {}
 }: UseAssessmentProps) => {
-  const {
-    currentQuestion,
-    setCurrentQuestion,
-    answers,
-    setAnswers,
-    showResults,
-    setShowResults,
-    selectedOption,
-    setSelectedOption,
-    isSubmitting,
-    setIsSubmitting
-  } = useAssessmentState(initialQuestion, initialAnswers);
+  // Memoize the questions based on language for better performance
+  const getQuestions = useCallback(() => {
+    switch (defaultLanguage) {
+      case 'zh-CN': 
+        return zhCNQuestions;
+      case 'zh-HK':
+        return zhTWQuestions;
+      case 'en':
+      default:
+        return enQuestions;
+    }
+  }, [defaultLanguage]);
 
-  useProgressPersistence(answers, currentQuestion, defaultLanguage);
-
-  const { handleSubmit } = useAssessmentSubmission(
-    userId,
-    userName,
-    userEmail,
-    defaultLanguage,
-    setShowResults,
-    setIsSubmitting
-  );
+  const [currentQuestion, setCurrentQuestion] = useState(initialQuestion);
+  const [answers, setAnswers] = useState<{ [key: number]: number }>(initialAnswers);
+  const [showResults, setShowResults] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<string>((initialAnswers[initialQuestion + 1]?.toString()) || "");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleAnswer = useCallback((value: string) => {
-    try {
-      const numericValue = parseInt(value);
-      const questions = QUESTIONS_MAP[defaultLanguage as keyof typeof QUESTIONS_MAP] || QUESTIONS_MAP['en'];
-      
-      // Update answers with current selection 
-      const updatedAnswers = {
-        ...answers,
-        [currentQuestion + 1]: numericValue
-      };
-      setAnswers(updatedAnswers);
-      
-      // Update selected option immediately for faster UI feedback
-      setSelectedOption(value);
+    const numericValue = parseInt(value);
+    const newAnswers = { ...answers, [currentQuestion + 1]: numericValue };
+    setAnswers(newAnswers);
+    setSelectedOption(value);
 
-      // Check if we're at the last question
-      if (currentQuestion < questions.length - 1) {
-        // Move to the next question with a slight delay for better UX
-        // This delay helps users register their selection before moving on
-        setTimeout(() => {
-          setCurrentQuestion(prev => prev + 1);
-          // Reset selected option for the next question
-          setSelectedOption("");
-        }, 400); // Slightly longer delay for better user experience
-      } else {
-        // We're at the last question, submit the assessment
-        console.log('Submitting assessment answers:', updatedAnswers);
-        handleSubmit(updatedAnswers);
-      }
-    } catch (error) {
-      console.error('Error handling answer:', error);
-      toast.error('There was an error processing your answer. Please try again.');
+    // Get question count from the cached questions
+    const questions = getQuestions();
+    const questionCount = questions.length;
+
+    // Move to next question immediately without delay for better performance
+    if (currentQuestion < questionCount - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+      setSelectedOption("");
+      
+      // Save progress immediately
+      localStorage.setItem('assessment_progress', JSON.stringify({
+        currentQuestion: currentQuestion + 1,
+        answers: newAnswers,
+        timestamp: Date.now(),
+        language: defaultLanguage
+      }));
+    } else {
+      handleSubmit(newAnswers);
     }
-  }, [currentQuestion, answers, defaultLanguage, handleSubmit]);
+  }, [currentQuestion, answers, defaultLanguage, getQuestions]);
 
   const handlePrevious = useCallback(() => {
     if (currentQuestion > 0) {
-      const prevQuestion = currentQuestion - 1;
-      setCurrentQuestion(prevQuestion);
-      // Set the selected option to the previously answered value
-      setSelectedOption(answers[prevQuestion + 1]?.toString() || "");
+      setCurrentQuestion(currentQuestion - 1);
+      setSelectedOption(answers[currentQuestion]?.toString() || "");
     }
   }, [currentQuestion, answers]);
+
+  const handleSubmit = async (finalAnswers: { [key: number]: number }) => {
+    if (!userId) {
+      toast.error("You must be logged in to submit the assessment");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const questions = getQuestions();
+      const scores = calculateDassScores(finalAnswers);
+      const depressionLevel = determineLevel(scores.depression, 'depression');
+      const anxietyLevel = determineLevel(scores.anxiety, 'anxiety');
+      const stressLevel = determineLevel(scores.stress, 'stress');
+      const satisfactionLevel = determineLevel(scores.lifeSatisfaction, 'satisfaction');
+
+      const result = determineMoodResult(
+        depressionLevel,
+        anxietyLevel,
+        stressLevel,
+        satisfactionLevel,
+        scores.isParent,
+        scores.needsHelp
+      );
+
+      // Create text answers in the background to not block the UI
+      const textAnswers: { [key: string]: string } = {};
+      Object.keys(finalAnswers).forEach(questionNum => {
+        const qNum = parseInt(questionNum);
+        const question = questions.find(q => q.id === qNum);
+        if (question) {
+          const optionIndex = finalAnswers[qNum];
+          textAnswers[qNum] = question.options[optionIndex] || '';
+        }
+      });
+
+      // Show results immediately before waiting for the save to complete
+      setShowResults(true);
+
+      // Clear assessment progress from localStorage
+      localStorage.removeItem('assessment_progress');
+
+      // Save results in the background
+      saveAssessmentResult(
+        userId,
+        userName || userEmail || '',
+        userEmail || '',
+        {
+          numeric: finalAnswers,
+          text: textAnswers,
+          scores,
+          levels: {
+            depression: depressionLevel.level,
+            anxiety: anxietyLevel.level,
+            stress: stressLevel.level,
+            lifeSatisfaction: satisfactionLevel.level
+          }
+        },
+        result.mood,
+        defaultLanguage,
+        {
+          depression: scores.depression,
+          anxiety: scores.anxiety,
+          stress: scores.stress,
+          lifeSatisfaction: scores.lifeSatisfaction
+        }
+      ).catch(error => {
+        console.error('Error saving assessment:', error);
+        toast.error('Failed to save your assessment results');
+      }).finally(() => {
+        setIsSubmitting(false);
+      });
+
+    } catch (error) {
+      console.error('Error processing assessment:', error);
+      toast.error('Failed to process your assessment');
+      setIsSubmitting(false);
+    }
+  };
 
   return {
     currentQuestion,

@@ -12,13 +12,6 @@ const SimplifiedChineseEmbed: React.FC<SimplifiedChineseEmbedProps> = ({ sso = f
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Disable beforeunload event for the entire window to prevent refresh confirmations
-    const disableBeforeUnload = () => {
-      window.removeEventListener('beforeunload', (e) => e.preventDefault());
-    };
-    
-    disableBeforeUnload();
-    
     // Check URL parameters for direct SSO access (run immediately for faster performance)
     const performSsoCheck = () => {
       const urlParams = new URLSearchParams(window.location.search);
@@ -52,11 +45,6 @@ const SimplifiedChineseEmbed: React.FC<SimplifiedChineseEmbedProps> = ({ sso = f
 
     // Run the check immediately without delay
     performSsoCheck();
-    
-    // Make sure we clean up beforeunload listeners on unmount
-    return () => {
-      window.removeEventListener('beforeunload', (e) => e.preventDefault());
-    };
   }, []);
 
   // Determine the URL based on whether this is an SSO embed or not

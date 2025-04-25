@@ -1,85 +1,77 @@
+
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html>
 <head>
   <title>繁體中文評估嵌入</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Preconnect to known domains for faster resource loading -->
-  <link rel="preconnect" href="https://mood-navigator-assessment.lovable.app" crossorigin>
-  <link rel="dns-prefetch" href="https://mood-navigator-assessment.lovable.app">
-  <!-- Disable automatic phone number detection to speed up iOS rendering -->
-  <meta name="format-detection" content="telephone=no">
-  <style>
-    body, html { margin: 0; padding: 0; overflow: hidden; height: 100%; }
-    .container { position: relative; width: 100%; height: 100%; }
-    iframe { border: none; width: 100%; height: 100vh; display: block; }
-  </style>
   <script>
-    // More robust prevention of refresh dialogs and auto-refreshes
-    window.addEventListener('load', function() {
-      // Remove existing handlers more thoroughly
-      window.onbeforeunload = null;
-      
-      // Block new handlers with a more stable approach
-      const originalAddEventListener = window.addEventListener;
-      window.addEventListener = function(type, listener, options) {
-        if (type === 'beforeunload') {
-          console.log('Blocked beforeunload event registration');
-          return;
-        }
-        return originalAddEventListener.call(this, type, listener, options);
-      };
-      
-      // Prevent automatic reloads by overriding reload/location methods
-      const originalReload = window.location.reload;
-      window.location.reload = function() {
-        console.log('Blocked automatic reload attempt');
-        return false;
-      };
-      
-      // Prevent common auto-refresh techniques
-      clearInterval(window.pageReloadTimer);
-      window.pageReloadTimer = null;
-    });
+    // Get the base URL from where this embed is being served
+    const baseUrl = new URL(document.baseURI).origin;
+    // Your application's actual domain
+    const appDomain = "https://mood-navigator-assessment.lovable.app";
     
-    // Monitor iframe to keep it stable
-    window.addEventListener('DOMContentLoaded', function() {
-      const iframe = document.getElementById('assessment');
-      if (iframe) {
-        // Send keepalive signals to the iframe to prevent session timeouts
-        setInterval(function() {
-          try {
-            if (iframe.contentWindow) {
-              iframe.contentWindow.postMessage('keepalive', '*');
-            }
-          } catch (e) {
-            // Silently handle any cross-origin errors
-          }
-        }, 30000);
+    // Function to create a direct access link
+    function createDirectAccessLink(email, language = 'zh-hk') {
+      // Create a simple token by encoding the email and timestamp
+      const simpleToken = btoa(`${email}:${Date.now()}`);
+      
+      // Return the formatted URL
+      return `${appDomain}/easy-access?token=${simpleToken}&email=${encodeURIComponent(email)}&lang=${language}`;
+    }
+    
+    // Function to initiate quick access
+    function quickAccess() {
+      const testEmail = prompt("輸入電子郵件以訪問繁體中文評估:", "user@example.com");
+      if (testEmail) {
+        const accessLink = createDirectAccessLink(testEmail, 'zh-hk');
+        window.location.href = accessLink;
       }
-    });
+    }
   </script>
 </head>
-<body>
-  <div class="container">
+<body style="margin:0;padding:0;overflow:hidden;">
+  <div style="position: relative;">
     <iframe 
       id="assessment"
       src="https://mood-navigator-assessment.lovable.app/login/zh-hk"
-      loading="eager"
-      importance="high"
+      width="100%" 
+      height="800"
+      frameborder="0"
       allow="fullscreen"
     ></iframe>
-  </div>
-
-  <script>
-    // Handle language parameter
-    const params = new URLSearchParams(window.location.search);
-    const lang = params.get('lang');
     
-    if (lang) {
-      document.getElementById('assessment').src = 
-        `https://mood-navigator-assessment.lovable.app/login/${lang}`;
-    }
+    <button 
+      onclick="quickAccess()" 
+      style="position: absolute; top: 10px; right: 10px; z-index: 1000; background: #4f46e5; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;"
+    >
+      快速訪問
+    </button>
+  </div>
+  
+  <!-- Add a message to confirm the embed is loading -->
+  <script>
+    console.log("繁體中文評估嵌入已加載成功");
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add a small indicator that the embed is working
+      const loadIndicator = document.createElement('div');
+      loadIndicator.style.position = 'absolute';
+      loadIndicator.style.bottom = '10px';
+      loadIndicator.style.left = '10px';
+      loadIndicator.style.padding = '5px 10px';
+      loadIndicator.style.background = 'rgba(0,0,0,0.5)';
+      loadIndicator.style.color = 'white';
+      loadIndicator.style.borderRadius = '4px';
+      loadIndicator.style.fontSize = '12px';
+      loadIndicator.textContent = '繁體中文評估已加載';
+      document.body.appendChild(loadIndicator);
+      
+      // Hide the indicator after 5 seconds
+      setTimeout(() => {
+        loadIndicator.style.opacity = '0';
+        loadIndicator.style.transition = 'opacity 1s';
+      }, 5000);
+    });
   </script>
 </body>
 </html>

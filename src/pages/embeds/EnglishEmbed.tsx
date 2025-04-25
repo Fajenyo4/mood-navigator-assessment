@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 
 interface EnglishEmbedProps {
@@ -14,13 +15,6 @@ const EnglishEmbed: React.FC<EnglishEmbedProps> = ({ sso = false }) => {
   const PRODUCTION_DOMAIN = 'https://mood-navigator-assessment.lovable.app';
 
   useEffect(() => {
-    // Disable beforeunload event for the entire window to prevent refresh confirmations
-    const disableBeforeUnload = () => {
-      window.removeEventListener('beforeunload', (e) => e.preventDefault());
-    };
-    
-    disableBeforeUnload();
-    
     // Check URL parameters for direct SSO access (run immediately for faster performance)
     const performSsoCheck = () => {
       const urlParams = new URLSearchParams(window.location.search);
@@ -68,11 +62,6 @@ const EnglishEmbed: React.FC<EnglishEmbedProps> = ({ sso = false }) => {
 
     // Run the check immediately without delay
     performSsoCheck();
-    
-    // Make sure we clean up beforeunload listeners on unmount
-    return () => {
-      window.removeEventListener('beforeunload', (e) => e.preventDefault());
-    };
   }, []);
 
   // Determine the URL based on whether this is an SSO embed or not

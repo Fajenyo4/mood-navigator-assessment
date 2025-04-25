@@ -1,5 +1,5 @@
 
-export { getAssessmentResults, invalidateAssessmentCache } from './getAssessmentResults';
+export { getAssessmentResults } from './getAssessmentResults';
 export { saveAssessmentResult } from './saveAssessmentResult';
 export { getTableNameByLanguage, parseAnswers } from './utils';
 

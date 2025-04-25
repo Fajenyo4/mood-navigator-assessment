@@ -1,5 +1,5 @@
 
-import React, { memo, useCallback } from 'react';
+import React from 'react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -12,83 +12,22 @@ interface QuestionDisplayProps {
   currentQuestion: number;
   totalQuestions: number;
   progress: number;
-  question: Question | null;
+  question: Question;
   selectedOption: string;
   onAnswer: (value: string) => void;
   onPrevious?: () => void;
   showPrevious?: boolean;
-  isLoading?: boolean;
 }
 
-// Optimize option rendering with pure component
-const QuestionOption = memo(({ 
-  index, 
-  option, 
-  isSelected 
-}: { 
-  index: number; 
-  option: string; 
-  isSelected: boolean;
-}) => (
-  <div>
-    <div className={`flex items-center border ${isSelected ? 'border-primary bg-gray-50' : 'border-gray-200'} rounded-lg p-4 hover:border-primary hover:bg-gray-50 cursor-pointer`}>
-      <RadioGroupItem 
-        value={index.toString()} 
-        id={`q${index}`} 
-        className="mr-3"
-      />
-      <Label 
-        htmlFor={`q${index}`} 
-        className="text-gray-700 cursor-pointer flex-grow text-base"
-      >
-        {option}
-      </Label>
-    </div>
-  </div>
-));
-
-QuestionOption.displayName = 'QuestionOption';
-
-// Performance-optimized Question Display component
-const QuestionDisplay = memo(function QuestionDisplay({
-  currentQuestion,
-  totalQuestions,
+const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   progress,
   question,
   selectedOption,
   onAnswer,
   onPrevious,
-  showPrevious,
-  isLoading = false
-}: QuestionDisplayProps) {
-  const handleOptionSelect = useCallback((value: string) => {
-    onAnswer(value);
-  }, [onAnswer]);
-  
-  const handlePreviousClick = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    if (onPrevious) onPrevious();
-  }, [onPrevious]);
-
-  // Display loading state or empty placeholder when question isn't loaded
-  if (isLoading || !question) {
-    return (
-      <div className="w-full max-w-2xl mx-auto text-center p-8">
-        <Logo />
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
-          <div className="h-4 bg-gray-200 rounded mb-8"></div>
-          <div className="h-6 bg-gray-300 rounded mb-8 w-3/4 mx-auto"></div>
-          <div className="space-y-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-14 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const options = question.options || [];
+  showPrevious
+}) => {
+  const options = question?.options || [];
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -98,9 +37,8 @@ const QuestionDisplay = memo(function QuestionDisplay({
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={handlePreviousClick}
+          onClick={onPrevious}
           className="mb-6"
-          type="button" 
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
@@ -108,36 +46,41 @@ const QuestionDisplay = memo(function QuestionDisplay({
       )}
 
       <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
-        <Progress 
-          value={progress} 
-          className="mb-8" 
-          aria-label="Assessment progress"
-        />
+        <Progress value={progress} className="mb-8" />
         
         <h2 className="text-xl font-medium text-gray-900 mb-8 text-center">
           {question.text}
         </h2>
 
         <RadioGroup
-          onValueChange={handleOptionSelect}
+          onValueChange={onAnswer}
           className="space-y-4"
           value={selectedOption}
-          defaultValue={selectedOption}
         >
           {options.map((option, index) => (
-            <QuestionOption 
-              key={index}
-              index={index}
-              option={option}
-              isSelected={selectedOption === index.toString()}
-            />
+            <div 
+              key={index} 
+              className="transition-all duration-200 ease-in-out"
+            >
+              <div className="flex items-center border border-gray-200 rounded-lg p-4 hover:border-primary hover:bg-gray-50 cursor-pointer">
+                <RadioGroupItem 
+                  value={index.toString()} 
+                  id={`q${index}`} 
+                  className="mr-3"
+                />
+                <Label 
+                  htmlFor={`q${index}`} 
+                  className="text-gray-700 cursor-pointer flex-grow text-base"
+                >
+                  {option}
+                </Label>
+              </div>
+            </div>
           ))}
         </RadioGroup>
       </div>
     </div>
   );
-});
-
-QuestionDisplay.displayName = 'QuestionDisplay';
+};
 
 export default QuestionDisplay;

@@ -16,12 +16,8 @@ const Index = () => {
         <h1 className="text-3xl font-bold text-center mb-8">Select Assessment Language</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {languages.map((lang) => (
-            <Link 
-              key={lang.code} 
-              to={`/${lang.code}`}
-              className="block"
-            >
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+            <Link key={lang.code} to={`/${lang.code}`}>
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
                 <CardHeader>
                   <CardTitle>{lang.name}</CardTitle>
                 </CardHeader>

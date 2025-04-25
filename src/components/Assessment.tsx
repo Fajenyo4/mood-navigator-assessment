@@ -1,100 +1,58 @@
 
-import React, { useEffect, useState, useCallback, useMemo, Suspense, lazy } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import QuestionDisplay from './assessment/QuestionDisplay';
 import ResultsDialog from './assessment/ResultsDialog';
 import LoadingState from './assessment/LoadingState';
 import { useAssessment } from '@/hooks/useAssessment';
-import { preventPageRefresh } from '@/utils/preventRefresh';
 import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/assessmentScoring';
 
-// Define props interface for Assessment component
+// Preloading question sets for faster access
+import { questions as enQuestions } from '@/translations/en';
+import { questions as zhCNQuestions } from '@/translations/zh-CN';
+import { questions as zhTWQuestions } from '@/translations/zh-TW';
+
 interface AssessmentProps {
   defaultLanguage?: string;
 }
 
-// Optimize imports by lazily loading question sets
-// Use dynamic imports for questions to improve initial load time
-const questionSets = {
-  'en': () => import('@/translations/en').then(module => module.questions),
-  'zh-CN': () => import('@/translations/zh-CN').then(module => module.questions),
-  'zh-HK': () => import('@/translations/zh-TW').then(module => module.questions)
+// Optimize initial loading by precomputing total questions for each language
+const questionCounts = {
+  'en': enQuestions.length,
+  'zh-CN': zhCNQuestions.length,
+  'zh-HK': zhTWQuestions.length
 };
 
-// Cache question counts to avoid recalculation
-const QUESTION_COUNTS = {
-  'en': 21,  // hardcoded counts for faster initial render
-  'zh-CN': 21,
-  'zh-HK': 21
-};
-
-// Get saved progress state - moved outside component to avoid re-creation
-const getSavedProgressState = (effectiveLanguage) => {
-  try {
-    const savedProgress = localStorage.getItem('assessment_progress');
-    if (savedProgress) {
-      const { currentQuestion, answers, timestamp, language } = JSON.parse(savedProgress);
-      // Only restore if saved within last hour and language matches
-      if (Date.now() - timestamp < 3600000 && language === effectiveLanguage) {
-        return { initialQuestion: currentQuestion, initialAnswers: answers };
-      }
-      // Clear invalid progress data
-      localStorage.removeItem('assessment_progress');
-    }
-  } catch (error) {
-    console.error('Error parsing assessment progress:', error);
-    localStorage.removeItem('assessment_progress');
-  }
-  
-  return { initialQuestion: 0, initialAnswers: {} };
-};
-
-// Prevent Assessment component from re-rendering unnecessarily
-const Assessment = React.memo(function Assessment({ defaultLanguage = 'en' }: AssessmentProps) {
+const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
   const { user, language: authLanguage } = useAuth();
   const [isInitialized, setIsInitialized] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [questions, setQuestions] = useState(null);
   
   // Get the effective language - either from props or from auth context
-  const effectiveLanguage = useMemo(() => 
-    defaultLanguage || authLanguage || 'en'
-  , [defaultLanguage, authLanguage]);
+  const effectiveLanguage = defaultLanguage || authLanguage || 'en';
   
-  // Initialize state only once with initializer function
-  const [initialState] = useState(() => getSavedProgressState(effectiveLanguage));
-  
-  // Load questions asynchronously
-  useEffect(() => {
-    let isMounted = true;
-    
-    const loadQuestions = async () => {
-      try {
-        setIsLoading(true);
-        const loader = questionSets[effectiveLanguage] || questionSets['en'];
-        const loadedQuestions = await loader();
-        
-        // Only update state if component is still mounted
-        if (isMounted) {
-          setQuestions(loadedQuestions);
-          setIsLoading(false);
-          setIsInitialized(true);
+  // Create an optimized function to get saved progress state
+  const getSavedProgressState = useCallback(() => {
+    try {
+      const savedProgress = localStorage.getItem('assessment_progress');
+      if (savedProgress) {
+        const { currentQuestion, answers, timestamp, language } = JSON.parse(savedProgress);
+        // Only restore if saved within last hour and language matches
+        if (Date.now() - timestamp < 3600000 && language === effectiveLanguage) {
+          return { initialQuestion: currentQuestion, initialAnswers: answers };
         }
-      } catch (error) {
-        console.error('Error loading questions:', error);
-        if (isMounted) {
-          setIsLoading(false);
-          setIsInitialized(true);
-        }
+        // Clear invalid progress data
+        localStorage.removeItem('assessment_progress');
       }
-    };
+    } catch (error) {
+      console.error('Error parsing assessment progress:', error);
+      localStorage.removeItem('assessment_progress');
+    }
     
-    loadQuestions();
-    
-    return () => {
-      isMounted = false;
-    };
+    return { initialQuestion: 0, initialAnswers: {} };
   }, [effectiveLanguage]);
+  
+  // Get initial state from localStorage - do this once on component mount
+  const [initialState] = useState(getSavedProgressState());
   
   const {
     currentQuestion,
@@ -114,50 +72,90 @@ const Assessment = React.memo(function Assessment({ defaultLanguage = 'en' }: As
     initialAnswers: initialState.initialAnswers
   });
 
-  // Prevent page refresh during assessment - with proper cleanup
+  // Immediately mark as initialized on first render
   useEffect(() => {
-    // Only add the refresh prevention if we're not showing results and have answers
-    if (!showResults && Object.keys(answers).length > 0) {
-      console.log('Adding page refresh prevention');
-      const cleanup = preventPageRefresh();
-      return cleanup;
-    }
-  }, [showResults, answers]);
+    setIsInitialized(true);
+  }, []);
 
-  // Calculate the total number of questions for the current language - memoized
-  const totalQuestions = useMemo(() => {
-    return QUESTION_COUNTS[effectiveLanguage] || QUESTION_COUNTS['en'];
+  // Get the correct question set based on language
+  const getQuestions = useCallback(() => {
+    switch (effectiveLanguage) {
+      case 'zh-CN':
+        return zhCNQuestions;
+      case 'zh-HK':
+        return zhTWQuestions;
+      case 'en':
+      default:
+        return enQuestions;
+    }
+  }, [effectiveLanguage]);
+
+  // Calculate the total number of questions for the current language
+  const totalQuestions = React.useMemo(() => {
+    return questionCounts[effectiveLanguage as keyof typeof questionCounts] || questionCounts['en'];
   }, [effectiveLanguage]);
 
   // Memoize the current question for better performance
-  const currentQuestionData = useMemo(() => {
-    if (!questions) return null;
-    return questions[currentQuestion] || null;
-  }, [questions, currentQuestion]);
+  const currentQuestionData = React.useMemo(() => {
+    const questions = getQuestions();
+    return questions[currentQuestion];
+  }, [currentQuestion, getQuestions]);
 
-  // Calculate progress percentage - improved calculation
-  const progressPercentage = useMemo(() => {
-    // Simple progress calculation based on current question index
-    // For first question (index 0), show 0% progress
-    // For last question (index totalQuestions-1), show almost 100% but not quite
-    if (totalQuestions <= 1) return 0;
-    
-    // Calculate percentage based on current question index
-    return (currentQuestion / (totalQuestions - 1)) * 100;
+  // Calculate progress percentage
+  const progressPercentage = React.useMemo(() => {
+    return (currentQuestion / totalQuestions) * 100;
   }, [currentQuestion, totalQuestions]);
 
-  // Don't render anything until initialized to prevent flashes
-  if (!isInitialized) {
-    return null;
-  }
+  // Prevent refreshes from resetting the assessment state
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (currentQuestion > 0 && !showResults) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [currentQuestion, showResults]);
+
+  // Calculate scores and results only when needed for the results dialog
+  const getResultData = useCallback(() => {
+    if (!answers || Object.keys(answers).length === 0) {
+      return null;
+    }
+
+    const scores = calculateDassScores(answers);
+    const depressionLevel = determineLevel(scores.depression, 'depression');
+    const anxietyLevel = determineLevel(scores.anxiety, 'anxiety');
+    const stressLevel = determineLevel(scores.stress, 'stress');
+    const satisfactionLevel = determineLevel(scores.lifeSatisfaction, 'satisfaction');
+    
+    return determineMoodResult(
+      depressionLevel,
+      anxietyLevel,
+      stressLevel,
+      satisfactionLevel,
+      scores.isParent || 0,
+      scores.needsHelp || 0
+    );
+  }, [answers]);
+
+  // Use the updated redirect URL
+  const REDIRECT_URL = "https://www.mican.life/courses-en";
 
   if (isSubmitting) {
     return <LoadingState />;
   }
 
+  if (!isInitialized) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      {<QuestionDisplay
+      <QuestionDisplay
         currentQuestion={currentQuestion}
         totalQuestions={totalQuestions}
         progress={progressPercentage}
@@ -166,40 +164,17 @@ const Assessment = React.memo(function Assessment({ defaultLanguage = 'en' }: As
         onAnswer={handleAnswer}
         onPrevious={handlePrevious}
         showPrevious={currentQuestion > 0}
-        isLoading={isLoading}
-      />}
+      />
       
       <ResultsDialog
         open={showResults}
         onOpenChange={setShowResults}
-        result={showResults ? determineResultData() : null}
+        result={showResults ? getResultData() : null}
+        onManualRedirect={() => window.location.href = REDIRECT_URL}
         language={effectiveLanguage}
       />
     </div>
   );
-  
-  // Function to calculate results inline for better organization
-  function determineResultData() {
-    if (!showResults) return null;
-    
-    // Use imported functions instead of require
-    const scores = calculateDassScores(answers);
-    const depressionLevel = determineLevel(scores.depression, 'depression');
-    const anxietyLevel = determineLevel(scores.anxiety, 'anxiety');
-    const stressLevel = determineLevel(scores.stress, 'stress');
-    const satisfactionLevel = determineLevel(scores.lifeSatisfaction, 'satisfaction');
-
-    return determineMoodResult(
-      depressionLevel,
-      anxietyLevel,
-      stressLevel,
-      satisfactionLevel,
-      scores.isParent,
-      scores.needsHelp
-    );
-  }
-});
-
-Assessment.displayName = 'Assessment';
+};
 
 export default Assessment;
