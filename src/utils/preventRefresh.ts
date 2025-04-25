@@ -43,6 +43,14 @@ export const preventPageRefresh = (): (() => void) => {
         console.log('Prevented link navigation that might cause refresh');
         e.preventDefault();
       }
+      
+      // Allow external links to open in new tabs automatically for better UX
+      if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
+        if (!link.getAttribute('target')) {
+          link.setAttribute('target', '_blank');
+          link.setAttribute('rel', 'noopener noreferrer');
+        }
+      }
     }
   };
 

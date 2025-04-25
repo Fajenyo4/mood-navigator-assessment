@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +8,9 @@
   <!-- Preconnect to known domains for faster resource loading -->
   <link rel="preconnect" href="https://mood-navigator-assessment.lovable.app" crossorigin>
   <link rel="dns-prefetch" href="https://mood-navigator-assessment.lovable.app">
+  <!-- Also preconnect to LearnWorlds domain for faster external link loading -->
+  <link rel="preconnect" href="https://micancapital.learnworlds.com" crossorigin>
+  <link rel="dns-prefetch" href="https://micancapital.learnworlds.com">
   <!-- Disable automatic phone number detection to speed up iOS rendering -->
   <meta name="format-detection" content="telephone=no">
   <style>
@@ -56,6 +60,12 @@
             // Silently handle any cross-origin errors
           }
         }, 30000);
+        
+        // Prefetch the LearnWorlds course page for faster navigation
+        const prefetchLink = document.createElement('link');
+        prefetchLink.rel = 'prefetch';
+        prefetchLink.href = 'https://micancapital.learnworlds.com/courses';
+        document.head.appendChild(prefetchLink);
       }
     });
   </script>

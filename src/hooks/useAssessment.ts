@@ -8,6 +8,7 @@ import { useProgressPersistence, getSavedProgressState } from './assessment/useP
 import { useAssessmentSubmission } from './assessment/useAssessmentSubmission';
 import { toast } from 'sonner';
 
+// Preload questions for better performance
 const QUESTIONS_MAP = {
   'en': enQuestions,
   'zh-CN': zhCNQuestions,
@@ -67,19 +68,21 @@ export const useAssessment = ({
       };
       setAnswers(updatedAnswers);
       
-      // Update selected option immediately
+      // Update selected option immediately for faster UI feedback
       setSelectedOption(value);
 
       // Check if we're at the last question
       if (currentQuestion < questions.length - 1) {
         // Move to the next question with a slight delay for better UX
+        // This delay helps users register their selection before moving on
         setTimeout(() => {
           setCurrentQuestion(prev => prev + 1);
           // Reset selected option for the next question
           setSelectedOption("");
-        }, 300);
+        }, 400); // Slightly longer delay for better user experience
       } else {
         // We're at the last question, submit the assessment
+        console.log('Submitting assessment answers:', updatedAnswers);
         handleSubmit(updatedAnswers);
       }
     } catch (error) {

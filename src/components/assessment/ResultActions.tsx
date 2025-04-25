@@ -28,15 +28,27 @@ const ResultActions: React.FC<ResultActionsProps> = ({
       const cleanup = preventPageRefresh();
       cleanup();
       
-      // Process the redirect URL
+      // Create a URL object for proper parsing and parameter handling
       const redirectUrlWithRef = new URL(redirectUrl);
+      
+      // Add tracking parameters to help with analytics
       redirectUrlWithRef.searchParams.append('ref', 'mood-assessment');
       redirectUrlWithRef.searchParams.append('completed', 'true');
+      redirectUrlWithRef.searchParams.append('timestamp', Date.now().toString());
       
-      console.log("Redirecting to:", redirectUrlWithRef.toString());
+      const finalUrl = redirectUrlWithRef.toString();
+      console.log("Redirecting to:", finalUrl);
       
-      // Use window.open for better compatibility with cross-origin links
-      window.open(redirectUrlWithRef.toString(), '_blank');
+      // Use window.open with _blank for better cross-origin compatibility
+      // This prevents issues with referrer policies and cross-site restrictions
+      const newWindow = window.open(finalUrl, '_blank');
+      
+      // Add fallback if popup blocker prevents the window from opening
+      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+        console.log("Popup may have been blocked, trying alternative method");
+        // Try location.href as fallback
+        window.location.href = finalUrl;
+      }
     } catch (error) {
       console.error("Redirect error:", error);
       // Fallback with direct open if URL parsing fails
