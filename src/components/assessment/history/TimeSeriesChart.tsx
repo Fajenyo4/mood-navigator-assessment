@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceArea, ReferenceLine } from 'recharts';
 import { ChartContainer } from "@/components/ui/chart";
@@ -18,6 +19,31 @@ import ChartGuide from './ChartGuide';
 interface TimeSeriesChartProps {
   data: AssessmentRecord[];
 }
+
+// Define the severity zones for reference areas in the chart
+const severityZones = {
+  depression: [
+    { y1: 0, y2: 9, color: '#10b981' }, // Normal: Green
+    { y1: 10, y2: 13, color: '#f59e0b' }, // Mild: Amber
+    { y1: 14, y2: 20, color: '#f97316' }, // Moderate: Orange
+    { y1: 21, y2: 27, color: '#ef4444' }, // Severe: Red
+    { y1: 28, y2: 42, color: '#dc2626' }, // Very Severe: Dark red
+  ],
+  anxiety: [
+    { y1: 0, y2: 10, color: '#10b981' }, // Normal: Green
+    { y1: 11, y2: 13, color: '#f59e0b' }, // Mild: Amber
+    { y1: 14, y2: 20, color: '#f97316' }, // Moderate: Orange
+    { y1: 21, y2: 27, color: '#ef4444' }, // Severe: Red
+    { y1: 28, y2: 42, color: '#dc2626' }, // Very Severe: Dark red
+  ],
+  stress: [
+    { y1: 0, y2: 16, color: '#10b981' }, // Normal: Green
+    { y1: 17, y2: 20, color: '#f59e0b' }, // Mild: Amber
+    { y1: 21, y2: 28, color: '#f97316' }, // Moderate: Orange
+    { y1: 29, y2: 37, color: '#ef4444' }, // Severe: Red
+    { y1: 38, y2: 42, color: '#dc2626' }, // Very Severe: Dark red
+  ]
+};
 
 const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
   const [latestRecord, setLatestRecord] = useState<AssessmentRecord | null>(
@@ -149,6 +175,12 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
     return null;
   };
 
+  // Get levels for the latest record for display in the summary
+  const depressionLevel = latestRecord ? getSeverityLevel(latestRecord.depression_score, 'depression') : '';
+  const anxietyLevel = latestRecord ? getSeverityLevel(latestRecord.anxiety_score, 'anxiety') : '';
+  const stressLevel = latestRecord ? getSeverityLevel(latestRecord.stress_score, 'stress') : '';
+  const satisfactionLevel = latestRecord ? getSatisfactionLevel(latestRecord.life_satisfaction_score) : '';
+
   const renderLatestSummary = () => {
     if (!latestRecord) return null;
 
@@ -271,7 +303,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
                   style: { fill: '#6b7280' }
                 }}
               />
-              {renderReferenceAreas(depressionZones)}
+              {renderReferenceAreas(severityZones.depression)}
               {renderDaySeparators()}
               <Tooltip content={<CustomTooltip />} />
               <Legend 
