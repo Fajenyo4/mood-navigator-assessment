@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceArea, ReferenceLine } from 'recharts';
 import { ChartContainer } from "@/components/ui/chart";
@@ -20,28 +19,27 @@ interface TimeSeriesChartProps {
   data: AssessmentRecord[];
 }
 
-// Define the severity zones for reference areas in the chart
 const severityZones = {
   depression: [
-    { y1: 0, y2: 9, color: '#10b981' }, // Normal: Green
-    { y1: 10, y2: 13, color: '#f59e0b' }, // Mild: Amber
-    { y1: 14, y2: 20, color: '#f97316' }, // Moderate: Orange
-    { y1: 21, y2: 27, color: '#ef4444' }, // Severe: Red
-    { y1: 28, y2: 42, color: '#dc2626' }, // Very Severe: Dark red
+    { y1: 0, y2: 9, color: '#10b981' },
+    { y1: 10, y2: 13, color: '#f59e0b' },
+    { y1: 14, y2: 20, color: '#f97316' },
+    { y1: 21, y2: 27, color: '#ef4444' },
+    { y1: 28, y2: 42, color: '#dc2626' },
   ],
   anxiety: [
-    { y1: 0, y2: 10, color: '#10b981' }, // Normal: Green
-    { y1: 11, y2: 13, color: '#f59e0b' }, // Mild: Amber
-    { y1: 14, y2: 20, color: '#f97316' }, // Moderate: Orange
-    { y1: 21, y2: 27, color: '#ef4444' }, // Severe: Red
-    { y1: 28, y2: 42, color: '#dc2626' }, // Very Severe: Dark red
+    { y1: 0, y2: 10, color: '#10b981' },
+    { y1: 11, y2: 13, color: '#f59e0b' },
+    { y1: 14, y2: 20, color: '#f97316' },
+    { y1: 21, y2: 27, color: '#ef4444' },
+    { y1: 28, y2: 42, color: '#dc2626' },
   ],
   stress: [
-    { y1: 0, y2: 16, color: '#10b981' }, // Normal: Green
-    { y1: 17, y2: 20, color: '#f59e0b' }, // Mild: Amber
-    { y1: 21, y2: 28, color: '#f97316' }, // Moderate: Orange
-    { y1: 29, y2: 37, color: '#ef4444' }, // Severe: Red
-    { y1: 38, y2: 42, color: '#dc2626' }, // Very Severe: Dark red
+    { y1: 0, y2: 16, color: '#10b981' },
+    { y1: 17, y2: 20, color: '#f59e0b' },
+    { y1: 21, y2: 28, color: '#f97316' },
+    { y1: 29, y2: 37, color: '#ef4444' },
+    { y1: 38, y2: 42, color: '#dc2626' },
   ]
 };
 
@@ -175,7 +173,6 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
     return null;
   };
 
-  // Get levels for the latest record for display in the summary
   const depressionLevel = latestRecord ? getSeverityLevel(latestRecord.depression_score, 'depression') : '';
   const anxietyLevel = latestRecord ? getSeverityLevel(latestRecord.anxiety_score, 'anxiety') : '';
   const stressLevel = latestRecord ? getSeverityLevel(latestRecord.stress_score, 'stress') : '';
@@ -187,7 +184,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
     const previousRecord = data[data.length - 2];
 
     return (
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+      <div className="mt-8">
         <div className="flex justify-between items-center mb-2">
           <h3 className="text-lg font-semibold">Latest Assessment Summary</h3>
           <ChartGuide />
@@ -253,7 +250,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
   };
 
   return (
-    <div className="w-full h-auto md:h-[500px] p-4 bg-white rounded-lg shadow">
+    <div className="w-full h-auto md:h-[600px] p-4 bg-white rounded-lg shadow">
       <h2 className="text-xl font-semibold text-gray-700 mb-4 text-center">
         Mental Health Progress Over Time
       </h2>
@@ -267,7 +264,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
         }}
       />
 
-      <div className="h-[400px] min-h-[400px]">
+      <div className="h-[450px] min-h-[450px] mb-8">
         <ChartContainer 
           config={{
             depression: { theme: { light: '#f43f5e', dark: '#fb7185' } },
@@ -279,17 +276,23 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={filteredChartData}
-              margin={{ top: 5, right: 30, left: 20, bottom: 50 }}
+              margin={{ top: 5, right: 30, left: 20, bottom: 70 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis 
                 dataKey="fullDisplay"
                 stroke="#6b7280"
-                tick={{ fill: '#6b7280', fontSize: 12 }}
+                tick={{ 
+                  fill: '#6b7280', 
+                  fontSize: 11,
+                  angle: -45,
+                  textAnchor: 'end',
+                  dy: 10
+                }}
                 tickLine={{ stroke: '#6b7280' }}
-                angle={-45}
-                textAnchor="end"
-                height={80}
+                height={60}
+                minTickGap={10}
+                interval="preserveStartEnd"
               />
               <YAxis
                 stroke="#6b7280"
@@ -360,7 +363,11 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
         </ChartContainer>
       </div>
       
-      {renderLatestSummary()}
+      <div className="w-full h-px bg-gray-200 my-6"></div>
+      
+      <div className="mt-8">
+        {renderLatestSummary()}
+      </div>
     </div>
   );
 };
