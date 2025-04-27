@@ -9,6 +9,7 @@ export const useAssessmentHistory = (userId: string | undefined) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
+  const [latestAssessment, setLatestAssessment] = useState<AssessmentRecord | null>(null);
 
   useEffect(() => {
     const fetchAssessments = async () => {
@@ -20,7 +21,19 @@ export const useAssessmentHistory = (userId: string | undefined) => {
 
       try {
         const results = await getAssessmentResults(userId, selectedLanguage);
+        
+        // Sort by date - newest first
+        const sortedResults = [...results].sort((a, b) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        
         setAssessments(results);
+        
+        // Set the latest assessment for summary display
+        if (sortedResults.length > 0) {
+          setLatestAssessment(sortedResults[0]);
+        }
+        
         setLoading(false);
       } catch (err) {
         console.error('Error fetching assessment history:', err);
@@ -40,6 +53,7 @@ export const useAssessmentHistory = (userId: string | undefined) => {
 
   return {
     assessments,
+    latestAssessment,
     loading,
     error,
     selectedLanguage,

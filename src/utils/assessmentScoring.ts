@@ -76,6 +76,71 @@ export const determineLevel = (score: number, type: AssessmentType): AssessmentR
   }
 };
 
+// New helper functions for chart visualization
+export const getSeverityLevel = (score: number, type: 'depression' | 'anxiety' | 'stress'): string => {
+  if (type === 'depression') {
+    if (score < 10) return "Normal";
+    if (score < 14) return "Mild";
+    if (score < 21) return "Moderate";
+    if (score < 28) return "Severe";
+    return "Very Severe";
+  } else if (type === 'anxiety') {
+    if (score < 11) return "Normal";
+    if (score < 14) return "Mild";
+    if (score < 21) return "Moderate";
+    if (score < 28) return "Severe";
+    return "Very Severe";
+  } else { // stress
+    if (score < 17) return "Normal";
+    if (score < 21) return "Mild";
+    if (score < 29) return "Moderate";
+    if (score < 38) return "Severe";
+    return "Very Severe";
+  }
+};
+
+export const getSeverityColor = (level: string): string => {
+  switch (level) {
+    case 'Normal':
+      return '#10b981'; // Green
+    case 'Mild':
+      return '#f59e0b'; // Amber
+    case 'Moderate':
+      return '#f97316'; // Orange
+    case 'Severe':
+      return '#ef4444'; // Red
+    case 'Very Severe':
+      return '#dc2626'; // Dark red
+    default:
+      return '#6b7280'; // Gray
+  }
+};
+
+export const getSatisfactionLevel = (score: number): string => {
+  if (score < 14) return "Very dissatisfied";
+  if (score < 20) return "Dissatisfied";
+  if (score < 27) return "Neutral";
+  if (score < 33) return "Satisfied";
+  return "Very Satisfied";
+};
+
+export const getSatisfactionColor = (level: string): string => {
+  switch (level) {
+    case 'Very Satisfied':
+      return '#10b981'; // Green
+    case 'Satisfied':
+      return '#34d399'; // Light green
+    case 'Neutral':
+      return '#f59e0b'; // Amber
+    case 'Dissatisfied':
+      return '#f97316'; // Orange
+    case 'Very dissatisfied':
+      return '#ef4444'; // Red
+    default:
+      return '#6b7280'; // Gray
+  }
+};
+
 export const determineMoodResult = (
   depressionLevel: AssessmentResult,
   anxietyLevel: AssessmentResult,
