@@ -54,8 +54,8 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
           </DialogTitle>
         </DialogHeader>
         {result ? (
-          <div className="flex flex-col items-center space-y-8">
-            <p className="text-xl text-center font-medium text-gray-900 mb-6">
+          <div className="flex flex-col items-center space-y-10">
+            <p className="text-xl text-center font-medium text-gray-900">
               {result.message.split('\n\n')[0]}
             </p>
             
@@ -63,10 +63,10 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
               value={getScorePercentage(result.satisfactionResult.score, 35)}
               label="Extremely Unhappy"
               title="Overall Mood"
-              className="mb-10"
+              className="mb-12"
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full mb-10">
               <MoodScale
                 value={getScorePercentage(result.satisfactionResult.score, 35)}
                 label={result.satisfactionResult.level}

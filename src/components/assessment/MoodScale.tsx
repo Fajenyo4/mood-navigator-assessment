@@ -12,16 +12,16 @@ interface MoodScaleProps {
 
 const MoodScale: React.FC<MoodScaleProps> = ({ value, label, title, className = '' }) => {
   return (
-    <div className={`w-full space-y-4 ${className}`}>
+    <div className={`w-full space-y-6 ${className}`}>
       {title && (
-        <h3 className="text-xl font-medium text-green-800 mb-2">{title}</h3>
+        <h3 className="text-xl font-medium text-green-800">{title}</h3>
       )}
-      <div className="flex items-center justify-between gap-6 relative">
+      <div className="flex items-center justify-between gap-6 relative pt-8">
         <Frown className="w-6 h-6 text-purple-500" />
         <div className="flex-1">
           <Progress value={value} className="h-3" />
           <div 
-            className="absolute -top-7 left-0"
+            className="absolute -top-2 left-0"
             style={{ left: `${value}%`, transform: 'translateX(-50%)' }}
           >
             <span className="text-sm font-medium text-red-500 whitespace-nowrap">{label}</span>
