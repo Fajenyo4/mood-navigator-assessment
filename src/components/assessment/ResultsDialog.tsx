@@ -47,15 +47,15 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`sm:max-w-xl ${isMobile ? 'max-h-[90vh] overflow-y-auto p-4' : 'p-6'}`}>
+      <DialogContent className={`sm:max-w-xl ${isMobile ? 'max-h-[90vh] overflow-y-auto p-4' : 'p-8'}`}>
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center mb-6">
+          <DialogTitle className="text-3xl font-bold text-center mb-8">
             Are you happy?
           </DialogTitle>
         </DialogHeader>
         {result ? (
-          <div className="flex flex-col items-center space-y-6">
-            <p className="text-lg text-center font-medium text-gray-900 mb-4">
+          <div className="flex flex-col items-center space-y-8">
+            <p className="text-xl text-center font-medium text-gray-900 mb-6">
               {result.message.split('\n\n')[0]}
             </p>
             
@@ -63,10 +63,10 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
               value={getScorePercentage(result.satisfactionResult.score, 35)}
               label="Extremely Unhappy"
               title="Overall Mood"
-              className="mb-8"
+              className="mb-10"
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full mb-8">
               <MoodScale
                 value={getScorePercentage(result.satisfactionResult.score, 35)}
                 label={result.satisfactionResult.level}
@@ -90,7 +90,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
             </div>
 
             {!isHistoryPage && (
-              <div className={`w-full ${isMobile ? 'flex flex-col space-y-3' : 'flex space-x-3'}`}>
+              <div className={`w-full ${isMobile ? 'flex flex-col space-y-4' : 'flex space-x-4'}`}>
                 <ResultActions 
                   redirectUrl={REDIRECT_URL}
                   language={language}
