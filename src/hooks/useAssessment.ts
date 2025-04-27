@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/assessmentScoring';
 import { saveAssessmentResult } from '@/services/assessment';
@@ -41,6 +42,9 @@ export const useAssessment = ({
   const [selectedOption, setSelectedOption] = useState<string>((initialAnswers[initialQuestion + 1]?.toString()) || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [updateCounter, setUpdateCounter] = useState(0);
+  
+  // Remove any auto-saving mechanisms that might cause refreshes
+  // Instead, only save progress when explicitly triggered by user actions
 
   const handleAnswer = useCallback((value: string) => {
     const numericValue = parseInt(value);
@@ -57,12 +61,18 @@ export const useAssessment = ({
       setCurrentQuestion(currentQuestion + 1);
       setSelectedOption("");
       
-      localStorage.setItem('assessment_progress', JSON.stringify({
-        currentQuestion: currentQuestion + 1,
-        answers: newAnswers,
-        timestamp: Date.now(),
-        language: defaultLanguage
-      }));
+      // Save to localStorage without triggering refreshes
+      try {
+        localStorage.setItem('assessment_progress', JSON.stringify({
+          currentQuestion: currentQuestion + 1,
+          answers: newAnswers,
+          timestamp: Date.now(),
+          language: defaultLanguage
+        }));
+      } catch (error) {
+        console.error('Error saving progress to localStorage:', error);
+        // Silently fail without disrupting the user experience
+      }
     } else {
       handleSubmit(newAnswers);
     }
@@ -112,37 +122,41 @@ export const useAssessment = ({
 
       setShowResults(true);
 
+      // Clear local storage only after successful submission
       localStorage.removeItem('assessment_progress');
 
-      saveAssessmentResult(
-        userId,
-        userName || userEmail || '',
-        userEmail || '',
-        {
-          numeric: finalAnswers,
-          text: textAnswers,
-          scores,
-          levels: {
-            depression: depressionLevel.level,
-            anxiety: anxietyLevel.level,
-            stress: stressLevel.level,
-            lifeSatisfaction: satisfactionLevel.level
+      // Save results without triggering page refreshes
+      try {
+        await saveAssessmentResult(
+          userId,
+          userName || userEmail || '',
+          userEmail || '',
+          {
+            numeric: finalAnswers,
+            text: textAnswers,
+            scores,
+            levels: {
+              depression: depressionLevel.level,
+              anxiety: anxietyLevel.level,
+              stress: stressLevel.level,
+              lifeSatisfaction: satisfactionLevel.level
+            }
+          },
+          result.mood,
+          defaultLanguage,
+          {
+            depression: scores.depression,
+            anxiety: scores.anxiety,
+            stress: scores.stress,
+            lifeSatisfaction: scores.lifeSatisfaction
           }
-        },
-        result.mood,
-        defaultLanguage,
-        {
-          depression: scores.depression,
-          anxiety: scores.anxiety,
-          stress: scores.stress,
-          lifeSatisfaction: scores.lifeSatisfaction
-        }
-      ).catch(error => {
+        );
+      } catch (error) {
         console.error('Error saving assessment:', error);
         toast.error('Failed to save your assessment results');
-      }).finally(() => {
+      } finally {
         setIsSubmitting(false);
-      });
+      }
 
     } catch (error) {
       console.error('Error processing assessment:', error);

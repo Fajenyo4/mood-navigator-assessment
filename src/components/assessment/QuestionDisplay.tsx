@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -29,11 +29,10 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
 }) => {
   const options = question?.options || [];
 
-  // Handler for option click to force update even if same option
-  const handleOptionClick = (value: string) => {
-    // Always call onAnswer, even if it's the same value
+  // Create a stable reference to the handler to avoid re-renders
+  const handleOptionClick = useCallback((value: string) => {
     onAnswer(value);
-  };
+  }, [onAnswer]);
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -45,6 +44,7 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
           size="sm" 
           onClick={onPrevious}
           className="mb-6"
+          type="button" // Explicitly set type to avoid form submissions
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
@@ -90,4 +90,4 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   );
 };
 
-export default QuestionDisplay;
+export default React.memo(QuestionDisplay); // Memoize component to prevent unnecessary re-renders

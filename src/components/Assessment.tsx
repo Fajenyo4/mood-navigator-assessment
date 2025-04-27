@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import QuestionDisplay from './assessment/QuestionDisplay';
@@ -25,6 +26,8 @@ const questionCounts = {
 const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
   const { user, language: authLanguage } = useAuth();
   const [isInitialized, setIsInitialized] = useState(false);
+  // Add a state to prevent multiple initializations
+  const [hasInitialized, setHasInitialized] = useState(false);
   
   // Get the effective language - either from props or from auth context
   const effectiveLanguage = defaultLanguage || authLanguage || 'en';
@@ -50,8 +53,8 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     return { initialQuestion: 0, initialAnswers: {} };
   }, [effectiveLanguage]);
   
-  // Get initial state from localStorage - do this once on component mount
-  const [initialState] = useState(getSavedProgressState());
+  // Only run initialization once to prevent repeated reloads
+  const [initialState] = useState(() => getSavedProgressState());
   
   const {
     currentQuestion,
@@ -72,10 +75,13 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     initialAnswers: initialState.initialAnswers
   });
 
-  // Immediately mark as initialized on first render
+  // Ensure initialization happens only once
   useEffect(() => {
-    setIsInitialized(true);
-  }, []);
+    if (!hasInitialized) {
+      setIsInitialized(true);
+      setHasInitialized(true);
+    }
+  }, [hasInitialized]);
 
   // Get the correct question set based on language
   const getQuestions = useCallback(() => {
