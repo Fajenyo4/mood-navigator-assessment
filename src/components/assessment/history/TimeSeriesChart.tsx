@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceArea, ReferenceLine } from 'recharts';
 import { ChartContainer } from "@/components/ui/chart";
@@ -282,12 +283,23 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
               <XAxis 
                 dataKey="fullDisplay"
                 stroke="#6b7280"
-                tick={{ 
-                  fill: '#6b7280', 
-                  fontSize: 11,
-                  angle: -45,
-                  textAnchor: 'end',
-                  dy: 10
+                tick={(props) => {
+                  const { x, y, payload } = props;
+                  return (
+                    <g transform={`translate(${x},${y})`}>
+                      <text
+                        x={0}
+                        y={0}
+                        dy={10}
+                        textAnchor="end"
+                        fill="#6b7280"
+                        fontSize={11}
+                        transform="rotate(-45)"
+                      >
+                        {payload.value}
+                      </text>
+                    </g>
+                  );
                 }}
                 tickLine={{ stroke: '#6b7280' }}
                 height={60}
