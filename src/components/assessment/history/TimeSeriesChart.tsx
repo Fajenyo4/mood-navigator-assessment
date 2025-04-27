@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceArea, ReferenceLine } from 'recharts';
 import { ChartContainer } from "@/components/ui/chart";
@@ -12,6 +11,9 @@ import {
 } from '@/utils/assessmentScoring';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { TrendingUp, TrendingDown } from 'lucide-react';
+import DateRangeFilter from './DateRangeFilter';
+import ChartGuide from './ChartGuide';
 
 interface TimeSeriesChartProps {
   data: AssessmentRecord[];
@@ -23,7 +25,9 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
       new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0] : null
   );
   
-  // Process and consolidate data by day and time
+  const [startDate, setStartDate] = useState<Date>();
+  const [endDate, setEndDate] = useState<Date>();
+
   const chartData = data
     .map(record => {
       const date = new Date(record.created_at);
@@ -46,38 +50,25 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
     })
     .sort((a, b) => a.timestamp - b.timestamp);
 
-  // Severity zones for background coloring
-  const depressionZones = [
-    { y1: 0, y2: 10, color: '#d1e7dd' },   // Normal - light green
-    { y1: 10, y2: 14, color: '#fff3cd' },  // Mild - light yellow
-    { y1: 14, y2: 21, color: '#ffe5d0' },  // Moderate - light orange
-    { y1: 21, y2: 28, color: '#f8d7da' },  // Severe - light red
-    { y1: 28, y2: 42, color: '#ffd0d5' }   // Very Severe - lighter red
-  ];
-  
-  const anxietyZones = [
-    { y1: 0, y2: 11, color: '#d1e7dd' },   // Normal
-    { y1: 11, y2: 14, color: '#fff3cd' },  // Mild
-    { y1: 14, y2: 21, color: '#ffe5d0' },  // Moderate
-    { y1: 21, y2: 28, color: '#f8d7da' },  // Severe
-    { y1: 28, y2: 42, color: '#ffd0d5' }   // Very Severe
-  ];
-  
-  const stressZones = [
-    { y1: 0, y2: 17, color: '#d1e7dd' },   // Normal
-    { y1: 17, y2: 21, color: '#fff3cd' },  // Mild
-    { y1: 21, y2: 29, color: '#ffe5d0' },  // Moderate
-    { y1: 29, y2: 38, color: '#f8d7da' },  // Severe
-    { y1: 38, y2: 42, color: '#ffd0d5' }   // Very Severe
-  ];
+  const getTrendIcon = (current: number, previous: number | undefined) => {
+    if (!previous) return null;
+    const diff = current - previous;
+    
+    if (diff === 0) return null;
+    
+    const color = diff > 0 ? 'text-red-500' : 'text-green-500';
+    const Icon = diff > 0 ? TrendingUp : TrendingDown;
+    
+    return <Icon className={`inline-block ml-2 h-4 w-4 ${color}`} />;
+  };
 
-  const satisfactionZones = [
-    { y1: 0, y2: 14, color: '#f8d7da' },    // Very dissatisfied
-    { y1: 14, y2: 20, color: '#ffe5d0' },   // Dissatisfied
-    { y1: 20, y2: 27, color: '#fff3cd' },   // Neutral
-    { y1: 27, y2: 33, color: '#e2f0d9' },   // Satisfied
-    { y1: 33, y2: 35, color: '#d1e7dd' }    // Very Satisfied
-  ];
+  const filteredChartData = chartData.filter(item => {
+    if (!startDate && !endDate) return true;
+    const itemDate = new Date(item.timestamp);
+    if (startDate && !endDate) return itemDate >= startDate;
+    if (!startDate && endDate) return itemDate <= endDate;
+    return itemDate >= (startDate as Date) && itemDate <= (endDate as Date);
+  });
 
   const renderReferenceAreas = (zones: Array<{y1: number, y2: number, color: string}>) => {
     return zones.map((zone, index) => (
@@ -91,15 +82,11 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
     ));
   };
 
-  // Generate vertical lines for day separators
   const renderDaySeparators = () => {
-    // Extract unique dates
-    const uniqueDates = [...new Set(chartData.map(item => item.date))];
+    const uniqueDates = [...new Set(filteredChartData.map(item => item.date))];
     
-    // For each date change (except the first), add a vertical line
     return uniqueDates.slice(1).map((date) => {
-      // Find the first data point with this date
-      const firstDataPoint = chartData.find(item => item.date === date);
+      const firstDataPoint = filteredChartData.find(item => item.date === date);
       if (!firstDataPoint) return null;
       
       return (
@@ -114,7 +101,6 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
     });
   };
 
-  // Custom tooltip component for better score interpretation
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -163,49 +149,71 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
     return null;
   };
 
-  // Function to render a summary of the latest assessment
   const renderLatestSummary = () => {
     if (!latestRecord) return null;
 
-    const depressionLevel = getSeverityLevel(latestRecord.depression_score, 'depression');
-    const anxietyLevel = getSeverityLevel(latestRecord.anxiety_score, 'anxiety');
-    const stressLevel = getSeverityLevel(latestRecord.stress_score, 'stress');
-    const satisfactionLevel = getSatisfactionLevel(latestRecord.life_satisfaction_score);
+    const previousRecord = data[data.length - 2];
 
     return (
       <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-        <h3 className="text-lg font-semibold mb-2">Latest Assessment Summary</h3>
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-lg font-semibold">Latest Assessment Summary</h3>
+          <ChartGuide />
+        </div>
         <p className="text-sm text-gray-600 mb-3">
           {format(new Date(latestRecord.created_at), 'MMMM d, yyyy, h:mm a')}
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div className="flex items-center">
-            <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#f43f5e' }}></div>
-            <span className="text-sm font-medium">Depression:</span>
-            <Badge className="ml-2" style={{ backgroundColor: getSeverityColor(depressionLevel) }}>
-              {depressionLevel} ({latestRecord.depression_score})
-            </Badge>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#f43f5e' }}></div>
+              <span className="text-sm font-medium">Depression:</span>
+            </div>
+            <div className="flex items-center">
+              <Badge className="ml-2" style={{ backgroundColor: getSeverityColor(depressionLevel) }}>
+                {depressionLevel} ({latestRecord.depression_score})
+              </Badge>
+              {getTrendIcon(latestRecord.depression_score, previousRecord?.depression_score)}
+            </div>
           </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#3b82f6' }}></div>
-            <span className="text-sm font-medium">Anxiety:</span>
-            <Badge className="ml-2" style={{ backgroundColor: getSeverityColor(anxietyLevel) }}>
-              {anxietyLevel} ({latestRecord.anxiety_score})
-            </Badge>
+          
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#3b82f6' }}></div>
+              <span className="text-sm font-medium">Anxiety:</span>
+            </div>
+            <div className="flex items-center">
+              <Badge className="ml-2" style={{ backgroundColor: getSeverityColor(anxietyLevel) }}>
+                {anxietyLevel} ({latestRecord.anxiety_score})
+              </Badge>
+              {getTrendIcon(latestRecord.anxiety_score, previousRecord?.anxiety_score)}
+            </div>
           </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#facc15' }}></div>
-            <span className="text-sm font-medium">Stress:</span>
-            <Badge className="ml-2" style={{ backgroundColor: getSeverityColor(stressLevel) }}>
-              {stressLevel} ({latestRecord.stress_score})
-            </Badge>
+          
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#facc15' }}></div>
+              <span className="text-sm font-medium">Stress:</span>
+            </div>
+            <div className="flex items-center">
+              <Badge className="ml-2" style={{ backgroundColor: getSeverityColor(stressLevel) }}>
+                {stressLevel} ({latestRecord.stress_score})
+              </Badge>
+              {getTrendIcon(latestRecord.stress_score, previousRecord?.stress_score)}
+            </div>
           </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#14b8a6' }}></div>
-            <span className="text-sm font-medium">Life Satisfaction:</span>
-            <Badge className="ml-2" style={{ backgroundColor: getSatisfactionColor(satisfactionLevel) }}>
-              {satisfactionLevel} ({latestRecord.life_satisfaction_score})
-            </Badge>
+          
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#14b8a6' }}></div>
+              <span className="text-sm font-medium">Life Satisfaction:</span>
+            </div>
+            <div className="flex items-center">
+              <Badge className="ml-2" style={{ backgroundColor: getSatisfactionColor(satisfactionLevel) }}>
+                {satisfactionLevel} ({latestRecord.life_satisfaction_score})
+              </Badge>
+              {getTrendIcon(latestRecord.life_satisfaction_score, previousRecord?.life_satisfaction_score)}
+            </div>
           </div>
         </div>
       </div>
@@ -214,9 +222,19 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
 
   return (
     <div className="w-full h-auto md:h-[500px] p-4 bg-white rounded-lg shadow">
-      <h2 className="text-xl font-semibold text-gray-700 mb-6 text-center">
+      <h2 className="text-xl font-semibold text-gray-700 mb-4 text-center">
         Mental Health Progress Over Time
       </h2>
+      
+      <DateRangeFilter
+        startDate={startDate}
+        endDate={endDate}
+        onRangeChange={(start, end) => {
+          setStartDate(start);
+          setEndDate(end);
+        }}
+      />
+
       <div className="h-[400px] min-h-[400px]">
         <ChartContainer 
           config={{
@@ -228,7 +246,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
         >
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
-              data={chartData}
+              data={filteredChartData}
               margin={{ top: 5, right: 30, left: 20, bottom: 50 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
