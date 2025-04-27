@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import QuestionDisplay from './assessment/QuestionDisplay';
@@ -62,7 +61,8 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     answers,
     handleAnswer,
     handlePrevious,
-    setShowResults
+    setShowResults,
+    updateCounter,
   } = useAssessment({
     userId: user?.id,
     userName: user?.user_metadata?.name,

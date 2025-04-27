@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/assessmentScoring';
 import { saveAssessmentResult } from '@/services/assessment';
@@ -24,7 +23,6 @@ export const useAssessment = ({
   initialQuestion = 0,
   initialAnswers = {}
 }: UseAssessmentProps) => {
-  // Memoize the questions based on language for better performance
   const getQuestions = useCallback(() => {
     switch (defaultLanguage) {
       case 'zh-CN': 
@@ -42,23 +40,23 @@ export const useAssessment = ({
   const [showResults, setShowResults] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string>((initialAnswers[initialQuestion + 1]?.toString()) || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [updateCounter, setUpdateCounter] = useState(0);
 
   const handleAnswer = useCallback((value: string) => {
     const numericValue = parseInt(value);
     const newAnswers = { ...answers, [currentQuestion + 1]: numericValue };
+    
     setAnswers(newAnswers);
     setSelectedOption(value);
-
-    // Get question count from the cached questions
+    setUpdateCounter(prev => prev + 1);
+    
     const questions = getQuestions();
     const questionCount = questions.length;
 
-    // Move to next question immediately without delay for better performance
     if (currentQuestion < questionCount - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setSelectedOption("");
       
-      // Save progress immediately
       localStorage.setItem('assessment_progress', JSON.stringify({
         currentQuestion: currentQuestion + 1,
         answers: newAnswers,
@@ -74,6 +72,7 @@ export const useAssessment = ({
     if (currentQuestion > 0) {
       setCurrentQuestion(currentQuestion - 1);
       setSelectedOption(answers[currentQuestion]?.toString() || "");
+      setUpdateCounter(prev => prev + 1);
     }
   }, [currentQuestion, answers]);
 
@@ -101,7 +100,6 @@ export const useAssessment = ({
         scores.needsHelp
       );
 
-      // Create text answers in the background to not block the UI
       const textAnswers: { [key: string]: string } = {};
       Object.keys(finalAnswers).forEach(questionNum => {
         const qNum = parseInt(questionNum);
@@ -112,13 +110,10 @@ export const useAssessment = ({
         }
       });
 
-      // Show results immediately before waiting for the save to complete
       setShowResults(true);
 
-      // Clear assessment progress from localStorage
       localStorage.removeItem('assessment_progress');
 
-      // Save results in the background
       saveAssessmentResult(
         userId,
         userName || userEmail || '',
@@ -164,6 +159,7 @@ export const useAssessment = ({
     isSubmitting,
     handleAnswer,
     handlePrevious,
-    setShowResults
+    setShowResults,
+    updateCounter
   };
 };

@@ -29,6 +29,12 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
 }) => {
   const options = question?.options || [];
 
+  // Handler for option click to force update even if same option
+  const handleOptionClick = (value: string) => {
+    // Always call onAnswer, even if it's the same value
+    onAnswer(value);
+  };
+
   return (
     <div className="w-full max-w-2xl mx-auto">
       <Logo />
@@ -61,6 +67,7 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
             <div 
               key={index} 
               className="transition-all duration-200 ease-in-out"
+              onClick={() => handleOptionClick(index.toString())}
             >
               <div className="flex items-center border border-gray-200 rounded-lg p-4 hover:border-primary hover:bg-gray-50 cursor-pointer">
                 <RadioGroupItem 
