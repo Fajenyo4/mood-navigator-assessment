@@ -102,6 +102,48 @@ export type Database = {
         }
         Relationships: []
       }
+      assessment_results_new: {
+        Row: {
+          answers: Json | null
+          anxiety_score: number | null
+          created_at: string
+          depression_score: number | null
+          final_mood: string | null
+          id: string
+          language_code: string | null
+          life_satisfaction_score: number | null
+          mental_status: string | null
+          stress_score: number | null
+          user_id: string
+        }
+        Insert: {
+          answers?: Json | null
+          anxiety_score?: number | null
+          created_at?: string
+          depression_score?: number | null
+          final_mood?: string | null
+          id?: string
+          language_code?: string | null
+          life_satisfaction_score?: number | null
+          mental_status?: string | null
+          stress_score?: number | null
+          user_id: string
+        }
+        Update: {
+          answers?: Json | null
+          anxiety_score?: number | null
+          created_at?: string
+          depression_score?: number | null
+          final_mood?: string | null
+          id?: string
+          language_code?: string | null
+          life_satisfaction_score?: number | null
+          mental_status?: string | null
+          stress_score?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       assessment_results_unified: {
         Row: {
           answers: Json
@@ -237,6 +279,42 @@ export type Database = {
           name?: string | null
           stress_score?: number | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      survey_responses: {
+        Row: {
+          anxiety: number
+          depression: number
+          ican_email: string
+          ican_id: string
+          id: string
+          language: string
+          life_satisfaction: number
+          stress: number
+          taken_at: string
+        }
+        Insert: {
+          anxiety: number
+          depression: number
+          ican_email: string
+          ican_id: string
+          id?: string
+          language: string
+          life_satisfaction: number
+          stress: number
+          taken_at?: string
+        }
+        Update: {
+          anxiety?: number
+          depression?: number
+          ican_email?: string
+          ican_id?: string
+          id?: string
+          language?: string
+          life_satisfaction?: number
+          stress?: number
+          taken_at?: string
         }
         Relationships: []
       }

@@ -8,13 +8,12 @@ import {
 } from "@/components/ui/dialog";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { MoodResult } from '@/utils/assessmentScoring';
-import MoodIcon from './MoodIcon';
-import ResultMessage from './ResultMessage';
 import ResultActions from './ResultActions';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { assessmentResultsTranslations } from '@/translations/assessmentResults';
+import MoodScale from './MoodScale';
 
 interface ResultsDialogProps {
   open: boolean;
@@ -35,29 +34,60 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   const isHistoryPage = location.pathname === '/history';
   const isMobile = useIsMobile();
 
-  // The redirect URL with proper https protocol to avoid cross-origin issues
   const REDIRECT_URL = "https://www.mican.life/courses-en";
 
   const handleViewHistory = () => {
-    onOpenChange(false); // Close the dialog
+    onOpenChange(false);
     navigate(`/history-chart?lang=${language}`);
+  };
+
+  const getScorePercentage = (score: number, maxScore: number) => {
+    return (score / maxScore) * 100;
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`sm:max-w-md md:max-w-lg ${isMobile ? 'max-h-[90vh] overflow-y-auto p-4' : ''}`}>
+      <DialogContent className={`sm:max-w-xl ${isMobile ? 'max-h-[90vh] overflow-y-auto p-4' : 'p-6'}`}>
         <DialogHeader>
-          <DialogTitle className={`text-center ${isMobile ? 'text-lg' : 'text-xl'} font-bold`}>
-            {assessmentResultsTranslations[language as keyof typeof assessmentResultsTranslations]?.title || 'Assessment Results'}
+          <DialogTitle className="text-2xl font-bold text-center mb-6">
+            Are you happy?
           </DialogTitle>
         </DialogHeader>
         {result ? (
-          <div className="flex flex-col items-center space-y-4 py-2">
-            <div className="mb-2">
-              <MoodIcon iconType={result.iconType} iconColor={result.iconColor} />
-            </div>
+          <div className="flex flex-col items-center space-y-6">
+            <p className="text-lg text-center font-medium text-gray-900 mb-4">
+              {result.message.split('\n\n')[0]}
+            </p>
             
-            <ResultMessage message={result.message} language={language} />
+            <MoodScale
+              value={getScorePercentage(result.satisfactionResult.score, 35)}
+              label="Extremely Unhappy"
+              title="Overall Mood"
+              className="mb-8"
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full mb-6">
+              <MoodScale
+                value={getScorePercentage(result.satisfactionResult.score, 35)}
+                label={result.satisfactionResult.level}
+                title="Life Satisfaction"
+              />
+              <MoodScale
+                value={getScorePercentage(result.anxietyResult.score, 40)}
+                label={result.anxietyResult.level}
+                title="Anxiety"
+              />
+              <MoodScale
+                value={getScorePercentage(result.depressionResult.score, 40)}
+                label={result.depressionResult.level}
+                title="Depression"
+              />
+              <MoodScale
+                value={getScorePercentage(result.stressResult.score, 40)}
+                label={result.stressResult.level}
+                title="Stress"
+              />
+            </div>
 
             {!isHistoryPage && (
               <div className={`w-full ${isMobile ? 'flex flex-col space-y-3' : 'flex space-x-3'}`}>
