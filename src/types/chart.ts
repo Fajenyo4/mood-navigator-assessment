@@ -4,6 +4,7 @@ export interface ChartDataItem {
   value: number;
   level: string;
   color: string;
+  category?: 'depression' | 'anxiety' | 'stress' | 'lifeSatisfaction';
 }
 
 export interface AssessmentChartData {
@@ -29,4 +30,21 @@ export interface AssessmentChartProps {
   data: AssessmentChartData;
   className?: string;
   height?: number | string;
+}
+
+export interface TimeSeriesDataPoint {
+  date: string;
+  time: string;
+  displayDate: string;
+  displayTime: string;
+  fullDisplay: string;
+  timestamp: number;
+  depression: number;
+  anxiety: number;
+  stress: number;
+  lifeSatisfaction: number;
+  depressionLevel: string;
+  anxietyLevel: string;
+  stressLevel: string;
+  satisfactionLevel: string;
 }

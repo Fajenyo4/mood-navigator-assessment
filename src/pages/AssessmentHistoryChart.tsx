@@ -31,7 +31,7 @@ const AssessmentHistoryChart = () => {
             stress, and life satisfaction. The colored background bands represent different severity levels.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-x-auto">
           <TimeSeriesChart data={assessments} />
         </CardContent>
       </Card>

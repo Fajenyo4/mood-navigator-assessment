@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/assessmentScoring';
 import { saveAssessmentResult } from '@/services/assessment';
 import { toast } from 'sonner';
@@ -24,6 +24,9 @@ export const useAssessment = ({
   initialQuestion = 0,
   initialAnswers = {}
 }: UseAssessmentProps) => {
+  // Reference to track initialization
+  const initialized = useRef(false);
+
   const getQuestions = useCallback(() => {
     switch (defaultLanguage) {
       case 'zh-CN': 
@@ -43,8 +46,20 @@ export const useAssessment = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [updateCounter, setUpdateCounter] = useState(0);
   
-  // Remove any auto-saving mechanisms that might cause refreshes
-  // Instead, only save progress when explicitly triggered by user actions
+  // Only save progress locally without triggering any refreshes
+  const saveProgressLocally = useCallback((newQuestion: number, newAnswers: { [key: number]: number }) => {
+    try {
+      localStorage.setItem('assessment_progress', JSON.stringify({
+        currentQuestion: newQuestion,
+        answers: newAnswers,
+        timestamp: Date.now(),
+        language: defaultLanguage
+      }));
+    } catch (error) {
+      console.error('Error saving progress to localStorage:', error);
+      // Silently fail without disrupting user experience
+    }
+  }, [defaultLanguage]);
 
   const handleAnswer = useCallback((value: string) => {
     const numericValue = parseInt(value);
@@ -52,39 +67,36 @@ export const useAssessment = ({
     
     setAnswers(newAnswers);
     setSelectedOption(value);
-    setUpdateCounter(prev => prev + 1);
+    setUpdateCounter(prev => prev + 1); // Force re-render for selection UI
     
     const questions = getQuestions();
     const questionCount = questions.length;
 
     if (currentQuestion < questionCount - 1) {
-      setCurrentQuestion(currentQuestion + 1);
+      const nextQuestion = currentQuestion + 1;
+      setCurrentQuestion(nextQuestion);
       setSelectedOption("");
       
-      // Save to localStorage without triggering refreshes
-      try {
-        localStorage.setItem('assessment_progress', JSON.stringify({
-          currentQuestion: currentQuestion + 1,
-          answers: newAnswers,
-          timestamp: Date.now(),
-          language: defaultLanguage
-        }));
-      } catch (error) {
-        console.error('Error saving progress to localStorage:', error);
-        // Silently fail without disrupting the user experience
-      }
+      // Save progress locally without triggering refreshes
+      saveProgressLocally(nextQuestion, newAnswers);
     } else {
       handleSubmit(newAnswers);
     }
-  }, [currentQuestion, answers, defaultLanguage, getQuestions]);
+  }, [currentQuestion, answers, getQuestions, saveProgressLocally]);
 
   const handlePrevious = useCallback(() => {
     if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1);
-      setSelectedOption(answers[currentQuestion]?.toString() || "");
+      const prevQuestion = currentQuestion - 1;
+      setCurrentQuestion(prevQuestion);
+      // Set the previous answer as selected
+      setSelectedOption(answers[prevQuestion + 1]?.toString() || "");
+      // Force UI update to show selection correctly
       setUpdateCounter(prev => prev + 1);
+      
+      // Update local storage with the current state
+      saveProgressLocally(prevQuestion, answers);
     }
-  }, [currentQuestion, answers]);
+  }, [currentQuestion, answers, saveProgressLocally]);
 
   const handleSubmit = async (finalAnswers: { [key: number]: number }) => {
     if (!userId) {
@@ -122,9 +134,6 @@ export const useAssessment = ({
 
       setShowResults(true);
 
-      // Clear local storage only after successful submission
-      localStorage.removeItem('assessment_progress');
-
       // Save results without triggering page refreshes
       try {
         await saveAssessmentResult(
@@ -151,6 +160,9 @@ export const useAssessment = ({
             lifeSatisfaction: scores.lifeSatisfaction
           }
         );
+        
+        // Clear local storage only after successful submission
+        localStorage.removeItem('assessment_progress');
       } catch (error) {
         console.error('Error saving assessment:', error);
         toast.error('Failed to save your assessment results');
@@ -164,6 +176,16 @@ export const useAssessment = ({
       setIsSubmitting(false);
     }
   };
+
+  // Run initialization only once
+  useEffect(() => {
+    if (!initialized.current) {
+      initialized.current = true;
+      
+      // No auto-refreshes or auto-saving that might cause issues
+      console.log("Assessment initialized with question:", initialQuestion);
+    }
+  }, [initialQuestion]);
 
   return {
     currentQuestion,

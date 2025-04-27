@@ -22,17 +22,22 @@ const AssessmentChart: React.FC<AssessmentChartProps> = ({
         satisfaction: { theme: { light: '#10b981', dark: '#34d399' } },
       }}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 50 }}>
+          <BarChart 
+            data={chartData} 
+            margin={{ top: 10, right: 10, left: 10, bottom: 50 }}
+          >
             <XAxis 
               dataKey="name" 
               angle={-45} 
               textAnchor="end" 
               height={70} 
               tick={{ fill: '#666', fontSize: 12 }}
+              interval={0}
             />
             <YAxis 
               tick={{ fill: '#666', fontSize: 12 }} 
               label={{ value: 'Score', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }} 
+              domain={[0, dataMax => Math.max(42, dataMax)]} // Set maximum domain to at least 42 for consistency
             />
             <Tooltip content={ChartTooltip} />
             <Legend 
@@ -53,6 +58,9 @@ const AssessmentChart: React.FC<AssessmentChartProps> = ({
           </BarChart>
         </ResponsiveContainer>
       </ChartContainer>
+      <div className="text-xs text-center mt-2 text-gray-500">
+        Hover over or tap bars to see severity level
+      </div>
     </div>
   );
 };
