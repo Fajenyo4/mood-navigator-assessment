@@ -1,3 +1,4 @@
+
 import { AssessmentResult, AssessmentType, DassScores, SeverityLevel, AssessmentLevels, MoodResult } from './scoring/types';
 
 // Object to map severity levels to numeric ranks (1-5)
@@ -337,7 +338,8 @@ export const determineMoodResult = (
   stressLevel: AssessmentResult,
   satisfactionLevel: AssessmentResult,
   isParent: number,
-  needsHelp: number
+  needsHelp: number,
+  language: string = 'en' // Add language parameter with default value
 ): MoodResult => {
   // Determine overall DASS severity rank (highest of the three)
   const dassRank = getHighestSeverityRank(

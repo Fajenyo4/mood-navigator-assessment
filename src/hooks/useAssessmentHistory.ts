@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { getAssessmentResults, AssessmentRecord } from '@/services/assessment';
 import { toast } from 'sonner';
-import { AVAILABLE_LANGUAGES } from '@/components/assessment/AssessmentHistory';
+import { AVAILABLE_LANGUAGES } from '@/constants/languages';
 
 export const useAssessmentHistory = (userId: string | undefined) => {
   const [assessments, setAssessments] = useState<AssessmentRecord[]>([]);

@@ -142,9 +142,10 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
       stressLevel,
       satisfactionLevel,
       scores.isParent || 0,
-      scores.needsHelp || 0
+      scores.needsHelp || 0,
+      effectiveLanguage
     );
-  }, [answers]);
+  }, [answers, effectiveLanguage]);
 
   // Handle assessment reset
   const handleReset = useCallback(() => {
