@@ -304,7 +304,7 @@ const getHighestSeverityRank = (
 };
 
 // Updated helper function to determine mental health status based on DASS rank and life satisfaction rank
-// Following the new logic rules provided
+// Following the exact logic rules provided
 const getMentalHealthStatus = (
   dassRank: number,
   lsRank: number
@@ -363,7 +363,7 @@ export const determineMoodResult = (
     iconColor = "text-red-500";
   } else if (moodStatus === "Medium-to-Low Sub-Health Status") {
     moodMessage = "You are experiencing a mild psychological disturbance.";
-    iconType = "meh";
+    iconType = "frown";
     iconColor = "text-orange-500";
   } else if (moodStatus === "Moderate Sub-Health Status") {
     moodMessage = "You are experiencing a moderate sub-health status.";
@@ -379,9 +379,9 @@ export const determineMoodResult = (
     iconColor = "text-green-500";
   }
 
-  const fullMessage = `Mental Health Status: ${moodStatus}\n\n${moodMessage}\n\nDetailed Analysis:\nDepression: ${depressionLevel.message}\nAnxiety: ${anxietyLevel.message}\nStress: ${stressLevel.message}\nLife Satisfaction: ${satisfactionLevel.message}`;
+  const fullMessage = `Mental Health Status: ${moodStatus}\n\n${moodMessage}\n\nDetailed Analysis:\nDepression: ${depressionLevel.level} (${depressionLevel.score})\nAnxiety: ${anxietyLevel.level} (${anxietyLevel.score})\nStress: ${stressLevel.level} (${stressLevel.score})\nLife Satisfaction: ${satisfactionLevel.level} (${satisfactionLevel.score})`;
 
-  // Generate assessment text in Chinese if needed
+  // Generate assessment text in Chinese for all languages
   const assessmentText = generateAssessmentText(
     moodStatus,
     satisfactionLevel.level,

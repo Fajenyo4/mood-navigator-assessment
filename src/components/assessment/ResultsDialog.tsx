@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { assessmentResultsTranslations } from '@/translations/assessmentResults';
 import MoodScale from './MoodScale';
 import ResultMessage from './ResultMessage';
+import MoodIcon from './MoodIcon';
 
 interface ResultsDialogProps {
   open: boolean;
@@ -57,6 +58,15 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
         </DialogHeader>
         {result ? (
           <div className="flex flex-col items-center space-y-12">
+            <div className="flex items-center justify-center gap-4">
+              <MoodIcon iconType={result.iconType} iconColor={result.iconColor} />
+              <p className="text-xl text-center font-medium text-gray-900 max-w-2xl">
+                {isChineseLanguage ? "精神心理健康狀態: " : "Mental Health Status: "}
+                <span className="font-bold">{result.mood}</span>
+              </p>
+            </div>
+            
+            {/* Chinese assessment text */}
             {isChineseLanguage && result.assessmentText ? (
               <ResultMessage message={result.assessmentText} language={language} />
             ) : (
@@ -66,8 +76,12 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
             )}
             
             <MoodScale
-              value={getScorePercentage(result.satisfactionResult.score, 35)}
-              label={isChineseLanguage ? "極度不開心" : "Extremely Unhappy"}
+              value={result.mood === "Healthy" ? 95 :
+                     result.mood === "Medium to High Sub-Health Status" ? 75 :
+                     result.mood === "Moderate Sub-Health Status" ? 50 :
+                     result.mood === "Medium-to-Low Sub-Health Status" ? 25 : 10}
+              label={isChineseLanguage ? (result.mood === "Healthy" ? "開心" : "不開心") : 
+                     (result.mood === "Healthy" ? "Happy" : "Unhappy")}
               title={isChineseLanguage ? "整體情緒" : "Overall Mood"}
               className="mb-12"
             />
@@ -82,18 +96,29 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
                 value={getScorePercentage(result.anxietyResult.score, 40)}
                 label={result.anxietyResult.level}
                 title={isChineseLanguage ? "焦慮" : "Anxiety"}
+                isNegativeScale={true}
               />
               <MoodScale
                 value={getScorePercentage(result.depressionResult.score, 40)}
                 label={result.depressionResult.level}
                 title={isChineseLanguage ? "抑鬱" : "Depression"}
+                isNegativeScale={true}
               />
               <MoodScale
                 value={getScorePercentage(result.stressResult.score, 40)}
                 label={result.stressResult.level}
                 title={isChineseLanguage ? "壓力" : "Stress"}
+                isNegativeScale={true}
               />
             </div>
+
+            {/* Show Chinese assessment text for non-Chinese languages too */}
+            {!isChineseLanguage && result.assessmentText && (
+              <div className="bg-gray-50 p-4 rounded-lg w-full border border-gray-200">
+                <h4 className="text-lg font-medium mb-2">Chinese Assessment:</h4>
+                <p className="text-gray-700">{result.assessmentText}</p>
+              </div>
+            )}
 
             {!isHistoryPage && (
               <div className={`w-full ${isMobile ? 'flex flex-col space-y-4' : 'flex space-x-4'}`}>

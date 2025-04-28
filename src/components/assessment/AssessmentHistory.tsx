@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ResultsDialog from './ResultsDialog';
@@ -42,31 +41,31 @@ const AssessmentHistory: React.FC = () => {
     return {
       mood: assessment.final_mood,
       message: `Assessment taken on ${new Date(assessment.created_at).toLocaleString()}`,
-      redirectUrl: "https://www.micancapital.au/courses-en",
+      redirectUrl: "https://www.mican.life/courses-en",
       iconType: getMoodIcon(assessment.final_mood),
       iconColor: getMoodColor(assessment.final_mood),
       depressionResult: {
         score: scores.depression,
         level: levels.depression as SeverityLevel,
-        message: "",
+        message: levels.depression.toLowerCase(),
         rank: getRankFromLevel(levels.depression)
       },
       anxietyResult: {
         score: scores.anxiety,
         level: levels.anxiety as SeverityLevel,
-        message: "",
+        message: levels.anxiety.toLowerCase(),
         rank: getRankFromLevel(levels.anxiety)
       },
       stressResult: {
         score: scores.stress,
         level: levels.stress as SeverityLevel,
-        message: "",
+        message: levels.stress.toLowerCase(),
         rank: getRankFromLevel(levels.stress)
       },
       satisfactionResult: {
         score: scores.lifeSatisfaction,
         level: levels.lifeSatisfaction as SeverityLevel,
-        message: "",
+        message: levels.lifeSatisfaction.toLowerCase(),
         rank: getRankFromLevel(levels.lifeSatisfaction)
       },
       isParent: assessment.answers.scores.isParent !== undefined ? assessment.answers.scores.isParent : 0,
@@ -80,9 +79,11 @@ const AssessmentHistory: React.FC = () => {
       case 'healthy':
         return 'smile';
       case 'medium to high sub-health status':
-      case 'moderate sub-health status':
-      case 'medium-to-low sub-health status':
         return 'meh';
+      case 'moderate sub-health status':
+        return 'meh';
+      case 'medium-to-low sub-health status':
+        return 'frown';
       case 'psychological disturbance':
       default:
         return 'frown';
