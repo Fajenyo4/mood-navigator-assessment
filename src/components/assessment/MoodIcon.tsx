@@ -8,7 +8,7 @@ interface MoodIconProps {
 }
 
 const MoodIcon: React.FC<MoodIconProps> = ({ iconType, iconColor }) => {
-  const className = `w-12 h-12 ${iconColor}`;
+  const className = `w-10 h-10 ${iconColor}`;
   
   switch (iconType) {
     case 'smile':

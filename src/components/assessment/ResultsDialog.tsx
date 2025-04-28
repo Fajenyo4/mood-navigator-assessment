@@ -50,14 +50,14 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`sm:max-w-xl ${isMobile ? 'max-h-[90vh] overflow-y-auto p-4' : 'p-8'}`}>
+      <DialogContent className={`sm:max-w-xl ${isMobile ? 'max-h-[90vh] overflow-y-auto p-4' : 'p-6'}`}>
         <DialogHeader>
-          <DialogTitle className="text-3xl font-bold text-center mb-8">
+          <DialogTitle className="text-3xl font-bold text-center mb-6">
             {isChineseLanguage ? "你開心嗎？" : "Are you happy?"}
           </DialogTitle>
         </DialogHeader>
         {result ? (
-          <div className="flex flex-col items-center space-y-12">
+          <div className="flex flex-col items-center space-y-8">
             <div className="flex items-center justify-center gap-4">
               <MoodIcon iconType={result.iconType} iconColor={result.iconColor} />
               <p className="text-xl text-center font-medium text-gray-900 max-w-2xl">
@@ -83,10 +83,10 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
               label={isChineseLanguage ? (result.mood === "Healthy" ? "開心" : "不開心") : 
                      (result.mood === "Healthy" ? "Happy" : "Unhappy")}
               title={isChineseLanguage ? "整體情緒" : "Overall Mood"}
-              className="mb-12"
+              className="mb-8 w-full"
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-14 w-full mb-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full mb-8">
               <MoodScale
                 value={getScorePercentage(result.satisfactionResult.score, 35)}
                 label={result.satisfactionResult.level}
@@ -112,11 +112,8 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
               />
             </div>
 
-            {/* Remove Chinese assessment text for non-Chinese languages */}
-            {/* This section was causing the issue by showing Chinese text for English users */}
-
             {!isHistoryPage && (
-              <div className={`w-full ${isMobile ? 'flex flex-col space-y-4' : 'flex space-x-4'}`}>
+              <div className={`w-full mt-6 ${isMobile ? 'flex flex-col space-y-4' : 'flex space-x-4'}`}>
                 <ResultActions 
                   redirectUrl={REDIRECT_URL}
                   language={language}

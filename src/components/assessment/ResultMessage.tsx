@@ -11,13 +11,12 @@ const ResultMessage: React.FC<ResultMessageProps> = ({ message, language = 'en' 
   const fontSize = language.startsWith('zh') ? 'text-base' : 'text-sm';
 
   return (
-    <div className={`space-y-4 ${textDirection} w-full`}>
+    <div className={`space-y-3 ${textDirection} w-full`}>
       {message.split('\n').map((line, index) => (
-        <p key={index} className={`${fontSize} text-gray-700 mb-2`}>{line}</p>
+        <p key={index} className={`${fontSize} text-gray-700`}>{line}</p>
       ))}
     </div>
   );
 };
 
 export default ResultMessage;
-

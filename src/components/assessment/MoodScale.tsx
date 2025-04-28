@@ -38,25 +38,28 @@ const MoodScale: React.FC<MoodScaleProps> = ({
     }
   };
 
+  // Ensure label position stays within the scale bounds
+  const labelPosition = Math.max(0, Math.min(100, adjustedValue));
+
   return (
-    <div className={`w-full space-y-8 ${className}`}>
+    <div className={`w-full ${className}`}>
       {title && (
-        <h3 className="text-xl font-medium text-green-800 mb-2">{title}</h3>
+        <h3 className="text-lg font-medium text-green-800 mb-3">{title}</h3>
       )}
-      <div className="flex items-center justify-between gap-6 relative mt-8">
-        <Frown className="w-6 h-6 text-purple-500" />
+      <div className="flex items-center justify-between gap-4 relative pt-10">
+        <Frown className="w-5 h-5 text-purple-500 flex-shrink-0" />
         <div className="flex-1 relative">
           <Progress value={adjustedValue} className="h-3" />
           <div 
-            className="absolute -top-8 left-0 w-full flex justify-center"
-            style={{ left: `${adjustedValue}%`, transform: 'translateX(-50%)' }}
+            className="absolute -top-8 transform -translate-x-1/2"
+            style={{ left: `${labelPosition}%` }}
           >
-            <span className={`text-sm font-medium ${getTextColor()} text-center max-w-[120px] truncate px-2 mt-4`}>
+            <span className={`text-sm font-medium ${getTextColor()} px-2 py-1 bg-white rounded-md shadow-sm whitespace-nowrap`}>
               {label}
             </span>
           </div>
         </div>
-        <Smile className="w-6 h-6 text-purple-500" />
+        <Smile className="w-5 h-5 text-purple-500 flex-shrink-0" />
       </div>
     </div>
   );
