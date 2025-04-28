@@ -8,6 +8,7 @@ import { useAssessmentHistory } from '@/hooks/useAssessmentHistory';
 import HistoryLoadingState from './history/HistoryLoadingState';
 import AssessmentListItem from './history/AssessmentListItem';
 import EmptyState from './history/EmptyState';
+import { SEVERITY_RANKS } from '@/utils/assessmentScoring';
 
 export const AVAILABLE_LANGUAGES = [
   { code: 'en', label: 'English' },
@@ -28,6 +29,11 @@ const AssessmentHistory: React.FC = () => {
     getLanguageLabel 
   } = useAssessmentHistory(user?.id);
 
+  // Helper function to determine rank from severity level
+  const getRankFromLevel = (level: string): number => {
+    return (SEVERITY_RANKS as Record<string, number>)[level] || 3; // Default to middle rank if not found
+  };
+
   const prepareResultData = (assessment: AssessmentRecord) => {
     if (!assessment) return null;
     
@@ -42,25 +48,30 @@ const AssessmentHistory: React.FC = () => {
       depressionResult: {
         score: scores.depression,
         level: levels.depression as SeverityLevel,
-        message: ""
+        message: "",
+        rank: getRankFromLevel(levels.depression)
       },
       anxietyResult: {
         score: scores.anxiety,
         level: levels.anxiety as SeverityLevel,
-        message: ""
+        message: "",
+        rank: getRankFromLevel(levels.anxiety)
       },
       stressResult: {
         score: scores.stress,
         level: levels.stress as SeverityLevel,
-        message: ""
+        message: "",
+        rank: getRankFromLevel(levels.stress)
       },
       satisfactionResult: {
         score: scores.lifeSatisfaction,
         level: levels.lifeSatisfaction as SeverityLevel,
-        message: ""
+        message: "",
+        rank: getRankFromLevel(levels.lifeSatisfaction)
       },
       isParent: assessment.answers.scores.isParent !== undefined ? assessment.answers.scores.isParent : 0,
-      needsHelp: assessment.answers.scores.needsHelp !== undefined ? assessment.answers.scores.needsHelp : 0
+      needsHelp: assessment.answers.scores.needsHelp !== undefined ? assessment.answers.scores.needsHelp : 0,
+      assessmentText: assessment.mental_status || ""
     };
   };
 

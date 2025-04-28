@@ -1,7 +1,8 @@
+
 import { AssessmentResult, AssessmentType, DassScores, SeverityLevel, AssessmentLevels, MoodResult } from './scoring/types';
 
 // Object to map severity levels to numeric ranks (1-5)
-const SEVERITY_RANKS: Record<SeverityLevel, number> = {
+export const SEVERITY_RANKS: Record<SeverityLevel, number> = {
   "Normal": 1,
   "Mild": 2,
   "Moderate": 3,
