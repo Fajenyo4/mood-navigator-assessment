@@ -17,8 +17,9 @@ const ChartGuide = () => {
       <HoverCardContent className="w-96 p-4">
         <Tabs defaultValue="chart">
           <TabsList className="mb-4 w-full">
-            <TabsTrigger value="chart" className="w-1/2">Chart Guide</TabsTrigger>
-            <TabsTrigger value="assessment" className="w-1/2">Assessment Info</TabsTrigger>
+            <TabsTrigger value="chart" className="w-1/3">Chart Guide</TabsTrigger>
+            <TabsTrigger value="assessment" className="w-1/3">Assessment Info</TabsTrigger>
+            <TabsTrigger value="interface" className="w-1/3">Interface</TabsTrigger>
           </TabsList>
           
           <TabsContent value="chart">
@@ -43,6 +44,19 @@ const ChartGuide = () => {
                 <li>Questions 27-28: Demographic Information</li>
               </ul>
               <p className="text-sm mt-2">All answers are confidential and used to calculate your mental health metrics.</p>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="interface">
+            <div className="space-y-2">
+              <h4 className="font-semibold">Assessment Interface:</h4>
+              <ul className="text-sm space-y-1 list-disc pl-4">
+                <li><strong>Progress Bar:</strong> Starts at 0% and increases as you progress</li>
+                <li><strong>Navigation:</strong> Use the Back button to review previous questions</li>
+                <li><strong>Reset Button:</strong> Restarts the assessment from the beginning</li>
+                <li><strong>Question Counter:</strong> Shows your current position in the assessment</li>
+              </ul>
+              <p className="text-sm mt-2">Your progress is automatically saved for up to one hour if you need to take a break.</p>
             </div>
           </TabsContent>
         </Tabs>

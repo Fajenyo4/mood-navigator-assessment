@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import QuestionDisplay from './assessment/QuestionDisplay';
@@ -66,6 +65,7 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     handlePrevious,
     setShowResults,
     updateCounter,
+    resetAssessment,
   } = useAssessment({
     userId: user?.id,
     userName: user?.user_metadata?.name,
@@ -108,9 +108,12 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     return questions[currentQuestion];
   }, [currentQuestion, getQuestions]);
 
-  // Calculate progress percentage
+  // Calculate progress percentage - modified to ensure it starts at 0%
   const progressPercentage = React.useMemo(() => {
-    return ((currentQuestion + 1) / totalQuestions) * 100;
+    // When currentQuestion is 0 (first question), progress should be 0
+    if (currentQuestion === 0) return 0;
+    // Otherwise calculate as a percentage of completed questions
+    return (currentQuestion / totalQuestions) * 100;
   }, [currentQuestion, totalQuestions]);
 
   // Prevent refreshes from resetting the assessment state
@@ -149,6 +152,14 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     );
   }, [answers]);
 
+  // Handle assessment reset
+  const handleReset = useCallback(() => {
+    // Clear local storage
+    localStorage.removeItem('assessment_progress');
+    // Reset assessment state
+    resetAssessment();
+  }, [resetAssessment]);
+
   // Use the updated redirect URL
   const REDIRECT_URL = "https://www.mican.life/courses-en";
 
@@ -171,6 +182,7 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
         onAnswer={handleAnswer}
         onPrevious={handlePrevious}
         showPrevious={currentQuestion > 0}
+        onReset={handleReset}
       />
       
       <ResultsDialog

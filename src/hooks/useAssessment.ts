@@ -61,6 +61,21 @@ export const useAssessment = ({
     }
   }, [defaultLanguage]);
 
+  // Add a reset function to completely reset the assessment state
+  const resetAssessment = useCallback(() => {
+    setCurrentQuestion(0);
+    setAnswers({});
+    setSelectedOption("");
+    setShowResults(false);
+    setUpdateCounter(prev => prev + 1);
+    
+    // Clear any saved progress from localStorage
+    localStorage.removeItem('assessment_progress');
+    
+    console.log("Assessment has been reset to initial state");
+    toast.success("Assessment reset successfully");
+  }, []);
+
   const handleAnswer = useCallback((value: string) => {
     const numericValue = parseInt(value);
     const newAnswers = { ...answers, [currentQuestion + 1]: numericValue };
@@ -196,6 +211,7 @@ export const useAssessment = ({
     handleAnswer,
     handlePrevious,
     setShowResults,
-    updateCounter
+    updateCounter,
+    resetAssessment  // Export the reset function
   };
 };

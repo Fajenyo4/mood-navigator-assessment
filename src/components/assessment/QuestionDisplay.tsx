@@ -4,7 +4,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, RefreshCcw } from 'lucide-react';
 import { Question } from '@/types/assessment';
 import Logo from './Logo';
 
@@ -17,6 +17,7 @@ interface QuestionDisplayProps {
   onAnswer: (value: string) => void;
   onPrevious?: () => void;
   showPrevious?: boolean;
+  onReset?: () => void;  // Add reset handler prop
 }
 
 const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
@@ -27,13 +28,15 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   selectedOption,
   onAnswer,
   onPrevious,
-  showPrevious
+  showPrevious,
+  onReset
 }) => {
   // Ensure we have the question and its options
   const options = question?.options || [];
   
   // Log for debugging purposes
   console.log(`Rendering question ${currentQuestion + 1}/${totalQuestions}:`, question);
+  console.log(`Current progress: ${progress}%`);
 
   // Create a stable reference to the handler to avoid re-renders
   const handleOptionClick = useCallback((value: string) => {
@@ -59,18 +62,32 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
     <div className="w-full max-w-2xl mx-auto">
       <Logo />
       
-      {showPrevious && (
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={onPrevious}
-          className="mb-6"
-          type="button" // Explicitly set type to avoid form submissions
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
-      )}
+      <div className="flex justify-between items-center mb-6">
+        {showPrevious ? (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onPrevious}
+            type="button" // Explicitly set type to avoid form submissions
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+        ) : <div></div>} {/* Empty div for flex spacing when no back button */}
+        
+        {onReset && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onReset}
+            type="button"
+            className="text-gray-600"
+          >
+            <RefreshCcw className="h-4 w-4 mr-2" />
+            Reset
+          </Button>
+        )}
+      </div>
 
       <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
         <Progress value={progress} className="mb-8" />
