@@ -77,13 +77,13 @@ const AssessmentHistory: React.FC = () => {
 
   const getMoodIcon = (mood: string): 'smile' | 'meh' | 'frown' => {
     switch(mood.toLowerCase()) {
-      case 'health status':
+      case 'healthy':
         return 'smile';
-      case 'upper-middle subhealth status':
-      case 'moderate subhealth status':
-      case 'subhealth status':
+      case 'medium to high sub-health status':
+      case 'moderate sub-health status':
+      case 'medium-to-low sub-health status':
         return 'meh';
-      case 'psychological distress':
+      case 'psychological disturbance':
       default:
         return 'frown';
     }
@@ -91,15 +91,15 @@ const AssessmentHistory: React.FC = () => {
 
   const getMoodColor = (mood: string): string => {
     switch(mood.toLowerCase()) {
-      case 'health status':
+      case 'healthy':
         return 'text-green-500';
-      case 'upper-middle subhealth status':
+      case 'medium to high sub-health status':
         return 'text-blue-500';
-      case 'moderate subhealth status':
-        return 'text-orange-500';
-      case 'subhealth status':
+      case 'moderate sub-health status':
         return 'text-yellow-500';
-      case 'psychological distress':
+      case 'medium-to-low sub-health status':
+        return 'text-orange-500';
+      case 'psychological disturbance':
       default:
         return 'text-red-500';
     }

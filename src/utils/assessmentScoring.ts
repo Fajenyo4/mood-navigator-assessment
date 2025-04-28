@@ -290,7 +290,7 @@ export const generateAssessmentText = (
   return output;
 };
 
-// Helper function to get highest severity rank
+// Helper function to get highest severity rank from DASS scores
 const getHighestSeverityRank = (
   depressionLevel: AssessmentResult,
   anxietyLevel: AssessmentResult,
@@ -303,20 +303,30 @@ const getHighestSeverityRank = (
   );
 };
 
-// Helper function to determine mental health status
+// Updated helper function to determine mental health status based on DASS rank and life satisfaction rank
+// Following the new logic rules provided
 const getMentalHealthStatus = (
   dassRank: number,
   lsRank: number
 ): string => {
+  // DASS = Severe/Very Severe OR (DASS = Moderate AND Life satisfaction = Dissatisfied/Very dissatisfied)
   if (dassRank >= 4 || (dassRank === 3 && lsRank <= 2)) {
     return "Psychological Disturbance";
-  } else if (dassRank === 3 || (dassRank === 2 && lsRank <= 2)) {
+  } 
+  // DASS = Moderate OR (DASS = Mild AND Life satisfaction = Dissatisfied/Very dissatisfied)
+  else if (dassRank === 3 || (dassRank === 2 && lsRank <= 2)) {
     return "Medium-to-Low Sub-Health Status";
-  } else if (dassRank === 2 || (dassRank === 1 && lsRank <= 2)) {
+  } 
+  // DASS = Mild OR (DASS = Normal AND Life satisfaction = Dissatisfied/Very dissatisfied)
+  else if (dassRank === 2 || (dassRank === 1 && lsRank <= 2)) {
     return "Moderate Sub-Health Status";
-  } else if (dassRank === 1 && lsRank === 3) {
+  } 
+  // DASS = Normal AND Life satisfaction = Neutral
+  else if (dassRank === 1 && lsRank === 3) {
     return "Medium to High Sub-Health Status";
-  } else { // dassRank === 1 && lsRank >= 4
+  } 
+  // DASS = Normal AND Life satisfaction = Satisfied/Very Satisfied
+  else { // dassRank === 1 && lsRank >= 4
     return "Healthy";
   }
 };
@@ -394,6 +404,68 @@ export const determineMoodResult = (
     needsHelp,
     assessmentText
   };
+};
+
+// Add test cases for mood determination logic
+export const runTestCases = (): boolean => {
+  // Test 1: Test Psychological Disturbance (Severe DASS)
+  const test1 = getMentalHealthStatus(4, 5); // Severe DASS, Very Satisfied LS
+  if (test1 !== "Psychological Disturbance") {
+    console.error("Test 1 failed: Expected Psychological Disturbance, got", test1);
+    return false;
+  }
+
+  // Test 2: Test Psychological Disturbance (Moderate DASS + Very dissatisfied LS)
+  const test2 = getMentalHealthStatus(3, 1); // Moderate DASS, Very dissatisfied LS
+  if (test2 !== "Psychological Disturbance") {
+    console.error("Test 2 failed: Expected Psychological Disturbance, got", test2);
+    return false;
+  }
+
+  // Test 3: Test Medium-to-Low Sub-Health Status (Moderate DASS + Neutral LS)
+  const test3 = getMentalHealthStatus(3, 3); // Moderate DASS, Neutral LS
+  if (test3 !== "Medium-to-Low Sub-Health Status") {
+    console.error("Test 3 failed: Expected Medium-to-Low Sub-Health Status, got", test3);
+    return false;
+  }
+
+  // Test 4: Test Medium-to-Low Sub-Health Status (Mild DASS + Dissatisfied LS)
+  const test4 = getMentalHealthStatus(2, 2); // Mild DASS, Dissatisfied LS
+  if (test4 !== "Medium-to-Low Sub-Health Status") {
+    console.error("Test 4 failed: Expected Medium-to-Low Sub-Health Status, got", test4);
+    return false;
+  }
+
+  // Test 5: Test Moderate Sub-Health Status (Mild DASS + Neutral LS)
+  const test5 = getMentalHealthStatus(2, 3); // Mild DASS, Neutral LS
+  if (test5 !== "Moderate Sub-Health Status") {
+    console.error("Test 5 failed: Expected Moderate Sub-Health Status, got", test5);
+    return false;
+  }
+
+  // Test 6: Test Moderate Sub-Health Status (Normal DASS + Dissatisfied LS)
+  const test6 = getMentalHealthStatus(1, 2); // Normal DASS, Dissatisfied LS
+  if (test6 !== "Moderate Sub-Health Status") {
+    console.error("Test 6 failed: Expected Moderate Sub-Health Status, got", test6);
+    return false;
+  }
+
+  // Test 7: Test Medium to High Sub-Health Status
+  const test7 = getMentalHealthStatus(1, 3); // Normal DASS, Neutral LS
+  if (test7 !== "Medium to High Sub-Health Status") {
+    console.error("Test 7 failed: Expected Medium to High Sub-Health Status, got", test7);
+    return false;
+  }
+
+  // Test 8: Test Healthy
+  const test8 = getMentalHealthStatus(1, 4); // Normal DASS, Satisfied LS
+  if (test8 !== "Healthy") {
+    console.error("Test 8 failed: Expected Healthy, got", test8);
+    return false;
+  }
+  
+  console.log("All test cases passed!");
+  return true;
 };
 
 export type { MoodResult };

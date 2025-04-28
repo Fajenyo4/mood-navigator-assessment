@@ -4,7 +4,8 @@ import QuestionDisplay from './assessment/QuestionDisplay';
 import ResultsDialog from './assessment/ResultsDialog';
 import LoadingState from './assessment/LoadingState';
 import { useAssessment } from '@/hooks/useAssessment';
-import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/assessmentScoring';
+import { calculateDassScores, determineLevel, determineMoodResult, runTestCases } from '@/utils/assessmentScoring';
+import { runAllTests } from '@/utils/testScoring';
 
 // Preloading question sets for faster access
 import { questions as enQuestions } from '@/translations/en';
@@ -152,6 +153,17 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     // Reset assessment state
     resetAssessment();
   }, [resetAssessment]);
+
+  // Run tests in development environment only
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      // Uncomment these lines to run the tests
+      // console.log("Running internal assessment scoring tests...");
+      // runTestCases();
+      // console.log("Running comprehensive boundary tests...");
+      // runAllTests();
+    }
+  }, []);
 
   // Use the updated redirect URL
   const REDIRECT_URL = "https://www.mican.life/courses-en";
