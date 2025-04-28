@@ -1,4 +1,3 @@
-
 import React, { useCallback } from 'react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -31,18 +30,14 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   showPrevious,
   onReset
 }) => {
-  // Create a stable reference to the handler to avoid re-renders
   const handleOptionClick = useCallback((value: string) => {
     onAnswer(value);
   }, [onAnswer]);
 
-  // Create a handler specifically for option clicks via the UI
   const handleOptionSelection = useCallback((optionIndex: string) => {
-    // Always trigger the onAnswer handler, even if it's the same value
     onAnswer(optionIndex);
   }, [onAnswer]);
 
-  // If we don't have a valid question, show a fallback
   if (!question || !question.text) {
     return (
       <div className="w-full max-w-2xl mx-auto">
@@ -89,10 +84,6 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
 
       <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
         <Progress value={progress} className="mb-8" />
-        
-        <div className="mb-2 text-sm text-gray-500">
-          Question {currentQuestion + 1} of {totalQuestions}
-        </div>
         
         <h2 className="text-xl font-medium text-gray-900 mb-8">
           {question.text}
