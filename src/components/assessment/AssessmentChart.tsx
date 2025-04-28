@@ -13,6 +13,25 @@ const AssessmentChart: React.FC<AssessmentChartProps> = ({
 }) => {
   const chartData = transformChartData(data);
 
+  // Custom legend renderer for better spacing and readability
+  const CustomLegend = (props: any) => {
+    const { payload } = props;
+    
+    return (
+      <div className="flex justify-center items-center gap-4 mt-2">
+        {payload.map((entry: any, index: number) => (
+          <div key={`legend-item-${index}`} className="flex items-center">
+            <div 
+              className="w-3 h-3 rounded-full mr-1.5" 
+              style={{ backgroundColor: entry.color }}
+            />
+            <span className="text-xs font-medium">{entry.value}</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className={`w-full ${className}`} style={{ height }}>
       <ChartContainer config={{ 
@@ -24,7 +43,7 @@ const AssessmentChart: React.FC<AssessmentChartProps> = ({
         <ResponsiveContainer width="100%" height="100%">
           <BarChart 
             data={chartData} 
-            margin={{ top: 10, right: 10, left: 10, bottom: 50 }}
+            margin={{ top: 10, right: 10, left: 10, bottom: 60 }}
           >
             <XAxis 
               dataKey="name" 
@@ -41,9 +60,9 @@ const AssessmentChart: React.FC<AssessmentChartProps> = ({
             />
             <Tooltip content={ChartTooltip} />
             <Legend 
+              content={<CustomLegend />}
               verticalAlign="bottom" 
-              height={36} 
-              formatter={(value) => <span className="text-sm font-medium">{value}</span>} 
+              height={36}
             />
             <Bar 
               dataKey="value" 

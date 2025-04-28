@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceArea, ReferenceLine } from 'recharts';
 import { ChartContainer } from "@/components/ui/chart";
@@ -174,6 +173,27 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
     return null;
   };
 
+  const CustomLegend = (props: any) => {
+    const { payload } = props;
+    
+    return (
+      <div className="flex justify-center items-center gap-6 pb-2">
+        {payload.map((entry: any, index: number) => (
+          <div key={`legend-item-${index}`} className="flex items-center">
+            <div 
+              className="w-3 h-3 rounded-full mr-1.5" 
+              style={{ backgroundColor: entry.color }}
+            />
+            <span className="text-xs font-medium">
+              {entry.value === 'lifeSatisfaction' ? 'Life Satisfaction' : 
+               entry.value.charAt(0).toUpperCase() + entry.value.slice(1)}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   const depressionLevel = latestRecord ? getSeverityLevel(latestRecord.depression_score, 'depression') : '';
   const anxietyLevel = latestRecord ? getSeverityLevel(latestRecord.anxiety_score, 'anxiety') : '';
   const stressLevel = latestRecord ? getSeverityLevel(latestRecord.stress_score, 'stress') : '';
@@ -277,7 +297,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={filteredChartData}
-              margin={{ top: 5, right: 30, left: 20, bottom: 70 }}
+              margin={{ top: 5, right: 30, left: 20, bottom: 100 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis 
@@ -302,7 +322,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
                   );
                 }}
                 tickLine={{ stroke: '#6b7280' }}
-                height={60}
+                height={80}
                 minTickGap={10}
                 interval="preserveStartEnd"
               />
@@ -322,13 +342,9 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
               {renderDaySeparators()}
               <Tooltip content={<CustomTooltip />} />
               <Legend 
-                verticalAlign="bottom" 
+                content={<CustomLegend />}
+                verticalAlign="top"
                 height={36}
-                formatter={(value) => {
-                  const formattedValue = value === 'lifeSatisfaction' ? 'Life Satisfaction' : 
-                    value.charAt(0).toUpperCase() + value.slice(1);
-                  return <span className="text-sm font-medium">{formattedValue}</span>;
-                }}
               />
               <Line
                 type="monotone"
