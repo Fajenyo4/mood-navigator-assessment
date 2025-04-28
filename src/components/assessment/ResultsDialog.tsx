@@ -66,7 +66,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
               </p>
             </div>
             
-            {/* Chinese assessment text */}
+            {/* Assessment text based on language */}
             {isChineseLanguage && result.assessmentText ? (
               <ResultMessage message={result.assessmentText} language={language} />
             ) : (
@@ -112,13 +112,8 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
               />
             </div>
 
-            {/* Show Chinese assessment text for non-Chinese languages too */}
-            {!isChineseLanguage && result.assessmentText && (
-              <div className="bg-gray-50 p-4 rounded-lg w-full border border-gray-200">
-                <h4 className="text-lg font-medium mb-2">Chinese Assessment:</h4>
-                <p className="text-gray-700">{result.assessmentText}</p>
-              </div>
-            )}
+            {/* Remove Chinese assessment text for non-Chinese languages */}
+            {/* This section was causing the issue by showing Chinese text for English users */}
 
             {!isHistoryPage && (
               <div className={`w-full ${isMobile ? 'flex flex-col space-y-4' : 'flex space-x-4'}`}>

@@ -1,4 +1,3 @@
-
 import { AssessmentResult, AssessmentType, DassScores, SeverityLevel, AssessmentLevels, MoodResult } from './scoring/types';
 
 // Object to map severity levels to numeric ranks (1-5)
@@ -213,6 +212,7 @@ export const generateAssessmentText = (
   stressLevel: SeverityLevel,
   language: string = 'zh-CN'
 ): string => {
+  // Only generate Chinese text for Chinese language assessments
   if (!language.startsWith('zh')) {
     return '';
   }
@@ -381,14 +381,17 @@ export const determineMoodResult = (
 
   const fullMessage = `Mental Health Status: ${moodStatus}\n\n${moodMessage}\n\nDetailed Analysis:\nDepression: ${depressionLevel.level} (${depressionLevel.score})\nAnxiety: ${anxietyLevel.level} (${anxietyLevel.score})\nStress: ${stressLevel.level} (${stressLevel.score})\nLife Satisfaction: ${satisfactionLevel.level} (${satisfactionLevel.score})`;
 
-  // Generate assessment text in Chinese for all languages
-  const assessmentText = generateAssessmentText(
-    moodStatus,
-    satisfactionLevel.level,
-    depressionLevel.level,
-    anxietyLevel.level,
-    stressLevel.level
-  );
+  // Generate assessment text in Chinese only for Chinese language assessments
+  const assessmentText = language.startsWith('zh') 
+    ? generateAssessmentText(
+        moodStatus,
+        satisfactionLevel.level,
+        depressionLevel.level,
+        anxietyLevel.level,
+        stressLevel.level,
+        language
+      )
+    : '';
 
   return {
     mood: moodStatus,

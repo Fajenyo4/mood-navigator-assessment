@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ResultsDialog from './ResultsDialog';
@@ -8,12 +9,7 @@ import HistoryLoadingState from './history/HistoryLoadingState';
 import AssessmentListItem from './history/AssessmentListItem';
 import EmptyState from './history/EmptyState';
 import { SEVERITY_RANKS } from '@/utils/assessmentScoring';
-
-export const AVAILABLE_LANGUAGES = [
-  { code: 'en', label: 'English' },
-  { code: 'zh-CN', label: 'Simplified Chinese (Mandarin)' },
-  { code: 'zh-HK', label: 'Traditional Chinese (Cantonese)' },
-];
+import { AVAILABLE_LANGUAGES } from '@/constants/languages';
 
 const AssessmentHistory: React.FC = () => {
   const [selectedAssessment, setSelectedAssessment] = useState<AssessmentRecord | null>(null);
