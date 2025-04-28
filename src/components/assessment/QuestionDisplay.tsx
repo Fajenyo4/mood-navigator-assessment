@@ -20,6 +20,8 @@ interface QuestionDisplayProps {
 }
 
 const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
+  currentQuestion,
+  totalQuestions,
   progress,
   question,
   selectedOption,
@@ -27,12 +29,31 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   onPrevious,
   showPrevious
 }) => {
+  // Ensure we have the question and its options
   const options = question?.options || [];
+  
+  // Log for debugging purposes
+  console.log(`Rendering question ${currentQuestion + 1}/${totalQuestions}:`, question);
 
   // Create a stable reference to the handler to avoid re-renders
   const handleOptionClick = useCallback((value: string) => {
     onAnswer(value);
   }, [onAnswer]);
+
+  // If we don't have a valid question, show a fallback
+  if (!question || !question.text) {
+    return (
+      <div className="w-full max-w-2xl mx-auto">
+        <Logo />
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
+          <Progress value={progress} className="mb-8" />
+          <div className="text-center">
+            <p className="text-red-500">Error loading question. Please refresh and try again.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -53,6 +74,10 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
 
       <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
         <Progress value={progress} className="mb-8" />
+        
+        <div className="mb-2 text-sm text-gray-500">
+          Question {currentQuestion + 1} of {totalQuestions}
+        </div>
         
         <h2 className="text-xl font-medium text-gray-900 mb-8 text-center">
           {question.text}
@@ -90,4 +115,4 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   );
 };
 
-export default React.memo(QuestionDisplay); // Memoize component to prevent unnecessary re-renders
+export default React.memo(QuestionDisplay);

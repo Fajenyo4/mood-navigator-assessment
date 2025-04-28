@@ -98,18 +98,19 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
 
   // Calculate the total number of questions for the current language
   const totalQuestions = React.useMemo(() => {
-    return questionCounts[effectiveLanguage as keyof typeof questionCounts] || questionCounts['en'];
+    return questionCounts[effectiveLanguage as keyof typeof questionCounts] || enQuestions.length;
   }, [effectiveLanguage]);
 
   // Memoize the current question for better performance
   const currentQuestionData = React.useMemo(() => {
     const questions = getQuestions();
+    console.log(`Getting question data for index ${currentQuestion}. Total questions: ${questions.length}`);
     return questions[currentQuestion];
   }, [currentQuestion, getQuestions]);
 
   // Calculate progress percentage
   const progressPercentage = React.useMemo(() => {
-    return (currentQuestion / totalQuestions) * 100;
+    return ((currentQuestion + 1) / totalQuestions) * 100;
   }, [currentQuestion, totalQuestions]);
 
   // Prevent refreshes from resetting the assessment state
