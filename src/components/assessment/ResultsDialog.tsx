@@ -66,12 +66,13 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
               </p>
             </div>
             
-            {/* Assessment text based on language */}
+            {/* Only display the assessment text in Chinese language without mental health status */}
             {isChineseLanguage && result.assessmentText ? (
               <ResultMessage message={result.assessmentText} language={language} />
             ) : (
+              result.message && 
               <p className="text-xl text-center font-medium text-gray-900 max-w-2xl">
-                {result.message.split('\n\n')[0]}
+                {result.message.split('\n\n')[0].replace(/Mental Health Status:.+/g, '').trim()}
               </p>
             )}
             
