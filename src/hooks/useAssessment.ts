@@ -78,7 +78,10 @@ export const useAssessment = ({
 
   const handleAnswer = useCallback((value: string) => {
     const numericValue = parseInt(value);
-    const newAnswers = { ...answers, [currentQuestion + 1]: numericValue };
+    const questionId = currentQuestion + 1;
+    
+    // Always update answers and trigger UI update, even if it's the same value
+    const newAnswers = { ...answers, [questionId]: numericValue };
     
     setAnswers(newAnswers);
     setSelectedOption(value);
@@ -90,10 +93,15 @@ export const useAssessment = ({
     if (currentQuestion < questionCount - 1) {
       const nextQuestion = currentQuestion + 1;
       setCurrentQuestion(nextQuestion);
-      setSelectedOption("");
+      
+      // Set the next question's selected option if it exists in answers
+      const nextSelectedOption = newAnswers[nextQuestion + 1]?.toString() || "";
+      setSelectedOption(nextSelectedOption);
       
       // Save progress locally without triggering refreshes
       saveProgressLocally(nextQuestion, newAnswers);
+      
+      console.log(`Moving to question ${nextQuestion + 1}/${questionCount}, selected: ${nextSelectedOption}`);
     } else {
       handleSubmit(newAnswers);
     }
@@ -103,13 +111,18 @@ export const useAssessment = ({
     if (currentQuestion > 0) {
       const prevQuestion = currentQuestion - 1;
       setCurrentQuestion(prevQuestion);
+      
       // Set the previous answer as selected
-      setSelectedOption(answers[prevQuestion + 1]?.toString() || "");
+      const prevSelectedOption = answers[prevQuestion + 1]?.toString() || "";
+      setSelectedOption(prevSelectedOption);
+      
       // Force UI update to show selection correctly
       setUpdateCounter(prev => prev + 1);
       
       // Update local storage with the current state
       saveProgressLocally(prevQuestion, answers);
+      
+      console.log(`Moved back to question ${prevQuestion + 1}, selected: ${prevSelectedOption}`);
     }
   }, [currentQuestion, answers, saveProgressLocally]);
 
@@ -212,6 +225,6 @@ export const useAssessment = ({
     handlePrevious,
     setShowResults,
     updateCounter,
-    resetAssessment  // Export the reset function
+    resetAssessment
   };
 };

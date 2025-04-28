@@ -36,6 +36,12 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
     onAnswer(value);
   }, [onAnswer]);
 
+  // Create a handler specifically for option clicks via the UI
+  const handleOptionSelection = useCallback((optionIndex: string) => {
+    // Always trigger the onAnswer handler, even if it's the same value
+    onAnswer(optionIndex);
+  }, [onAnswer]);
+
   // If we don't have a valid question, show a fallback
   if (!question || !question.text) {
     return (
@@ -93,14 +99,15 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
         </h2>
 
         <RadioGroup
-          onValueChange={handleOptionClick}
+          onValueChange={handleOptionSelection}
           className="space-y-4"
           value={selectedOption}
         >
           {question.options.map((option, index) => (
             <div 
-              key={index} 
+              key={`${currentQuestion}_${index}`} 
               className="transition-all duration-200 ease-in-out"
+              onClick={() => handleOptionSelection(index.toString())}
             >
               <div className="flex items-center border border-gray-200 rounded-lg p-4 hover:border-primary hover:bg-gray-50 cursor-pointer">
                 <RadioGroupItem 
