@@ -17,7 +17,7 @@ interface QuestionDisplayProps {
   onAnswer: (value: string) => void;
   onPrevious?: () => void;
   showPrevious?: boolean;
-  onReset?: () => void;  // Add reset handler prop
+  onReset?: () => void;
 }
 
 const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
@@ -31,13 +31,6 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   showPrevious,
   onReset
 }) => {
-  // Ensure we have the question and its options
-  const options = question?.options || [];
-  
-  // Log for debugging purposes
-  console.log(`Rendering question ${currentQuestion + 1}/${totalQuestions}:`, question);
-  console.log(`Current progress: ${progress}%`);
-
   // Create a stable reference to the handler to avoid re-renders
   const handleOptionClick = useCallback((value: string) => {
     onAnswer(value);
@@ -49,7 +42,6 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
       <div className="w-full max-w-2xl mx-auto">
         <Logo />
         <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
-          <Progress value={progress} className="mb-8" />
           <div className="text-center">
             <p className="text-red-500">Error loading question. Please refresh and try again.</p>
           </div>
@@ -68,12 +60,12 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
             variant="ghost" 
             size="sm" 
             onClick={onPrevious}
-            type="button" // Explicitly set type to avoid form submissions
+            type="button"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
-        ) : <div></div>} {/* Empty div for flex spacing when no back button */}
+        ) : <div></div>}
         
         {onReset && (
           <Button
@@ -96,29 +88,28 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
           Question {currentQuestion + 1} of {totalQuestions}
         </div>
         
-        <h2 className="text-xl font-medium text-gray-900 mb-8 text-center">
+        <h2 className="text-xl font-medium text-gray-900 mb-8">
           {question.text}
         </h2>
 
         <RadioGroup
-          onValueChange={onAnswer}
+          onValueChange={handleOptionClick}
           className="space-y-4"
           value={selectedOption}
         >
-          {options.map((option, index) => (
+          {question.options.map((option, index) => (
             <div 
               key={index} 
               className="transition-all duration-200 ease-in-out"
-              onClick={() => handleOptionClick(index.toString())}
             >
               <div className="flex items-center border border-gray-200 rounded-lg p-4 hover:border-primary hover:bg-gray-50 cursor-pointer">
                 <RadioGroupItem 
                   value={index.toString()} 
-                  id={`q${index}`} 
+                  id={`q${currentQuestion}_${index}`} 
                   className="mr-3"
                 />
                 <Label 
-                  htmlFor={`q${index}`} 
+                  htmlFor={`q${currentQuestion}_${index}`} 
                   className="text-gray-700 cursor-pointer flex-grow text-base"
                 >
                   {option}

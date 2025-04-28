@@ -25,13 +25,11 @@ const questionCounts = {
 const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
   const { user, language: authLanguage } = useAuth();
   const [isInitialized, setIsInitialized] = useState(false);
-  // Add a state to prevent multiple initializations
-  const [hasInitialized, setHasInitialized] = useState(false);
   
   // Get the effective language - either from props or from auth context
   const effectiveLanguage = defaultLanguage || authLanguage || 'en';
   
-  // Create an optimized function to get saved progress state
+  // Get the initial state - empty by default
   const getSavedProgressState = useCallback(() => {
     try {
       const savedProgress = localStorage.getItem('assessment_progress');
@@ -52,7 +50,7 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     return { initialQuestion: 0, initialAnswers: {} };
   }, [effectiveLanguage]);
   
-  // Only run initialization once to prevent repeated reloads
+  // Only run initialization once
   const [initialState] = useState(() => getSavedProgressState());
   
   const {
@@ -75,13 +73,9 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     initialAnswers: initialState.initialAnswers
   });
 
-  // Ensure initialization happens only once
   useEffect(() => {
-    if (!hasInitialized) {
-      setIsInitialized(true);
-      setHasInitialized(true);
-    }
-  }, [hasInitialized]);
+    setIsInitialized(true);
+  }, []);
 
   // Get the correct question set based on language
   const getQuestions = useCallback(() => {
@@ -104,16 +98,15 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
   // Memoize the current question for better performance
   const currentQuestionData = React.useMemo(() => {
     const questions = getQuestions();
-    console.log(`Getting question data for index ${currentQuestion}. Total questions: ${questions.length}`);
     return questions[currentQuestion];
   }, [currentQuestion, getQuestions]);
 
-  // Calculate progress percentage - modified to ensure it starts at 0%
+  // Calculate progress percentage - ensure it starts at 0% for first question
   const progressPercentage = React.useMemo(() => {
-    // When currentQuestion is 0 (first question), progress should be 0
+    // When on the first question (index 0), progress should be 0
     if (currentQuestion === 0) return 0;
     // Otherwise calculate as a percentage of completed questions
-    return (currentQuestion / totalQuestions) * 100;
+    return Math.floor((currentQuestion / (totalQuestions - 1)) * 100);
   }, [currentQuestion, totalQuestions]);
 
   // Prevent refreshes from resetting the assessment state
