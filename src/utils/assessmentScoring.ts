@@ -226,11 +226,11 @@ export const generateAssessmentText = (
   
   if (mentalHealthStatus === "Psychological Disturbance") {
     output += "你是一個非常不開心的人。你的精神心理健康屬於"心理困擾"狀態。\n\n";
-  } else if (mentalHealthStatus === "Mild Psychological Disturbance") {
+  } else if (mentalHealthStatus === "Medium-to-Low Sub-Health Status") {
     output += "你是一個很不開心的人。你的精神心理健康屬於"亞健康狀態中下"。\n\n";
-  } else if (mentalHealthStatus === "Moderate Sub-Health / Unhappy") {
+  } else if (mentalHealthStatus === "Moderate Sub-Health Status") {
     output += "你是一個中度不開心的人。你的精神心理健康屬於"亞健康狀態中等"。\n\n";
-  } else if (mentalHealthStatus === "Medium-High Sub-Health / Not Happy") {
+  } else if (mentalHealthStatus === "Medium to High Sub-Health Status") {
     output += "你是一個輕微不開心的人。你的精神心理健康屬於"亞健康狀態中上"。\n\n";
   } else if (mentalHealthStatus === "Healthy") {
     output += "你是一個開心的人，你滿意現在的生活。你的精神心理健康屬於"健康狀態"。\n\n";
@@ -292,6 +292,37 @@ export const generateAssessmentText = (
   return output;
 };
 
+// Helper function to get highest severity rank
+const getHighestSeverityRank = (
+  depressionLevel: AssessmentResult,
+  anxietyLevel: AssessmentResult,
+  stressLevel: AssessmentResult
+): number => {
+  return Math.max(
+    depressionLevel.rank,
+    anxietyLevel.rank,
+    stressLevel.rank
+  );
+};
+
+// Helper function to determine mental health status
+const getMentalHealthStatus = (
+  dassRank: number,
+  lsRank: number
+): string => {
+  if (dassRank >= 4 || (dassRank === 3 && lsRank <= 2)) {
+    return "Psychological Disturbance";
+  } else if (dassRank === 3 || (dassRank === 2 && lsRank <= 2)) {
+    return "Medium-to-Low Sub-Health Status";
+  } else if (dassRank === 2 || (dassRank === 1 && lsRank <= 2)) {
+    return "Moderate Sub-Health Status";
+  } else if (dassRank === 1 && lsRank === 3) {
+    return "Medium to High Sub-Health Status";
+  } else { // dassRank === 1 && lsRank >= 4
+    return "Healthy";
+  }
+};
+
 export const determineMoodResult = (
   depressionLevel: AssessmentResult,
   anxietyLevel: AssessmentResult,
@@ -301,44 +332,40 @@ export const determineMoodResult = (
   needsHelp: number
 ): MoodResult => {
   // Determine overall DASS severity rank (highest of the three)
-  const dassRank = Math.max(
-    depressionLevel.rank, 
-    anxietyLevel.rank, 
-    stressLevel.rank
+  const dassRank = getHighestSeverityRank(
+    depressionLevel,
+    anxietyLevel,
+    stressLevel
   );
   
   // Get satisfaction rank
   const lsRank = satisfactionLevel.rank;
   
   // Determine final mental health status based on DASS rank and satisfaction rank
-  let moodStatus: string;
-  let moodMessage: string;
+  const moodStatus = getMentalHealthStatus(dassRank, lsRank);
+  
+  let moodMessage = "";
   let iconType: 'frown' | 'meh' | 'smile' = 'meh';
   let iconColor = "text-yellow-500";
 
-  // Updated mental health status determination logic
-  if (dassRank >= 4 || (dassRank === 3 && lsRank <= 2)) {
-    moodStatus = "Psychological Disturbance";
+  // Set message and icon based on mood status
+  if (moodStatus === "Psychological Disturbance") {
     moodMessage = "You are experiencing significant psychological distress.";
     iconType = "frown";
     iconColor = "text-red-500";
-  } else if (dassRank === 3 || (dassRank === 2 && lsRank <= 2)) {
-    moodStatus = "Mild Psychological Disturbance";
+  } else if (moodStatus === "Medium-to-Low Sub-Health Status") {
     moodMessage = "You are experiencing a mild psychological disturbance.";
     iconType = "meh";
     iconColor = "text-orange-500";
-  } else if (dassRank === 2 || (dassRank === 1 && lsRank <= 2)) {
-    moodStatus = "Moderate Sub-Health / Unhappy";
+  } else if (moodStatus === "Moderate Sub-Health Status") {
     moodMessage = "You are experiencing a moderate sub-health status.";
     iconType = "meh";
     iconColor = "text-yellow-500";
-  } else if (dassRank === 1 && lsRank === 3) {
-    moodStatus = "Medium-High Sub-Health / Not Happy";
+  } else if (moodStatus === "Medium to High Sub-Health Status") {
     moodMessage = "You are experiencing a medium to high sub-health status.";
     iconType = "meh";
     iconColor = "text-blue-500";
-  } else { // dassRank === 1 && lsRank >= 4
-    moodStatus = "Healthy";
+  } else { // Healthy
     moodMessage = "You are in a healthy mental state.";
     iconType = "smile";
     iconColor = "text-green-500";
