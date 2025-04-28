@@ -17,7 +17,7 @@ export interface AssessmentResult {
   score: number;
   level: SeverityLevel;
   message: string;
-  rank?: number; // Added rank property
+  rank: number; // Always include rank property
 }
 
 export interface DassScores {
@@ -83,4 +83,5 @@ export interface MoodResult {
   satisfactionResult: AssessmentResult;
   isParent: number;
   needsHelp: number;
+  assessmentText?: string; // Add field for translated assessment text
 }
