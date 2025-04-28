@@ -1,17 +1,17 @@
-
 import { AssessmentResult, AssessmentType, DassScores, SeverityLevel, AssessmentLevels, MoodResult } from './scoring/types';
 
-const SEVERITY_WEIGHTS: Record<SeverityLevel, number> = {
-  "Normal": 0,
-  "Mild": 1,
-  "Moderate": 2,
-  "Severe": 3,
-  "Very Severe": 4,
-  "Very dissatisfied": 0,
-  "Dissatisfied": 1,
-  "Neutral": 2,
-  "Satisfied": 3,
-  "Very Satisfied": 4
+// Object to map severity levels to numeric ranks (1-5)
+const SEVERITY_RANKS: Record<SeverityLevel, number> = {
+  "Normal": 1,
+  "Mild": 2,
+  "Moderate": 3,
+  "Severe": 4,
+  "Very Severe": 5,
+  "Very dissatisfied": 1,
+  "Dissatisfied": 2,
+  "Neutral": 3,
+  "Satisfied": 4,
+  "Very Satisfied": 5
 };
 
 export const calculateDassScores = (answers: { [key: number]: number }): DassScores => {
@@ -47,36 +47,36 @@ export const calculateDassScores = (answers: { [key: number]: number }): DassSco
 export const determineLevel = (score: number, type: AssessmentType): AssessmentResult => {
   switch (type) {
     case 'depression':
-      if (score < 10) return { score, level: "Normal", message: "normal" };
-      if (score < 14) return { score, level: "Mild", message: "mild" };
-      if (score < 21) return { score, level: "Moderate", message: "moderate" };
-      if (score < 28) return { score, level: "Severe", message: "severe" };
-      return { score, level: "Very Severe", message: "very severe" };
+      if (score < 10) return { score, level: "Normal", message: "normal", rank: 1 };
+      if (score < 14) return { score, level: "Mild", message: "mild", rank: 2 };
+      if (score < 21) return { score, level: "Moderate", message: "moderate", rank: 3 };
+      if (score < 28) return { score, level: "Severe", message: "severe", rank: 4 };
+      return { score, level: "Very Severe", message: "very severe", rank: 5 };
     
     case 'anxiety':
-      if (score < 11) return { score, level: "Normal", message: "normal" };
-      if (score < 14) return { score, level: "Mild", message: "mild" };
-      if (score < 21) return { score, level: "Moderate", message: "moderate" };
-      if (score < 28) return { score, level: "Severe", message: "severe" };
-      return { score, level: "Very Severe", message: "very severe" };
+      if (score < 11) return { score, level: "Normal", message: "normal", rank: 1 };
+      if (score < 14) return { score, level: "Mild", message: "mild", rank: 2 };
+      if (score < 21) return { score, level: "Moderate", message: "moderate", rank: 3 };
+      if (score < 28) return { score, level: "Severe", message: "severe", rank: 4 };
+      return { score, level: "Very Severe", message: "very severe", rank: 5 };
     
     case 'stress':
-      if (score < 17) return { score, level: "Normal", message: "normal" };
-      if (score < 21) return { score, level: "Mild", message: "mild" };
-      if (score < 29) return { score, level: "Moderate", message: "moderate" };
-      if (score < 38) return { score, level: "Severe", message: "severe" };
-      return { score, level: "Very Severe", message: "very severe" };
+      if (score < 17) return { score, level: "Normal", message: "normal", rank: 1 };
+      if (score < 21) return { score, level: "Mild", message: "mild", rank: 2 };
+      if (score < 29) return { score, level: "Moderate", message: "moderate", rank: 3 };
+      if (score < 38) return { score, level: "Severe", message: "severe", rank: 4 };
+      return { score, level: "Very Severe", message: "very severe", rank: 5 };
     
     case 'satisfaction':
-      if (score < 14) return { score, level: "Very dissatisfied", message: "very dissatisfied" };
-      if (score < 20) return { score, level: "Dissatisfied", message: "dissatisfied" };
-      if (score < 27) return { score, level: "Neutral", message: "neutral" };
-      if (score < 33) return { score, level: "Satisfied", message: "satisfied" };
-      return { score, level: "Very Satisfied", message: "very satisfied" };
+      if (score < 14) return { score, level: "Very dissatisfied", message: "very dissatisfied", rank: 1 };
+      if (score < 20) return { score, level: "Dissatisfied", message: "dissatisfied", rank: 2 };
+      if (score < 27) return { score, level: "Neutral", message: "neutral", rank: 3 };
+      if (score < 33) return { score, level: "Satisfied", message: "satisfied", rank: 4 };
+      return { score, level: "Very Satisfied", message: "very satisfied", rank: 5 };
   }
 };
 
-// New helper functions for chart visualization
+// Helper functions for chart visualization
 export const getSeverityLevel = (score: number, type: 'depression' | 'anxiety' | 'stress'): string => {
   if (type === 'depression') {
     if (score < 10) return "Normal";
@@ -210,55 +210,46 @@ export const determineMoodResult = (
   satisfactionLevel: AssessmentResult,
   isParent: number,
   needsHelp: number
-) => {
-  const getDassSeverity = () => {
-    const levels = [depressionLevel.level, anxietyLevel.level, stressLevel.level];
-    const severityOrder = ["Normal", "Mild", "Moderate", "Severe", "Very Severe"];
-    let maxSeverity = "Normal";
-    
-    for (const level of levels) {
-      if (severityOrder.indexOf(level as string) > severityOrder.indexOf(maxSeverity)) {
-        maxSeverity = level as string;
-      }
-    }
-    return maxSeverity as "Normal" | "Mild" | "Moderate" | "Severe" | "Very Severe";
-  };
-
-  const dass = getDassSeverity();
-  const isUnhappySatisfaction = satisfactionLevel.level === "Dissatisfied" || 
-                               satisfactionLevel.level === "Very dissatisfied";
-
+): MoodResult => {
+  // Determine overall DASS severity rank (highest of the three)
+  const dassRank = Math.max(
+    depressionLevel.rank || 0, 
+    anxietyLevel.rank || 0, 
+    stressLevel.rank || 0
+  );
+  
+  // Get satisfaction rank
+  const lsRank = satisfactionLevel.rank || 0;
+  
+  // Determine final mental health status based on DASS rank and satisfaction rank
   let moodStatus: string;
   let moodMessage: string;
   let iconType: 'frown' | 'meh' | 'smile' = 'meh';
   let iconColor = "text-yellow-500";
 
   // Updated mental health status determination logic
-  if ((dass === "Severe" || dass === "Very Severe") ||
-      (dass === "Moderate" && isUnhappySatisfaction)) {
+  if (dassRank >= 4 || (dassRank === 3 && lsRank <= 2)) {
     moodStatus = "Psychological Disturbance";
     moodMessage = "You are experiencing significant psychological distress.";
     iconType = "frown";
     iconColor = "text-red-500";
-  } else if (dass === "Moderate" ||
-            (dass === "Mild" && isUnhappySatisfaction)) {
-    moodStatus = "Medium-to-Low Sub-Health Status / Very Unhappy";
-    moodMessage = "You are experiencing a medium to low sub-health status.";
+  } else if (dassRank === 3 || (dassRank === 2 && lsRank <= 2)) {
+    moodStatus = "Mild Psychological Disturbance";
+    moodMessage = "You are experiencing a mild psychological disturbance.";
     iconType = "meh";
     iconColor = "text-orange-500";
-  } else if (dass === "Mild" ||
-            (dass === "Normal" && isUnhappySatisfaction)) {
-    moodStatus = "Moderate Sub-Health Status / Unhappy";
+  } else if (dassRank === 2 || (dassRank === 1 && lsRank <= 2)) {
+    moodStatus = "Moderate Sub-Health / Unhappy";
     moodMessage = "You are experiencing a moderate sub-health status.";
     iconType = "meh";
     iconColor = "text-yellow-500";
-  } else if (dass === "Normal" && satisfactionLevel.level === "Neutral") {
-    moodStatus = "Medium to High Sub-Health Status / Not Happy";
+  } else if (dassRank === 1 && lsRank === 3) {
+    moodStatus = "Medium-High Sub-Health / Not Happy";
     moodMessage = "You are experiencing a medium to high sub-health status.";
     iconType = "meh";
     iconColor = "text-blue-500";
-  } else {
-    moodStatus = "Healthy/Happy";
+  } else { // dassRank === 1 && lsRank >= 4
+    moodStatus = "Healthy";
     moodMessage = "You are in a healthy mental state.";
     iconType = "smile";
     iconColor = "text-green-500";

@@ -17,6 +17,7 @@ export interface AssessmentResult {
   score: number;
   level: SeverityLevel;
   message: string;
+  rank?: number; // Added rank property
 }
 
 export interface DassScores {

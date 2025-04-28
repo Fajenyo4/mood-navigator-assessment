@@ -14,9 +14,9 @@ const MoodScale: React.FC<MoodScaleProps> = ({ value, label, title, className = 
   return (
     <div className={`w-full space-y-8 ${className}`}>
       {title && (
-        <h3 className="text-xl font-medium text-green-800 mb-6">{title}</h3>
+        <h3 className="text-xl font-medium text-green-800 mb-2">{title}</h3>
       )}
-      <div className="flex items-center justify-between gap-6 relative">
+      <div className="flex items-center justify-between gap-6 relative mt-4">
         <Frown className="w-6 h-6 text-purple-500" />
         <div className="flex-1 relative">
           <Progress value={value} className="h-3" />
