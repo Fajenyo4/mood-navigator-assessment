@@ -10,6 +10,7 @@ import { useBeforeUnload } from '@/hooks/useBeforeUnload';
 import { useAssessmentResult } from '@/hooks/useAssessmentResult';
 import CurrentQuestionManager from './assessment/CurrentQuestionManager';
 import ProgressCalculator from './assessment/ProgressCalculator';
+import { useResetHandler } from './assessment/ResetHandler';
 
 interface AssessmentProps {
   defaultLanguage?: string;
@@ -49,6 +50,9 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     initialAnswers: initialState.initialAnswers
   });
 
+  // Use our reset handler hook
+  const { handleReset } = useResetHandler({ resetAssessment });
+
   // Add beforeunload handler
   useBeforeUnload({ currentQuestion, showResults, answers });
 
@@ -66,12 +70,6 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
 
   // Calculate results
   const { getResultData } = useAssessmentResult({ answers, effectiveLanguage });
-
-  // Handle reset
-  const handleReset = React.useCallback(() => {
-    localStorage.removeItem('assessment_progress');
-    resetAssessment();
-  }, [resetAssessment]);
 
   // Run tests in development environment only
   React.useEffect(() => {
