@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback } from 'react';
+
+import React, { useEffect, useState, useCallback, lazy, Suspense } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import QuestionDisplay from './assessment/QuestionDisplay';
 import ResultsDialog from './assessment/ResultsDialog';
@@ -26,6 +27,7 @@ const questionCounts = {
 const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
   const { user, language: authLanguage } = useAuth();
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Get the effective language - either from props or from auth context
   const effectiveLanguage = defaultLanguage || authLanguage || 'en';
@@ -75,7 +77,23 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
   });
 
   useEffect(() => {
-    setIsInitialized(true);
+    const initialize = async () => {
+      try {
+        setIsLoading(true);
+        // Preload all question sets in the background
+        await Promise.all([
+          Promise.resolve(), // Simulate async initialization
+          // Questions are already imported at the top, so no need to import again
+        ]);
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Error during initialization:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initialize();
   }, []);
 
   // Get the correct question set based on language
@@ -110,10 +128,10 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
     return Math.floor((currentQuestion / (totalQuestions - 1)) * 100);
   }, [currentQuestion, totalQuestions]);
 
-  // Prevent refreshes from resetting the assessment state
+  // Prevent refreshes from resetting the assessment state, but only if there's actual progress
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (currentQuestion > 0 && !showResults) {
+      if (currentQuestion > 0 && !showResults && Object.keys(answers).length > 0) {
         e.preventDefault();
         e.returnValue = '';
         return '';
@@ -122,7 +140,7 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [currentQuestion, showResults]);
+  }, [currentQuestion, showResults, answers]);
 
   // Calculate scores and results only when needed for the results dialog
   const getResultData = useCallback(() => {
@@ -167,12 +185,12 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
   // Use the updated redirect URL
   const REDIRECT_URL = "https://www.mican.life/courses-en";
 
-  if (isSubmitting) {
-    return <LoadingState />;
+  if (isLoading || !isInitialized) {
+    return <LoadingState message="Loading assessment..." />;
   }
 
-  if (!isInitialized) {
-    return null;
+  if (isSubmitting) {
+    return <LoadingState message="Processing your assessment..." />;
   }
 
   return (
