@@ -1,5 +1,6 @@
 
-import { determineLevel, determineMoodResult } from './assessmentScoring';
+import { determineLevel, determineMoodResult, SEVERITY_RANKS } from './assessmentScoring';
+import type { AssessmentResult, SeverityLevel } from './scoring/types';
 
 // Tests at boundary values
 export const testSeverityBoundaries = () => {
@@ -54,66 +55,79 @@ export const testSeverityBoundaries = () => {
 export const testMentalHealthStatus = () => {
   console.log("\n--- TESTING MENTAL HEALTH STATUS COMBINATIONS ---");
   
-  // Function to create test scenarios
-  const testScenario = (
-    depressionScore: number, 
-    anxietyScore: number, 
-    stressScore: number, 
-    lifeSatisfactionScore: number
-  ) => {
-    const depression = determineLevel(depressionScore, 'depression');
-    const anxiety = determineLevel(anxietyScore, 'anxiety');
-    const stress = determineLevel(stressScore, 'stress');
-    const satisfaction = determineLevel(lifeSatisfactionScore, 'satisfaction');
-    
-    const result = determineMoodResult(
-      depression,
-      anxiety,
-      stress,
-      satisfaction,
-      0, // isParent (not relevant for this test)
-      0  // needsHelp (not relevant for this test)
-    );
-    
-    console.log(
-      `Depression: ${depressionScore} (${depression.level}), ` +
-      `Anxiety: ${anxietyScore} (${anxiety.level}), ` +
-      `Stress: ${stressScore} (${stress.level}), ` +
-      `Life Satisfaction: ${lifeSatisfactionScore} (${satisfaction.level}) ` +
-      `=> Mental Health Status: ${result.mood}`
-    );
-    
-    return result.mood;
+  // Test Psychological Disturbance conditions
+  console.log("\nPSYCHOLOGICAL DISTURBANCE (EXTREMELY UNHAPPY) TESTS:");
+  testMoodCombination("Very Severe", "Normal", "Normal", "Very Satisfied");  // DASS Severe with any LS
+  testMoodCombination("Severe", "Normal", "Normal", "Very Satisfied");       // DASS Severe with any LS
+  testMoodCombination("Moderate", "Normal", "Normal", "Dissatisfied");       // DASS Moderate with LS Dissatisfied
+  
+  // Test Medium-to-Low Sub-Health Status conditions
+  console.log("\nMEDIUM-TO-LOW SUB-HEALTH STATUS (VERY UNHAPPY) TESTS:");
+  testMoodCombination("Moderate", "Normal", "Normal", "Neutral");            // DASS Moderate with LS not Dissatisfied
+  testMoodCombination("Mild", "Normal", "Normal", "Dissatisfied");           // DASS Mild with LS Dissatisfied
+  
+  // Test Moderate Sub-Health Status conditions
+  console.log("\nMODERATE SUB-HEALTH STATUS (MODERATELY UNHAPPY) TESTS:");
+  testMoodCombination("Mild", "Normal", "Normal", "Neutral");                // DASS Mild with LS not Dissatisfied
+  testMoodCombination("Normal", "Normal", "Normal", "Dissatisfied");         // DASS Normal with LS Dissatisfied
+  
+  // Test Medium to High Sub-Health Status conditions
+  console.log("\nMEDIUM TO HIGH SUB-HEALTH STATUS (SLIGHTLY UNHAPPY) TESTS:");
+  testMoodCombination("Normal", "Normal", "Normal", "Neutral");              // DASS Normal with LS Neutral
+  
+  // Test Healthy conditions
+  console.log("\nHEALTHY (HAPPY) TESTS:");
+  testMoodCombination("Normal", "Normal", "Normal", "Satisfied");            // DASS Normal with LS Satisfied
+  testMoodCombination("Normal", "Normal", "Normal", "Very Satisfied");       // DASS Normal with LS Very Satisfied
+};
+
+// Helper function for testing mood combinations
+function testMoodCombination(
+  depression: SeverityLevel, 
+  anxiety: SeverityLevel, 
+  stress: SeverityLevel, 
+  lifeSatisfaction: SeverityLevel
+): void {
+  const depressionResult: AssessmentResult = { 
+    level: depression, 
+    score: 0, 
+    message: "", 
+    rank: SEVERITY_RANKS[depression]
   };
   
-  // Test critical combinations
+  const anxietyResult: AssessmentResult = { 
+    level: anxiety, 
+    score: 0, 
+    message: "", 
+    rank: SEVERITY_RANKS[anxiety] 
+  };
   
-  // 1. Psychological Disturbance cases
-  console.log("\nPSYCHOLOGICAL DISTURBANCE TESTS:");
-  testScenario(28, 10, 16, 33); // Very Severe depression with otherwise normal scores
-  testScenario(9, 28, 16, 33); // Very Severe anxiety with otherwise normal scores
-  testScenario(9, 10, 38, 33); // Very Severe stress with otherwise normal scores
-  testScenario(14, 14, 21, 13); // Moderate DASS + Very dissatisfied LS
+  const stressResult: AssessmentResult = { 
+    level: stress, 
+    score: 0, 
+    message: "", 
+    rank: SEVERITY_RANKS[stress] 
+  };
   
-  // 2. Medium-to-Low Sub-Health Status cases
-  console.log("\nMEDIUM-TO-LOW SUB-HEALTH STATUS TESTS:");
-  testScenario(14, 14, 21, 27); // Moderate DASS + Neutral LS
-  testScenario(10, 11, 17, 14); // Mild DASS + Dissatisfied LS
+  const satisfactionResult: AssessmentResult = { 
+    level: lifeSatisfaction, 
+    score: 0, 
+    message: "", 
+    rank: SEVERITY_RANKS[lifeSatisfaction] 
+  };
   
-  // 3. Moderate Sub-Health Status cases
-  console.log("\nMODERATE SUB-HEALTH STATUS TESTS:");
-  testScenario(10, 11, 17, 27); // Mild DASS + Neutral LS
-  testScenario(9, 10, 16, 14); // Normal DASS + Dissatisfied LS
+  const result = determineMoodResult(
+    depressionResult,
+    anxietyResult,
+    stressResult,
+    satisfactionResult,
+    0, // isParent
+    0  // needsHelp
+  );
   
-  // 4. Medium to High Sub-Health Status cases
-  console.log("\nMEDIUM TO HIGH SUB-HEALTH STATUS TESTS:");
-  testScenario(9, 10, 16, 26); // Normal DASS + Neutral LS
-  
-  // 5. Healthy cases
-  console.log("\nHEALTHY TESTS:");
-  testScenario(9, 10, 16, 27); // Normal DASS + Satisfied LS
-  testScenario(9, 10, 16, 33); // Normal DASS + Very Satisfied LS
-};
+  console.log(`Depression:${depression}, Anxiety:${anxiety}, Stress:${stress}, Life Satisfaction:${lifeSatisfaction}`);
+  console.log(`Result: ${result.mood}`);
+}
 
 // Run all tests
 export const runAllTests = () => {

@@ -4,7 +4,7 @@ import QuestionDisplay from './assessment/QuestionDisplay';
 import ResultsDialog from './assessment/ResultsDialog';
 import LoadingState from './assessment/LoadingState';
 import { useAssessment } from '@/hooks/useAssessment';
-import { calculateDassScores, determineLevel, determineMoodResult, runTestCases } from '@/utils/assessmentScoring';
+import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/assessmentScoring';
 import { runAllTests } from '@/utils/testScoring';
 
 // Preloading question sets for faster access
@@ -158,11 +158,9 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
   // Run tests in development environment only
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      // Uncomment these lines to run the tests
-      // console.log("Running internal assessment scoring tests...");
-      // runTestCases();
-      // console.log("Running comprehensive boundary tests...");
-      // runAllTests();
+      // Run diagnostic tests to verify assessment scoring logic
+      console.log("Running assessment scoring tests...");
+      runAllTests();
     }
   }, []);
 
