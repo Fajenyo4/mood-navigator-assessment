@@ -1,0 +1,81 @@
+
+<!-- Supabase Script -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.6/dist/umd/supabase.min.js"></script>
+
+<!-- Initial Setup Script -->
+<script>
+  // Supabase configuration
+  const SUPABASE_URL = "https://thvtgvvwksbxywhdnwcv.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRodnRndnZ3a3NieHl3aGRud2N2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ4MTQxMzIsImV4cCI6MjA2MDM5MDEzMn0.FS-lttdxFJPGCMy7yXCrvsiIQu_dTBbWCBy7E32wRww";
+  
+  // Initialize Supabase client (global)
+  window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: {
+      storage: window.localStorage,
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true
+    }
+  });
+  
+  // Global state object
+  window.assessmentState = {
+    user: null,
+    currentQuestion: 0,
+    totalQuestions: 0,
+    answers: {},
+    language: 'en',
+    showResults: false,
+    loading: true,
+    result: null
+  };
+  
+  // Language translator function
+  window.getTranslatedText = function(key, language) {
+    const translations = {
+      en: {
+        viewHistory: "View Assessment History",
+        title: "Are you happy?",
+        loading: "Loading results...",
+        errorLoading: "Error loading question. Please refresh and try again.",
+        back: "Back",
+        reset: "Reset"
+      },
+      "zh-CN": {
+        viewHistory: "查看评估历史",
+        title: "你開心嗎？",
+        loading: "加载结果...",
+        errorLoading: "加载问题时出错。请刷新并重试。",
+        back: "返回",
+        reset: "重置"
+      },
+      "zh-HK": {
+        viewHistory: "查看評估歷史",
+        title: "你開心嗎？",
+        loading: "加載結果...",
+        errorLoading: "加載問題時出錯。請刷新並重試。",
+        back: "返回",
+        reset: "重置"
+      }
+    };
+    
+    const lang = language in translations ? language : 'en';
+    return translations[lang][key] || translations.en[key] || key;
+  };
+  
+  // Function to check if user is authenticated
+  window.checkAuth = async function() {
+    try {
+      const { data: { session } } = await window.supabase.auth.getSession();
+      if (session) {
+        window.assessmentState.user = session.user;
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      return false;
+    }
+  };
+</script>

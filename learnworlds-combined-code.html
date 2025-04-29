@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Supabase Script -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.6/dist/umd/supabase.min.js"></script>
+
+  <!-- Initial Setup Script -->
+  <script>
+    // Supabase configuration
+    const SUPABASE_URL = "https://thvtgvvwksbxywhdnwcv.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRodnRndnZ3a3NieHl3aGRud2N2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ4MTQxMzIsImV4cCI6MjA2MDM5MDEzMn0.FS-lttdxFJPGCMy7yXCrvsiIQu_dTBbWCBy7E32wRww";
+    
+    // Initialize Supabase client (global)
+    window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: {
+        storage: window.localStorage,
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true
+      }
+    });
+    
+    // Global state object
+    window.assessmentState = {
+      user: null,
+      currentQuestion: 0,
+      totalQuestions: 0,
+      answers: {},
+      language: 'en',
+      showResults: false,
+      loading: true,
+      result: null
+    };
+    
+    // Language translator function
+    window.getTranslatedText = function(key, language) {
+      const translations = {
+        en: {
+          viewHistory: "View Assessment History",
+          title: "Are you happy?",
+          loading: "Loading results...",
+          errorLoading: "Error loading question. Please refresh and try again.",
+          back: "Back",
+          reset: "Reset"
+        },
+        "zh-CN": {
+          viewHistory: "查看评估历史",
+          title: "你開心嗎？",
+          loading: "加载结果...",
+          errorLoading: "加载问题时出错。请刷新并重试。",
+          back: "返回",
+          reset: "重置"
+        },
+        "zh-HK": {
+          viewHistory: "查看評估歷史",
+          title: "你開心嗎？",
+          loading: "加載結果...",
+          errorLoading: "加載問題時出錯。請刷新並重試。",
+          back: "返回",
+          reset: "重置"
+        }
+      };
+      
+      const lang = language in translations ? language : 'en';
+      return translations[lang][key] || translations.en[key] || key;
+    };
+    
+    // Function to check if user is authenticated
+    window.checkAuth = async function() {
+      try {
+        const { data: { session } } = await window.supabase.auth.getSession();
+        if (session) {
+          window.assessmentState.user = session.user;
+          return true;
+        } else {
+          return false;
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        return false;
+      }
+    };
+  </script>
+
+  <style>
+/* Main Container Styles */
+.assessment-container {
+  min-height: 100vh;
+  background-color: #f9fafb;
+  padding: 2rem 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.assessment-wrapper {
+  width: 100%;
+  max-width: 42rem;
+  margin: 0 auto;
+}
+
+.logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+/* Question Display Styles */
+.question-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 0.5rem;
+  background-color: #e5e7eb;
+  border-radius: 9999px;
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #8b5cf6;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+.question-text {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 2rem;
+}
+
+.question-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.option-item {
+  cursor: pointer;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.option-item:hover {
+  border-color: #8b5cf6;
+  background-color: #f9fafb;
+}
+
+.option-item.selected {
+  border-color: #8b5cf6;
+  background-color: #f5f3ff;
+}
+
+.option-radio {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-right: 0.75rem;
+  accent-color: #8b5cf6;
+}
+
+.option-label {
+  font-size: 1rem;
+  color: #374151;
+  flex-grow: 1;
+}
+
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.btn {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.btn-back {
+  color: #4b5563;
+  background-color: transparent;
+}
+
+.btn-back:hover {
+  color: #111827;
+  background-color: #f3f4f6;
+}
+
+.btn-reset {
+  color: #4b5563;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+}
+
+.btn-reset:hover {
+  background-color: #f9fafb;
+}
+
+.btn-icon {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5rem;
+}
+
+/* Dialog/Modal Styles */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.dialog-content {
+  position: relative;
+  width: 90%;
+  max-width: 36rem;
+  max-height: 90vh;
+  overflow-y: auto;
+  background-color: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  animation: scaleIn 0.3s ease;
+  z-index: 51;
+}
+
+@media (min-width: 640px) {
+  .dialog-content {
+    padding: 1.5rem;
+  }
+}
+
+.dialog-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.dialog-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.dialog-close {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  width: 1rem;
+  height: 1rem;
+  opacity: 0.7;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+}
+
+.dialog-close:hover {
+  opacity: 1;
+}
+
+.dialog-close:before, .dialog-close:after {
+  position: absolute;
+  content: ' ';
+  height: 1rem;
+  width: 2px;
+  background-color: #111827;
+}
+
+.dialog-close:before {
+  transform: rotate(45deg);
+}
+
+.dialog-close:after {
+  transform: rotate(-45deg);
+}
+
+.dialog-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+/* Results Styles */
+.mood-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.mood-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.mood-text {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #111827;
+  text-align: center;
+  max-width: 32rem;
+}
+
+.mood-message {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #111827;
+  text-align: center;
+  max-width: 32rem;
+}
+
+.result-message {
+  width: 100%;
+  text-align: left;
+}
+
+.result-message p {
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  color: #374151;
+}
+
+/* Mood Scale Styles */
+.mood-scale {
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
+.mood-scale-title {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #065f46;
+  margin-bottom: 0.75rem;
+}
+
+.scale-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 2.5rem;
+}
+
+.scale-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  color: #8b5cf6;
+}
+
+.scale-bar-container {
+  position: relative;
+  flex: 1;
+  height: 0.75rem;
+  background-color: #e5e7eb;
+  border-radius: 9999px;
+}
+
+.scale-bar {
+  height: 100%;
+  background-color: #8b5cf6;
+  border-radius: 9999px;
+  transition: width 1s ease;
+}
+
+.scale-label {
+  position: absolute;
+  top: -2rem;
+  transform: translateX(-50%);
+  background-color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  white-space: nowrap;
+}
+
+.scale-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2.5rem;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .scale-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Button Styles */
+.action-buttons {
+  width: 100%;
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .action-buttons {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+.btn-primary {
+  background-color: #8b5cf6;
+  color: white;
+  flex: 1;
+  padding: 0.75rem 1rem;
+}
+
+.btn-primary:hover {
+  background-color: #7c3aed;
+}
+
+.btn-outline {
+  border: 1px solid #d1d5db;
+  background-color: white;
+  color: #4b5563;
+  flex: 1;
+  padding: 0.75rem 1rem;
+}
+
+.btn-outline:hover {
+  background-color: #f9fafb;
+}
+
+/* Loading State */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 0;
+}
+
+.spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 4px solid rgba(139, 92, 246, 0.2);
+  border-left-color: #8b5cf6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Login Form Styles */
+.login-container {
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.login-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
+}
+
+.login-header {
+  margin-bottom: 1.5rem;
+}
+
+.login-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.login-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 0.5rem;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+.hidden {
+  display: none;
+}
+  </style>
+</head>
+<body>
+<div id="assessment-app" class="assessment-container">
+  <!-- Login UI -->
+  <div id="loginUI" class="login-container hidden">
+    <div class="login-card">
+      <div class="login-header">
+        <h2 id="loginTitle" class="login-title">Login to Assessment</h2>
+        <p id="loginDescription" class="login-description">Please sign in to continue to the assessment</p>
+      </div>
+      <form id="loginForm" class="login-form">
+        <div id="nameField" class="form-group hidden">
+          <label for="name" class="form-label">Full Name</label>
+          <input id="name" type="text" class="form-input" placeholder="Your name" autocomplete="name" required>
+        </div>
+        <div class="form-group">
+          <label for="email" class="form-label">Email</label>
+          <input id="email" type="email" class="form-input" placeholder="Your email" autocomplete="email" required>
+        </div>
+        <div class="form-group">
+          <label for="password" class="form-label">Password</label>
+          <input id="password" type="password" class="form-input" placeholder="Your password" autocomplete="current-password" required>
+        </div>
+        <button type="submit" id="loginButton" class="btn btn-primary">Login</button>
+        <button type="button" id="toggleSignUp" class="btn btn-outline">Don't have an account? Sign up</button>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Assessment UI -->
+  <div id="assessmentUI" class="assessment-wrapper hidden">
+    <!-- Logo -->
+    <div class="logo">
+      <svg width="150" height="40" viewBox="0 0 150 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="150" height="40" rx="8" fill="#7c3aed" />
+        <text x="75" y="26" font-family="Arial" font-size="18" font-weight="bold" fill="white" text-anchor="middle">Assessment</text>
+      </svg>
+    </div>
+
+    <div class="button-row">
+      <button id="btnBack" class="btn btn-back hidden">
+        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        <span id="btnBackText">Back</span>
+      </button>
+      <button id="btnReset" class="btn btn-reset">
+        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        <span id="btnResetText">Reset</span>
+      </button>
+    </div>
+
+    <!-- Question Display -->
+    <div id="questionCard" class="question-card">
+      <div class="progress-bar-container">
+        <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+      </div>
+      <h2 id="questionText" class="question-text"></h2>
+      <div id="questionOptions" class="question-options">
+        <!-- Options will be populated by JavaScript -->
+      </div>
+    </div>
+
+    <!-- Results Dialog -->
+    <div id="resultsDialog" class="dialog-overlay hidden">
+      <div class="dialog-content">
+        <div class="dialog-header">
+          <h2 id="resultsTitle" class="dialog-title">Are you happy?</h2>
+          <button id="closeResults" class="dialog-close"></button>
+        </div>
+        <div id="resultsBody" class="dialog-body">
+          <div id="resultsLoading" class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading results...</p>
+          </div>
+          <div id="resultsContent" class="hidden">
+            <div class="mood-header">
+              <div id="moodIcon" class="mood-icon">
+                <!-- Mood icon will be inserted here -->
+              </div>
+              <p id="moodStatus" class="mood-text"></p>
+            </div>
+            
+            <div id="resultMessageContainer" class="result-message"></div>
+            
+            <div id="overallMood" class="mood-scale"></div>
+            
+            <div class="scale-grid">
+              <div id="satisfactionScale" class="mood-scale"></div>
+              <div id="anxietyScale" class="mood-scale"></div>
+              <div id="depressionScale" class="mood-scale"></div>
+              <div id="stressScale" class="mood-scale"></div>
+            </div>
+
+            <div class="action-buttons">
+              <a id="actionRedirect" href="#" class="btn btn-primary">
+                View Resources
+              </a>
+              <button id="actionViewHistory" class="btn btn-outline">
+                <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span id="viewHistoryText">View Assessment History</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main JavaScript for the assessment functionality -->
+<script>
+  /**
+   * Assessment app functionality
+   */
+  document.addEventListener('DOMContentLoaded', function() {
+    // English and Chinese question sets
+    const questions = {
+      'en': [
+        // Life Satisfaction Scale (Questions 1-5)
+        {
+          id: 1,
+          text: "In most ways my life is close to my ideal.",
+          type: "life-satisfaction",
+          options: [
+            "Strongly disagree",
+            "Disagree", 
+            "Slightly disagree",
+            "Neither agree nor disagree",
+            "Slightly agree",
+            "Agree",
+            "Strongly agree"
+          ]
+        },
+        {
+          id: 2,
+          text: "The conditions of my life are excellent.",
+          type: "life-satisfaction",
+          options: [
+            "Strongly disagree",
+            "Disagree",
+            "Slightly disagree",
+            "Neither agree nor disagree",
+            "Slightly agree",
+            "Agree",
+            "Strongly agree"
+          ]
+        },
+        {
+          id: 3,
+          text: "I am satisfied with my life.",
+          type: "life-satisfaction",
+          options: [
+            "Strongly disagree",
+            "Disagree",
+            "Slightly disagree",
+            "Neither agree nor disagree",
+            "Slightly agree",
+            "Agree",
+            "Strongly agree"
+          ]
+        },
+        {
+          id: 4,
+          text: "So far I have gotten the important things I want in life.",
+          type: "life-satisfaction",
+          options: [
+            "Strongly disagree",
+            "Disagree",
+            "Slightly disagree",
+            "Neither agree nor disagree",
+            "Slightly agree",
+            "Agree",
+            "Strongly agree"
+          ]
+        },
+        {
+          id: 5,
+          text: "If I could live my life over, I would change almost nothing.",
+          type: "life-satisfaction",
+          options: [
+            "Strongly disagree",
+            "Disagree",
+            "Slightly disagree",
+            "Neither agree nor disagree",
+            "Slightly agree",
+            "Agree",
+            "Strongly agree"
+          ]
+        },
+        // DASS-21 Scale (Questions 6-26)
+        {
+          id: 6,
+          text: "I found it hard to wind down.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 7,
+          text: "I was aware of dryness of my mouth.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 8,
+          text: "I couldn’t seem to experience any positive feeling at all.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 9,
+          text: "I experienced breathing difficulty (e.g. excessively rapid breathing, breathlessness in the absence of physical exertion).",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 10,
+          text: "I found it difficult to work up the initiative to do things.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 11,
+          text: "I tended to over-react to situations.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 12,
+          text: "I experienced trembling (e.g. in the hands).",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 13,
+          text: "I felt that I was using a lot of nervous energy.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 14,
+          text: "I was worried about situations in which I might panic and make a fool of myself.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 15,
+          text: "I felt that I had nothing to look forward to.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 16,
+          text: "I found myself getting agitated.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 17,
+          text: "I found it difficult to relax.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 18,
+          text: "I felt down-hearted and blue.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 19,
+          text: "I was intolerant of anything that kept me from getting on with what I was doing.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 20,
+          text: "I felt I was close to panic.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 21,
+          text: "I was unable to become enthusiastic about anything.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 22,
+          text: "I felt I wasn’t worth much as a person.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 23,
+          text: "I felt that I was rather touchy.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied

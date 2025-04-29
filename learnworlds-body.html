@@ -1,0 +1,917 @@
+<div id="assessment-app" class="assessment-container">
+  <!-- Login UI -->
+  <div id="loginUI" class="login-container hidden">
+    <div class="login-card">
+      <div class="login-header">
+        <h2 id="loginTitle" class="login-title">Login to Assessment</h2>
+        <p id="loginDescription" class="login-description">Please sign in to continue to the assessment</p>
+      </div>
+      <form id="loginForm" class="login-form">
+        <div id="nameField" class="form-group hidden">
+          <label for="name" class="form-label">Full Name</label>
+          <input id="name" type="text" class="form-input" placeholder="Your name" autocomplete="name" required>
+        </div>
+        <div class="form-group">
+          <label for="email" class="form-label">Email</label>
+          <input id="email" type="email" class="form-input" placeholder="Your email" autocomplete="email" required>
+        </div>
+        <div class="form-group">
+          <label for="password" class="form-label">Password</label>
+          <input id="password" type="password" class="form-input" placeholder="Your password" autocomplete="current-password" required>
+        </div>
+        <button type="submit" id="loginButton" class="btn btn-primary">Login</button>
+        <button type="button" id="toggleSignUp" class="btn btn-outline">Don't have an account? Sign up</button>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Assessment UI -->
+  <div id="assessmentUI" class="assessment-wrapper hidden">
+    <!-- Logo -->
+    <div class="logo">
+      <svg width="150" height="40" viewBox="0 0 150 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="150" height="40" rx="8" fill="#7c3aed" />
+        <text x="75" y="26" font-family="Arial" font-size="18" font-weight="bold" fill="white" text-anchor="middle">Assessment</text>
+      </svg>
+    </div>
+
+    <div class="button-row">
+      <button id="btnBack" class="btn btn-back hidden">
+        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        <span id="btnBackText">Back</span>
+      </button>
+      <button id="btnReset" class="btn btn-reset">
+        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        <span id="btnResetText">Reset</span>
+      </button>
+    </div>
+
+    <!-- Question Display -->
+    <div id="questionCard" class="question-card">
+      <div class="progress-bar-container">
+        <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+      </div>
+      <h2 id="questionText" class="question-text"></h2>
+      <div id="questionOptions" class="question-options">
+        <!-- Options will be populated by JavaScript -->
+      </div>
+    </div>
+
+    <!-- Results Dialog -->
+    <div id="resultsDialog" class="dialog-overlay hidden">
+      <div class="dialog-content">
+        <div class="dialog-header">
+          <h2 id="resultsTitle" class="dialog-title">Are you happy?</h2>
+          <button id="closeResults" class="dialog-close"></button>
+        </div>
+        <div id="resultsBody" class="dialog-body">
+          <div id="resultsLoading" class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading results...</p>
+          </div>
+          <div id="resultsContent" class="hidden">
+            <div class="mood-header">
+              <div id="moodIcon" class="mood-icon">
+                <!-- Mood icon will be inserted here -->
+              </div>
+              <p id="moodStatus" class="mood-text"></p>
+            </div>
+            
+            <div id="resultMessageContainer" class="result-message"></div>
+            
+            <div id="overallMood" class="mood-scale"></div>
+            
+            <div class="scale-grid">
+              <div id="satisfactionScale" class="mood-scale"></div>
+              <div id="anxietyScale" class="mood-scale"></div>
+              <div id="depressionScale" class="mood-scale"></div>
+              <div id="stressScale" class="mood-scale"></div>
+            </div>
+
+            <div class="action-buttons">
+              <a id="actionRedirect" href="#" class="btn btn-primary">
+                View Resources
+              </a>
+              <button id="actionViewHistory" class="btn btn-outline">
+                <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span id="viewHistoryText">View Assessment History</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main JavaScript for the assessment functionality -->
+<script>
+  /**
+   * Assessment app functionality
+   */
+  document.addEventListener('DOMContentLoaded', function() {
+    // English and Chinese question sets
+    const questions = {
+      'en': [
+        // Life Satisfaction Scale (Questions 1-5)
+        {
+          id: 1,
+          text: "In most ways my life is close to my ideal.",
+          type: "life-satisfaction",
+          options: [
+            "Strongly disagree",
+            "Disagree", 
+            "Slightly disagree",
+            "Neither agree nor disagree",
+            "Slightly agree",
+            "Agree",
+            "Strongly agree"
+          ]
+        },
+        {
+          id: 2,
+          text: "The conditions of my life are excellent.",
+          type: "life-satisfaction",
+          options: [
+            "Strongly disagree",
+            "Disagree", 
+            "Slightly disagree",
+            "Neither agree nor disagree",
+            "Slightly agree",
+            "Agree",
+            "Strongly agree"
+          ]
+        },
+        {
+          id: 3,
+          text: "I am satisfied with my life.",
+          type: "life-satisfaction",
+          options: [
+            "Strongly disagree",
+            "Disagree", 
+            "Slightly disagree",
+            "Neither agree nor disagree",
+            "Slightly agree",
+            "Agree",
+            "Strongly agree"
+          ]
+        },
+        {
+          id: 4,
+          text: "So far I have gotten the important things I want in life.",
+          type: "life-satisfaction",
+          options: [
+            "Strongly disagree",
+            "Disagree", 
+            "Slightly disagree",
+            "Neither agree nor disagree",
+            "Slightly agree",
+            "Agree",
+            "Strongly agree"
+          ]
+        },
+        {
+          id: 5,
+          text: "If I could live my life over, I would change almost nothing.",
+          type: "life-satisfaction",
+          options: [
+            "Strongly disagree",
+            "Disagree", 
+            "Slightly disagree",
+            "Neither agree nor disagree",
+            "Slightly agree",
+            "Agree",
+            "Strongly agree"
+          ]
+        },
+        // DASS-21 Scale (Questions 6-26)
+        {
+          id: 6,
+          text: "I found it hard to wind down.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 7,
+          text: "I was aware of dryness of my mouth.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 8,
+          text: "I couldn’t seem to experience any positive feeling at all.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 9,
+          text: "I experienced breathing difficulty (e.g. excessively rapid breathing, breathlessness in the absence of physical exertion).",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 10,
+          text: "I found it difficult to work up the initiative to do things.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 11,
+          text: "I tended to over-react to situations.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 12,
+          text: "I experienced trembling (e.g. in the hands).",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 13,
+          text: "I felt that I was using a lot of nervous energy.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 14,
+          text: "I was worried about situations in which I might panic and make a fool of myself.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 15,
+          text: "I felt that I had nothing to look forward to.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 16,
+          text: "I found myself getting agitated.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 17,
+          text: "I found it difficult to relax.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 18,
+          text: "I felt down-hearted and blue.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 19,
+          text: "I was intolerant of anything that kept me from getting on with what I was doing.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 20,
+          text: "I felt I was close to panic.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 21,
+          text: "I was unable to become enthusiastic about anything.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 22,
+          text: "I felt I wasn’t worth much as a person.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 23,
+          text: "I felt that I was rather touchy.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 24,
+          text: "I was aware of the action of my heart in the absence of physical exertion (e.g. sense of heart rate increase, heart missing a beat).",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 25,
+          text: "I felt scared without any good reason.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        {
+          id: 26,
+          text: "I felt that life was meaningless.",
+          type: "dass",
+          options: [
+            "Did not apply to me at all",
+            "Applied to me to some degree, or some of the time",
+            "Applied to me to a considerable degree, or a good part of time",
+            "Applied to me very much, or most of the time"
+          ]
+        },
+        // Demographic Questions (27-28)
+        {
+          id: 27,
+          text: "Are you a parent?",
+          type: "demographic",
+          options: ["Yes", "No"]
+        },
+        {
+          id: 28,
+          text: "Do you have family, friends, colleagues, etc. who are experiencing emotional distress and need help?",
+          type: "demographic",
+          options: ["Yes", "No"]
+        }
+      ],
+      'zh-CN': [
+        {
+          id: 1,
+          text: "到目前为止，我已经实现了我想要的重要事情。",
+          type: "life-satisfaction",
+          options: [
+            "非常不同意",
+            "不同意", 
+            "轻微不同意",
+            "既不同意也不反对",
+            "轻微同意",
+            "同意",
+            "非常同意"
+          ]
+        },
+        {
+          id: 2,
+          text: "我的生活条件很好。",
+          type: "life-satisfaction",
+          options: [
+            "非常不同意",
+            "不同意", 
+            "轻微不同意",
+            "既不同意也不反对",
+            "轻微同意",
+            "同意",
+            "非常同意"
+          ]
+        },
+        {
+          id: 3,
+          text: "在大多数方面，我的生活接近我的理想。",
+          type: "life-satisfaction",
+          options: [
+            "非常不同意",
+            "不同意", 
+            "轻微不同意",
+            "既不同意也不反对",
+            "轻微同意",
+            "同意",
+            "非常同意"
+          ]
+        },
+        {
+          id: 4,
+          text: "我对我的生活感到满意。",
+          type: "life-satisfaction",
+          options: [
+            "非常不同意",
+            "不同意", 
+            "轻微不同意",
+            "既不同意也不反对",
+            "轻微同意",
+            "同意",
+            "非常同意"
+          ]
+        },
+        {
+          id: 5,
+          text: "如果我能重新过我的生活，我几乎不会改变什么。",
+          type: "life-satisfaction",
+          options: [
+            "非常不同意",
+            "不同意", 
+            "轻微不同意",
+            "既不同意也不反对",
+            "轻微同意",
+            "同意",
+            "非常同意"
+          ]
+        },
+        {
+          id: 6,
+          text: "我发现很难放松下来。",
+          type: "dass",
+          options: [
+            "完全不适用于我",
+            "在某种程度上或某些时候适用于我",
+            "在相当程度上或很多时候适用于我",
+            "非常适用于我或大部分时间适用于我"
+          ]
+        },
+        {
+          id: 7,
+          text: "我意识到我的嘴很干。",
+          type: "dass",
+          options: [
+            "完全不适用于我",
+            "在某种程度上或某些时候适用于我",
+            "在相当程度上或很多时候适用于我",
+            "非常适用于我或大部分时间适用于我"
+          ]
+        },
+        {
+          id: 8,
+          text: "我完全无法体验积极的感受。",
+          type: "dass",
+          options: [
+            "完全不适用于我",
+            "在某种程度上或某些时候适用于我",
+            "非常适用于我或大部分时间适用于我"
+          ]
+        },
+        {
+          id: 9,
+          text: "我曾经无缘无故感到呼吸困难（例如，呼吸过快，或是在没有体力活动的情况下感到气喘吁吁）。",
+          type: "dass",
+          options: [
+            "完全不适用于我",
+            "在某种程度上或某些时候适用于我",
+            "在相当程度上或很多时候适用于我",
+            "非常适用于我或大部分时间适用于我"
+          ]
+        },
+        {
+          id: 10,
+          text: "我发现很难鼓起干劲做事。",
+          type: "dass",
+          options: [
+            "完全不适用于我",
+            "在某种程度上或某些时候适用于我",
+            "非常适用于我或大部分时间适用于我"
+          ]
+        },
+        {
+          id: 11,
+          text: "我倾向于对事情反应过度。",
+          type: "dass",
+          options: [
+            "完全不适用于我",
+            "在某种程度上或某些时候适用于我",
+            "非常适用于我或大部分时间适用于我"
+          ]
+        },
+        {
+          id: 12,
+          text: "我感到颤抖（例如，手部颤抖）。",
+          type: "dass",
+          options: [
+            "完全不适用于我",
+            "在某种程度上或某些时候适用于我",
+            "非常适用于我或大部分时间适用于我"
+          ]
+        },
+        {
+          id: 13,
+          text: "我感到我有很多紧张的能量。",
+          type: "dass",
+          options: [
+            "完全不适用于我",
+            "在某种程度上或某些时候适用于我",
+            "非常适用于我或大部分时间适用于我"
+          ]
+        },
+        {
+          id: 14,
+          text: "我担心那些可能会令我恐慌或出丑的情况。",
+          type: "dass",
+          options: [
+            "完全不适用于我",
+            "在某种程度上或某些时候适用于我",
+            "非常适用于我或大部分时间适用于我"
+          ]
+        },
+        {
+          id: 15,
+          text: "我感到我没有什么可期待的。",
+          type: "dass",
+          options: [
+            "完全不适用于我",
+            "在某种程度上或某些时候适用于我",
+            "非常适用于我或大部分时间适用于我"
+          ]
+        },
+        {
+          id: 16,
+          text: "我发现自己变得焦躁不安。",
+          type: "dass",
+          options: [
+            "完全不适用于我",
+            "在某种程度上或某些时候适用于我",
+            "非常适用于我或大部分时间适用于我"
+          ]
+        },
+        {
+          id: 17,
+          text: "我感到很难放松。",
+          type: "dass",
+          options: [
+            "完全不适用于我",
+            "在某种程度上或某些时候适用于我",
+            "非常适用于我或大部分时间适用于我"
+          ]
+        },
+        {
+          id: 18,
+          text: "我感到沮丧和忧郁。",
+          type: "dass",
+          options: [
+            "完全不适用于我",
+            "在某种程度上或某些时候适用于我",
+            "非常适用于我或大部分时间适用于我"
+          ]
+        },
+        {
+          id: 19,
+          text: "对于任何阻碍我继续手头工作的事，我都无法容忍。",
+          type: "dass",
+          options: [
+            "完全不适用于我",
+            "在某种程度上或某些时候适用于我",
+            "非常适用于我或大部分时间适用于我"
+          ]
+        },
+        {
+          id: 20,
+          text: "我感到快要恐慌了。",
+          type: "dass",
+          options: [
+            "完全不适用于我",
+            "在某种程度上或某些时候适用于我",
+            "非常适用于我或大部分时间适用于我"
+          ]
+        },
+        {
+          id: 21,
+          text: "我对任何事都提不起热情。",
+          type: "dass",
+          options: [
+            "完全不适用于我",
+            "在某种程度上或某些时候适用于我",
+            "非常适用于我或大部分时间适用于我"
+          ]
+        },
+        {
+          id: 22,
+          text: "我感到作为一个人，我没有多大价值。",
+          type: "dass",
+          options: [
+            "完全不适用于我",
+            "在某种程度上或某些时候适用于我",
+            "非常适用于我或大部分时间适用于我"
+          ]
+        },
+        {
+          id: 23,
+          text: "我觉得自己很敏感。",
+          type: "dass",
+          options: [
+            "完全不适用于我",
+            "在某种程度上或某些时候适用于我",
+            "非常适用于我或大部分时间适用于我"
+          ]
+        },
+        {
+          id: 24,
+          text: "即使没有进行体力活动，我也能察觉到我的心跳（例如，感到心跳加速或心跳漏拍）。",
+          type: "dass",
+          options: [
+            "完全不适用于我",
+            "在某种程度上或某些时候适用于我",
+            "非常适用于我或大部分时间适用于我"
+          ]
+        },
+        {
+          id: 25,
+          text: "没有任何正当理由，我感到害怕。",
+          type: "dass",
+          options: [
+            "完全不适用于我",
+            "在某种程度上或某些时候适用于我",
+            "非常适用于我或大部分时间适用于我"
+          ]
+        },
+        {
+          id: 26,
+          text: "我觉得生活毫无意义。",
+          type: "dass",
+          options: [
+            "完全不适用于我",
+            "在某种程度上或某些时候适用于我",
+            "非常适用于我或大部分时间适用于我"
+          ]
+        },
+        // Demographic Questions (27-28)
+        {
+          id: 27,
+          text: "您是父母吗？",
+          type: "demographic",
+          options: ["是", "否"]
+        },
+        {
+          id: 28,
+          text: "您有家人、朋友、同事等正在经历情绪困扰并需要帮助吗？",
+          type: "demographic",
+          options: ["是", "否"]
+        }
+      ],
+      'zh-HK': [
+        {
+          id: 1,
+          text: "到目前為止，我已經實現了我想要的重要事情。",
+          type: "life-satisfaction",
+          options: [
+            "非常不同意",
+            "不同意", 
+            "輕微不同意",
+            "既不同意也不反對",
+            "輕微同意",
+            "同意",
+            "非常同意"
+          ]
+        },
+        {
+          id: 2,
+          text: "我的生活條件很好。",
+          type: "life-satisfaction",
+          options: [
+            "非常不同意",
+            "不同意", 
+            "輕微不同意",
+            "既不同意也不反對",
+            "輕微同意",
+            "同意",
+            "非常同意"
+          ]
+        },
+        {
+          id: 3,
+          text: "在大多數方面，我的生活接近我的理想。",
+          type: "life-satisfaction",
+          options: [
+            "非常不同意",
+            "不同意", 
+            "輕微不同意",
+            "既不同意也不反對",
+            "輕微同意",
+            "同意",
+            "非常同意"
+          ]
+        },
+        {
+          id: 4,
+          text: "我對我的生活感到滿意。",
+          type: "life-satisfaction",
+          options: [
+            "非常不同意",
+            "不同意", 
+            "輕微不同意",
+            "既不同意也不反對",
+            "輕微同意",
+            "同意",
+            "非常同意"
+          ]
+        },
+        {
+          id: 5,
+          text: "如果我能重新過我的生活，我幾乎不會改變什麼。",
+          type: "life-satisfaction",
+          options: [
+            "非常不同意",
+            "不同意", 
+            "輕微不同意",
+            "既不同意也不反對",
+            "輕微同意",
+            "同意",
+            "非常同意"
+          ]
+        },
+        {
+          id: 6,
+          text: "我發現很難放鬆下來。",
+          type: "dass",
+          options: [
+            "完全不適用於我",
+            "在某種程度上或某些時候適用於我",
+            "在相當程度上或很多時候適用於我",
+            "非常適用於我或大部分時間適用於我"
+          ]
+        },
+        {
+          id: 7,
+          text: "我意識到我的嘴很乾。",
+          type: "dass",
+          options: [
+            "完全不適用於我",
+            "在某種程度上或某些時候適用於我",
+            "在相當程度上或很多時候適用於我",
+            "非常適用於我或大部分時間適用於我"
+          ]
+        },
+        {
+          id: 8,
+          text: "我完全無法體驗積極的感受。",
+          type: "dass",
+          options: [
+            "完全不適用於我",
+            "在某種程度上或某些時候適用於我",
+            "在相當程度上或很多時候適用於我",
+            "非常適用於我或大部分時間適用於我"
+          ]
+        },
+        {
+          id: 9,
+          text: "我曾經無緣無故感到呼吸困難（例如，呼吸過快，或是在沒有體力活動的情況下感到氣喘吁吁）。",
+          type: "dass",
+          options: [
+            "完全不適用於我",
+            "在某種程度上或某些時候適用於我",
+            "在相當程度上或很多時候適用於我",
+            "非常適用於我或大部分時間適用於我"
+          ]
+        },
+        {
+          id: 10,
+          text: "我發現很難鼓起幹勁做事。",
+          type: "dass",
+          options: [
+            "完全不適用於我",
+            "在某種程度上或某些時候適用於我",
+            "在相當程度上或很多時候適用於我",
+            "非常適用於我或大部分時間適用於我"
+          ]
+        },
+        {
+          id: 11,
+          text: "我傾向於對事情反應過度。",
+          type: "dass",
+          options: [
+            "完全不適用於我",
+            "在某種程度上或某些時候適用於我",
+            "在相當程度上或很多時候適用於我",
+            "非常適用於我或大部分時間適用於我"
+          ]
+        },
+        {
+          id: 12,
+          text: "我感到顫抖（例如，手部顫抖）。",
+          type: "dass",
+          options: [
+            "完全不適用於我",
+            "在某種程度上或某些時候適用於我",
+            "在相當程度上或很多時候適用於我",
+            "非常適用於我或大部分時間適用於我"
+          ]
+        },
+        {
+          id: 13,
+          text: "我感到我有很多緊張的能量。",
+          type: "dass",
+          options: [
+            "完全不適用於我",
+            "在某種程度上或某些時候適用於我",
+            "在相當程度上或很多時候適用於我",
+            "非常適用於我或大部分時間適用於我"
+          ]
+        },
+        {
+          id: 14,
+          text: "我擔心那些可能會令我恐慌或出醜的情況。",
+          type: "dass",
+          options: [
+            "完全不適用於我",
+            "在某種程度上或某些時候適用於我",
+            "在相當程度上或很多時候適用於我",
+            "非常適用於我或大部分時間適用於我"
+          ]
+        },
+        {
+          id: 15,
+          text: "我感到我沒有什麼可期待的。",
+          type: "dass",
+          options: [
+            "完全不適用於我",
+            "在某種程度上或某些時候適用於我",
+            "在相當程度上或很多時候適用於我",
+            "非常適用於我或大部分時間適用於我"
+          ]
+        },
