@@ -122,14 +122,12 @@ export const determineMoodResult = (
     iconType = "smile";
     iconColor = "text-green-500";
     
-    // For the "Healthy" mood status, always set life satisfaction to "Very Satisfied"
-    satisfactionLevel = {
-      ...satisfactionLevel,
-      level: "Very Satisfied",
-      message: "very satisfied",
-      rank: 5,
-      score: satisfactionLevel.score // Keep the original score
-    };
+    // For the "Healthy" mood status, we'll only update the life satisfaction display if the original score warrants it
+    // This ensures we're not forcing "Very Satisfied" for all healthy results
+    if (satisfactionLevel.rank < 4) {
+      // Only if the satisfaction level is less than "Satisfied" (rank 4), we'll preserve the actual satisfaction level
+      console.log("Preserving original satisfaction level for healthy status:", satisfactionLevel.level);
+    }
   }
 
   const fullMessage = `Mental Health Status: ${moodStatus}\n\n${moodMessage}\n\nDetailed Analysis:\nDepression: ${depressionLevel.level} (${depressionLevel.score})\nAnxiety: ${anxietyLevel.level} (${anxietyLevel.score})\nStress: ${stressLevel.level} (${stressLevel.score})\nLife Satisfaction: ${satisfactionLevel.level} (${satisfactionLevel.score})`;

@@ -56,10 +56,10 @@ export const useAssessmentResult = ({
             rank: 1
           },
           satisfactionResult: {
-            score: 35, // Maximum satisfaction score
-            level: "Very Satisfied" as any,
-            message: "very satisfied",
-            rank: 5
+            score: 10, // Using a non-maximum score to avoid forcing "Very Satisfied"
+            level: "Neutral" as any,
+            message: "neutral",
+            rank: 3
           },
           isParent: 0,
           needsHelp: 0,
