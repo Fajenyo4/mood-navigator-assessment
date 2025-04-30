@@ -70,6 +70,11 @@ export const determineMoodResult = (
     language
   });
   
+  if (!depressionLevel || !anxietyLevel || !stressLevel || !satisfactionLevel) {
+    console.error("Missing assessment levels in determineMoodResult");
+    throw new Error("Missing assessment levels");
+  }
+  
   // Determine overall DASS severity rank (highest of the three)
   const dassRank = getHighestSeverityRank(
     depressionLevel,

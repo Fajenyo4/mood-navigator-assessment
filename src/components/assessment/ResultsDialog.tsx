@@ -38,20 +38,31 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   const isMobile = useIsMobile();
   const isChineseLanguage = language.startsWith('zh');
   const [isLoading, setIsLoading] = useState(true);
+  const [displayResult, setDisplayResult] = useState<MoodResult | null>(null);
   
-  // Add effect to handle loading state
+  // Add effect to handle loading state and results
   useEffect(() => {
-    if (open) {
-      // Start with loading state
+    if (!open) {
       setIsLoading(true);
-      
-      // Clear loading state after a small delay only if result exists
-      const timer = setTimeout(() => {
-        setIsLoading(result === null);
-      }, 500);
-      
-      return () => clearTimeout(timer);
+      setDisplayResult(null);
+      return;
     }
+    
+    // Set initial loading state
+    setIsLoading(true);
+    
+    // Clear loading state after results are available or timeout
+    const timer = setTimeout(() => {
+      if (result) {
+        setDisplayResult(result);
+        setIsLoading(false);
+      } else if (open) {
+        // If still open but no result after timeout, show error
+        setIsLoading(false);
+      }
+    }, 800);
+    
+    return () => clearTimeout(timer);
   }, [open, result]);
 
   const REDIRECT_URL = "https://www.mican.life/courses-en";
@@ -92,58 +103,58 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
             <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
             <p className="text-center text-muted-foreground">Loading results...</p>
           </div>
-        ) : result ? (
+        ) : displayResult ? (
           <div className="flex flex-col items-center space-y-8" style={{ paddingBottom: isMobile ? '20px' : '0' }}>
             <div className="flex items-center justify-center gap-4">
-              <MoodIcon iconType={result.iconType} iconColor={result.iconColor} />
+              <MoodIcon iconType={displayResult.iconType} iconColor={displayResult.iconColor} />
               <p className="text-xl text-center font-medium text-gray-900 max-w-2xl">
                 {isChineseLanguage ? "精神心理健康狀態: " : "Mental Health Status: "}
-                <span className="font-bold">{result.mood}</span>
+                <span className="font-bold">{displayResult.mood}</span>
               </p>
             </div>
             
             {/* Only display the assessment text in Chinese language without mental health status */}
-            {isChineseLanguage && result.assessmentText ? (
-              <ResultMessage message={result.assessmentText} language={language} />
+            {isChineseLanguage && displayResult.assessmentText ? (
+              <ResultMessage message={displayResult.assessmentText} language={language} />
             ) : (
-              result.message && 
+              displayResult.message && 
               <p className="text-xl text-center font-medium text-gray-900 max-w-2xl">
-                {result.message.split('\n\n')[0].replace(/Mental Health Status:.+/g, '').trim()}
+                {displayResult.message.split('\n\n')[0].replace(/Mental Health Status:.+/g, '').trim()}
               </p>
             )}
             
             <MoodScale
-              value={result.mood === "Healthy" ? 95 :
-                     result.mood === "Medium to High Sub-Health Status" ? 75 :
-                     result.mood === "Moderate Sub-Health Status" ? 50 :
-                     result.mood === "Medium-to-Low Sub-Health Status" ? 25 : 10}
-              label={isChineseLanguage ? (result.mood === "Healthy" ? "開心" : "不開心") : 
-                     (result.mood === "Healthy" ? "Happy" : "Unhappy")}
+              value={displayResult.mood === "Healthy" ? 95 :
+                     displayResult.mood === "Medium to High Sub-Health Status" ? 75 :
+                     displayResult.mood === "Moderate Sub-Health Status" ? 50 :
+                     displayResult.mood === "Medium-to-Low Sub-Health Status" ? 25 : 10}
+              label={isChineseLanguage ? (displayResult.mood === "Healthy" ? "開心" : "不開心") : 
+                     (displayResult.mood === "Healthy" ? "Happy" : "Unhappy")}
               title={isChineseLanguage ? "整體情緒" : "Overall Mood"}
               className="mb-8 w-full"
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full mb-8">
               <MoodScale
-                value={getScorePercentage(result.satisfactionResult.score, 35)}
-                label={result.satisfactionResult.level}
+                value={getScorePercentage(displayResult.satisfactionResult.score, 35)}
+                label={displayResult.satisfactionResult.level}
                 title={isChineseLanguage ? "生活滿意度" : "Life Satisfaction"}
               />
               <MoodScale
-                value={getScorePercentage(result.anxietyResult.score, 40)}
-                label={result.anxietyResult.level}
+                value={getScorePercentage(displayResult.anxietyResult.score, 40)}
+                label={displayResult.anxietyResult.level}
                 title={isChineseLanguage ? "焦慮" : "Anxiety"}
                 isNegativeScale={true}
               />
               <MoodScale
-                value={getScorePercentage(result.depressionResult.score, 40)}
-                label={result.depressionResult.level}
+                value={getScorePercentage(displayResult.depressionResult.score, 40)}
+                label={displayResult.depressionResult.level}
                 title={isChineseLanguage ? "抑鬱" : "Depression"}
                 isNegativeScale={true}
               />
               <MoodScale
-                value={getScorePercentage(result.stressResult.score, 40)}
-                label={result.stressResult.level}
+                value={getScorePercentage(displayResult.stressResult.score, 40)}
+                label={displayResult.stressResult.level}
                 title={isChineseLanguage ? "壓力" : "Stress"}
                 isNegativeScale={true}
               />

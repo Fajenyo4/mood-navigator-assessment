@@ -1,5 +1,5 @@
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/scoring';
 import type { MoodResult } from '@/utils/scoring';
 
@@ -12,14 +12,21 @@ export const useAssessmentResult = ({
   answers, 
   effectiveLanguage 
 }: UseAssessmentResultProps) => {
+  const [isResultLoading, setIsResultLoading] = useState(false);
+  const [lastResult, setLastResult] = useState<MoodResult | null>(null);
+
   // Calculate scores and results only when needed for the results dialog
   const getResultData = useCallback((): MoodResult | null => {
-    if (!answers || Object.keys(answers).length === 0) {
-      console.log("No answers available to calculate results");
-      return null;
-    }
-
+    // Set loading state
+    setIsResultLoading(true);
+    
     try {
+      if (!answers || Object.keys(answers).length === 0) {
+        console.log("No answers available to calculate results");
+        setIsResultLoading(false);
+        return null;
+      }
+
       console.log("Calculating results with answers:", answers);
       const scores = calculateDassScores(answers);
       console.log("Calculated scores:", scores);
@@ -47,12 +54,19 @@ export const useAssessmentResult = ({
       );
       
       console.log("Final mood result:", result);
+      setLastResult(result);
+      setIsResultLoading(false);
       return result;
     } catch (error) {
       console.error("Error calculating assessment results:", error);
+      setIsResultLoading(false);
       return null;
     }
   }, [answers, effectiveLanguage]);
   
-  return { getResultData };
+  return { 
+    getResultData,
+    isResultLoading,
+    lastResult 
+  };
 };

@@ -8,8 +8,6 @@ import { useAssessment } from '@/hooks/useAssessment';
 import { useAssessmentSetup } from '@/hooks/useAssessmentSetup';
 import { useBeforeUnload } from '@/hooks/useBeforeUnload';
 import { useAssessmentResult } from '@/hooks/useAssessmentResult';
-import CurrentQuestionManager from './assessment/CurrentQuestionManager';
-import ProgressCalculator from './assessment/ProgressCalculator';
 import { useResetHandler } from './assessment/ResetHandler';
 
 interface AssessmentProps {
@@ -69,7 +67,10 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
   }, [currentQuestion, totalQuestions]);
 
   // Calculate results
-  const { getResultData } = useAssessmentResult({ answers, effectiveLanguage });
+  const { getResultData, isResultLoading, lastResult } = useAssessmentResult({ 
+    answers, 
+    effectiveLanguage 
+  });
 
   // Run tests in development environment only
   React.useEffect(() => {
@@ -79,6 +80,13 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
       import('@/utils/testScoring').then(({ runAllTests }) => runAllTests());
     }
   }, []);
+
+  // Get results when dialog is opened
+  React.useEffect(() => {
+    if (showResults) {
+      getResultData();
+    }
+  }, [showResults, getResultData]);
 
   // Use the updated redirect URL
   const REDIRECT_URL = "https://www.mican.life/courses-en";
@@ -108,7 +116,7 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
       <ResultsDialog
         open={showResults}
         onOpenChange={setShowResults}
-        result={showResults ? getResultData() : null}
+        result={showResults ? lastResult : null}
         onManualRedirect={() => window.location.href = REDIRECT_URL}
         language={effectiveLanguage}
       />
