@@ -26,25 +26,29 @@ const getMentalHealthStatus = (
 ): string => {
   console.log(`Calculating mental health status with DASS rank: ${dassRank}, LS rank: ${lsRank}`);
   
-  // "Extremely Unhappy" condition
+  // "Psychological Disturbance" condition
   if (dassRank >= 4 || (dassRank === 3 && lsRank <= 2)) {
-    return "Psychological Disturbance"; // "Extremely Unhappy"
+    return "Psychological Disturbance"; 
   } 
-  // "Very Unhappy" condition
+  // "Medium-to-Low Sub-Health Status" condition
   else if (dassRank === 3 || (dassRank === 2 && lsRank <= 2)) {
-    return "Medium-to-Low Sub-Health Status"; // "Very Unhappy"
+    return "Medium-to-Low Sub-Health Status"; 
   } 
-  // "Moderately Unhappy" condition
+  // "Moderate Sub-Health Status" condition
   else if (dassRank === 2 || (dassRank === 1 && lsRank <= 2)) {
-    return "Moderate Sub-Health Status"; // "Moderately Unhappy"
+    return "Moderate Sub-Health Status"; 
   } 
-  // "Slightly Unhappy" condition
+  // "Medium to High Sub-Health Status" condition - IMPORTANT: This is for normal DASS with neutral life satisfaction
   else if (dassRank === 1 && lsRank === 3) {
-    return "Medium to High Sub-Health Status"; // "Slightly Unhappy"
+    return "Medium to High Sub-Health Status"; 
   } 
-  // "Happy" condition
-  else { // dassRank === 1 && lsRank >= 4
-    return "Healthy"; // "Happy"
+  // "Healthy" condition
+  else if (dassRank === 1 && lsRank >= 4) {
+    return "Healthy"; // ONLY when DASS is normal AND life satisfaction is Satisfied or Very Satisfied
+  }
+  else {
+    console.log("WARNING: Unexpected combination of ranks, defaulting to Medium to High Sub-Health Status");
+    return "Medium to High Sub-Health Status"; // Default fallback
   }
 };
 
@@ -101,23 +105,23 @@ export const determineMoodResult = (
   let iconColor = "text-yellow-500";
 
   // Set message and icon based on mood status
-  if (moodStatus === "Psychological Disturbance") { // "Extremely Unhappy"
+  if (moodStatus === "Psychological Disturbance") { 
     moodMessage = "You are experiencing significant psychological distress.";
     iconType = "frown";
     iconColor = "text-red-500";
-  } else if (moodStatus === "Medium-to-Low Sub-Health Status") { // "Very Unhappy"
+  } else if (moodStatus === "Medium-to-Low Sub-Health Status") { 
     moodMessage = "You are experiencing a mild psychological disturbance.";
     iconType = "frown";
     iconColor = "text-orange-500";
-  } else if (moodStatus === "Moderate Sub-Health Status") { // "Moderately Unhappy"
+  } else if (moodStatus === "Moderate Sub-Health Status") { 
     moodMessage = "You are experiencing a moderate sub-health status.";
     iconType = "meh";
     iconColor = "text-yellow-500";
-  } else if (moodStatus === "Medium to High Sub-Health Status") { // "Slightly Unhappy"
+  } else if (moodStatus === "Medium to High Sub-Health Status") { 
     moodMessage = "You are experiencing a medium to high sub-health status.";
     iconType = "meh";
     iconColor = "text-blue-500";
-  } else { // Healthy - "Happy"
+  } else { // Healthy
     moodMessage = "You are in a healthy mental state.";
     iconType = "smile";
     iconColor = "text-green-500";

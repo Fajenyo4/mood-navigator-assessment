@@ -1,3 +1,4 @@
+
 import { determineLevel } from './levelDetermination';
 import { determineMoodResult } from './moodResult';
 import { SeverityLevel, AssessmentResult } from './types';
@@ -105,8 +106,8 @@ export const runTestCases = (): boolean => {
   // Test all combinations for Mental Health Status determination
   console.log("\n--- TESTING ALL MOOD COMBINATIONS ---");
   
-  // Testing Psychological Disturbance (Extremely Unhappy) conditions
-  console.log("\nPSYCHOLOGICAL DISTURBANCE (EXTREMELY UNHAPPY) TESTS:");
+  // Testing Psychological Disturbance conditions
+  console.log("\nPSYCHOLOGICAL DISTURBANCE TESTS:");
   // DASS = Severe/Very Severe
   testMoodCombination("Very Severe", "Normal", "Normal", "Very Satisfied", "Psychological Disturbance"); // DASS Severe, LS any
   testMoodCombination("Normal", "Severe", "Normal", "Dissatisfied", "Psychological Disturbance"); // DASS Severe, LS any
@@ -115,8 +116,8 @@ export const runTestCases = (): boolean => {
   testMoodCombination("Moderate", "Normal", "Normal", "Very dissatisfied", "Psychological Disturbance");
   testMoodCombination("Normal", "Moderate", "Normal", "Dissatisfied", "Psychological Disturbance");
   
-  // Testing Medium-to-Low Sub-Health Status (Very Unhappy) conditions
-  console.log("\nMEDIUM-TO-LOW SUB-HEALTH STATUS (VERY UNHAPPY) TESTS:");
+  // Testing Medium-to-Low Sub-Health Status conditions
+  console.log("\nMEDIUM-TO-LOW SUB-HEALTH STATUS TESTS:");
   // DASS = Moderate
   testMoodCombination("Moderate", "Normal", "Normal", "Neutral", "Medium-to-Low Sub-Health Status");
   testMoodCombination("Normal", "Moderate", "Normal", "Satisfied", "Medium-to-Low Sub-Health Status");
@@ -124,8 +125,8 @@ export const runTestCases = (): boolean => {
   testMoodCombination("Mild", "Normal", "Normal", "Very dissatisfied", "Medium-to-Low Sub-Health Status");
   testMoodCombination("Normal", "Mild", "Normal", "Dissatisfied", "Medium-to-Low Sub-Health Status");
   
-  // Testing Moderate Sub-Health Status (Moderately Unhappy) conditions
-  console.log("\nMODERATE SUB-HEALTH STATUS (MODERATELY UNHAPPY) TESTS:");
+  // Testing Moderate Sub-Health Status conditions
+  console.log("\nMODERATE SUB-HEALTH STATUS TESTS:");
   // DASS = Mild
   testMoodCombination("Mild", "Normal", "Normal", "Neutral", "Moderate Sub-Health Status");
   testMoodCombination("Normal", "Mild", "Normal", "Satisfied", "Moderate Sub-Health Status");
@@ -133,13 +134,13 @@ export const runTestCases = (): boolean => {
   testMoodCombination("Normal", "Normal", "Normal", "Very dissatisfied", "Moderate Sub-Health Status");
   testMoodCombination("Normal", "Normal", "Normal", "Dissatisfied", "Moderate Sub-Health Status");
   
-  // Testing Medium to High Sub-Health Status (Slightly Unhappy) conditions
-  console.log("\nMEDIUM TO HIGH SUB-HEALTH STATUS (SLIGHTLY UNHAPPY) TESTS:");
+  // Testing Medium to High Sub-Health Status conditions
+  console.log("\nMEDIUM TO HIGH SUB-HEALTH STATUS TESTS:");
   // DASS = Normal AND LS = Neutral
   testMoodCombination("Normal", "Normal", "Normal", "Neutral", "Medium to High Sub-Health Status");
   
-  // Testing Healthy (Happy) conditions
-  console.log("\nHEALTHY (HAPPY) TESTS:");
+  // Testing Healthy conditions
+  console.log("\nHEALTHY TESTS:");
   // DASS = Normal AND LS = Satisfied/Very Satisfied
   testMoodCombination("Normal", "Normal", "Normal", "Satisfied", "Healthy");
   testMoodCombination("Normal", "Normal", "Normal", "Very Satisfied", "Healthy");

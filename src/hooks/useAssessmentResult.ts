@@ -32,11 +32,11 @@ export const useAssessmentResult = ({
         console.log("Warning: No answers provided, using default values");
         // Create default values instead of returning null
         const defaultResult = {
-          mood: "Healthy",
+          mood: "Medium to High Sub-Health Status", // Changed from "Healthy" to more neutral default
           message: "Assessment completed",
           redirectUrl: "https://www.mican.life/courses-en",
-          iconType: "smile" as "smile" | "meh" | "frown",
-          iconColor: "text-green-500",
+          iconType: "meh" as "smile" | "meh" | "frown", // Changed from smile to meh
+          iconColor: "text-blue-500", // Changed from green to blue
           depressionResult: {
             score: 0,
             level: "Normal" as any,
@@ -56,7 +56,7 @@ export const useAssessmentResult = ({
             rank: 1
           },
           satisfactionResult: {
-            score: 10, // Using a non-maximum score to avoid forcing "Very Satisfied"
+            score: 16, // Using a middle score for Neutral rank 
             level: "Neutral" as any,
             message: "neutral",
             rank: 3
