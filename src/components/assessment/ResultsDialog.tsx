@@ -1,16 +1,17 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { useLocation, useNavigate } from 'react-router-dom';
-import { MoodResult } from '@/utils/assessmentScoring';
+import { MoodResult } from '@/utils/scoring';
 import ResultActions from './ResultActions';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { History } from 'lucide-react';
+import { History, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { assessmentResultsTranslations } from '@/translations/assessmentResults';
 import MoodScale from './MoodScale';
@@ -36,6 +37,22 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   const isHistoryPage = location.pathname === '/history';
   const isMobile = useIsMobile();
   const isChineseLanguage = language.startsWith('zh');
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Add effect to handle loading state
+  useEffect(() => {
+    if (open) {
+      // Start with loading state
+      setIsLoading(true);
+      
+      // Clear loading state after a small delay only if result exists
+      const timer = setTimeout(() => {
+        setIsLoading(result === null);
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [open, result]);
 
   const REDIRECT_URL = "https://www.mican.life/courses-en";
 
@@ -65,8 +82,17 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
           <DialogTitle className="text-3xl font-bold text-center mb-6">
             {isChineseLanguage ? "你開心嗎？" : "Are you happy?"}
           </DialogTitle>
+          {open && <DialogDescription className="sr-only">
+            Assessment results showing your mental health status
+          </DialogDescription>}
         </DialogHeader>
-        {result ? (
+        
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center p-12">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+            <p className="text-center text-muted-foreground">Loading results...</p>
+          </div>
+        ) : result ? (
           <div className="flex flex-col items-center space-y-8" style={{ paddingBottom: isMobile ? '20px' : '0' }}>
             <div className="flex items-center justify-center gap-4">
               <MoodIcon iconType={result.iconType} iconColor={result.iconColor} />
@@ -144,8 +170,9 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
             )}
           </div>
         ) : (
-          <div className="p-4 text-center">
-            <p>Loading results...</p>
+          <div className="p-8 text-center">
+            <p className="text-red-500">Failed to load results. Please try again.</p>
+            <Button onClick={() => onOpenChange(false)} className="mt-4">Close</Button>
           </div>
         )}
       </DialogContent>

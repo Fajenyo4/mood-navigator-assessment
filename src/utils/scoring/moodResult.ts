@@ -24,6 +24,8 @@ const getMentalHealthStatus = (
   dassRank: number,
   lsRank: number
 ): string => {
+  console.log(`Calculating mental health status with DASS rank: ${dassRank}, LS rank: ${lsRank}`);
+  
   // "Extremely Unhappy" condition
   if (dassRank >= 4 || (dassRank === 3 && lsRank <= 2)) {
     return "Psychological Disturbance"; // "Extremely Unhappy"
@@ -58,6 +60,16 @@ export const determineMoodResult = (
   needsHelp: number,
   language: string = 'en'
 ): MoodResult => {
+  console.log("Determining mood result with levels:", {
+    depressionLevel,
+    anxietyLevel,
+    stressLevel,
+    satisfactionLevel,
+    isParent,
+    needsHelp,
+    language
+  });
+  
   // Determine overall DASS severity rank (highest of the three)
   const dassRank = getHighestSeverityRank(
     depressionLevel,
@@ -67,9 +79,11 @@ export const determineMoodResult = (
   
   // Get satisfaction rank
   const lsRank = satisfactionLevel.rank;
+  console.log(`DASS rank: ${dassRank}, Satisfaction rank: ${lsRank}`);
   
   // Determine final mental health status based on DASS rank and satisfaction rank
   const moodStatus = getMentalHealthStatus(dassRank, lsRank);
+  console.log(`Determined mood status: ${moodStatus}`);
   
   let moodMessage = "";
   let iconType: 'frown' | 'meh' | 'smile' = 'meh';
@@ -112,7 +126,7 @@ export const determineMoodResult = (
       )
     : '';
 
-  return {
+  const result = {
     mood: moodStatus,
     message: fullMessage,
     redirectUrl: "https://www.mican.life/courses-en",
@@ -126,4 +140,7 @@ export const determineMoodResult = (
     needsHelp,
     assessmentText
   };
+  
+  console.log("Final mood result object:", result);
+  return result;
 };
