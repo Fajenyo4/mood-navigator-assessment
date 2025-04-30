@@ -121,6 +121,15 @@ export const determineMoodResult = (
     moodMessage = "You are in a healthy mental state.";
     iconType = "smile";
     iconColor = "text-green-500";
+    
+    // For the "Healthy" mood status, always set life satisfaction to "Very Satisfied"
+    satisfactionLevel = {
+      ...satisfactionLevel,
+      level: "Very Satisfied",
+      message: "very satisfied",
+      rank: 5,
+      score: satisfactionLevel.score // Keep the original score
+    };
   }
 
   const fullMessage = `Mental Health Status: ${moodStatus}\n\n${moodMessage}\n\nDetailed Analysis:\nDepression: ${depressionLevel.level} (${depressionLevel.score})\nAnxiety: ${anxietyLevel.level} (${anxietyLevel.score})\nStress: ${stressLevel.level} (${stressLevel.score})\nLife Satisfaction: ${satisfactionLevel.level} (${satisfactionLevel.score})`;
