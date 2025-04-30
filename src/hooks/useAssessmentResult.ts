@@ -1,7 +1,7 @@
 
 import { useCallback } from 'react';
-import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/assessmentScoring';
-import { MoodResult } from '@/utils/assessmentScoring';
+import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/scoring';
+import { MoodResult } from '@/utils/scoring';
 
 interface UseAssessmentResultProps {
   answers: { [key: number]: number };

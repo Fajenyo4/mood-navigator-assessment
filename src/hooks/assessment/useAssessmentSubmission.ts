@@ -1,7 +1,7 @@
 
 import { useCallback } from 'react';
 import { saveAssessmentResult } from '@/services/assessment';
-import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/assessmentScoring';
+import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/scoring';
 import { toast } from 'sonner';
 
 interface UseAssessmentSubmissionProps {
@@ -45,7 +45,8 @@ export const useAssessmentSubmission = ({
         stressLevel,
         satisfactionLevel,
         scores.isParent,
-        scores.needsHelp
+        scores.needsHelp,
+        defaultLanguage
       );
 
       const textAnswers: { [key: string]: string } = {};
