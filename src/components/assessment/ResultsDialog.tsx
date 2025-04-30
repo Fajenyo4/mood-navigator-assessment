@@ -50,14 +50,24 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`sm:max-w-xl ${isMobile ? 'max-h-[90vh] overflow-y-auto p-4' : 'p-6'}`}>
+      <DialogContent 
+        className={`
+          sm:max-w-xl 
+          ${isMobile ? 'h-[85vh] p-4' : 'p-6'}
+        `}
+        style={{
+          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+      >
         <DialogHeader>
           <DialogTitle className="text-3xl font-bold text-center mb-6">
             {isChineseLanguage ? "你開心嗎？" : "Are you happy?"}
           </DialogTitle>
         </DialogHeader>
         {result ? (
-          <div className="flex flex-col items-center space-y-8">
+          <div className="flex flex-col items-center space-y-8" style={{ paddingBottom: isMobile ? '20px' : '0' }}>
             <div className="flex items-center justify-center gap-4">
               <MoodIcon iconType={result.iconType} iconColor={result.iconColor} />
               <p className="text-xl text-center font-medium text-gray-900 max-w-2xl">
