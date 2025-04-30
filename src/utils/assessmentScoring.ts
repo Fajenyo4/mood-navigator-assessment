@@ -8,4 +8,4 @@ export * from './scoring/moodResult';
 export * from './scoring/textGeneration';
 export * from './scoring/testData';
 export * from './scoring/testing';
-export { MoodResult } from './scoring/types';
+export type { MoodResult } from './scoring/types';
