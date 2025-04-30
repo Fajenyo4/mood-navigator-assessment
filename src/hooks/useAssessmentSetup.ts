@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
@@ -70,7 +71,7 @@ export const useAssessmentSetup = ({
       case 'zh-CN': 
         return zhCNQuestions;
       case 'zh-HK':
-        return zhTWQuestions;
+        return zhTWQuestions; // Use Traditional Chinese (zh-TW) for Cantonese (zh-HK)
       case 'en':
       default:
         return enQuestions;

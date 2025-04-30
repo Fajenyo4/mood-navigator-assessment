@@ -32,7 +32,7 @@ export const useAssessment = ({
       case 'zh-CN': 
         return zhCNQuestions;
       case 'zh-HK':
-        return zhTWQuestions;
+        return zhTWQuestions; // Use Traditional Chinese (zh-TW) for Cantonese (zh-HK)
       case 'en':
       default:
         return enQuestions;
