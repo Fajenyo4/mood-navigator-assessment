@@ -49,7 +49,7 @@ const TraditionalChineseEmbed: React.FC<TraditionalChineseEmbedProps> = ({ sso =
 
   // Determine the URL based on whether this is an SSO embed or not
   const embedUrl = sso 
-    ? "https://mood-navigator-assessment.lovable.app/embed/zh-tw-sso.html" 
+    ? "https://mood-navigator-assessment.lovable.app/embed/zh-hk-sso.html" 
     : "https://mood-navigator-assessment.lovable.app/login/zh-hk";
 
   if (error) {
