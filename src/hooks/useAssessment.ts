@@ -1,11 +1,9 @@
 
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/assessmentScoring';
-import { saveAssessmentResult } from '@/services/assessment';
-import { toast } from 'sonner';
-import { questions as enQuestions } from '@/translations/en';
-import { questions as zhCNQuestions } from '@/translations/zh-CN';
-import { questions as zhTWQuestions } from '@/translations/zh-TW';
+import { useAssessmentProgress } from './assessment/useAssessmentProgress';
+import { useAssessmentNavigation } from './assessment/useAssessmentNavigation';
+import { useAssessmentSubmission } from './assessment/useAssessmentSubmission';
+import { useAssessmentQuestions } from './assessment/useAssessmentQuestions';
+import { useAssessmentInitialization } from './assessment/useAssessmentInitialization';
 
 interface UseAssessmentProps {
   userId: string | undefined;
@@ -24,197 +22,59 @@ export const useAssessment = ({
   initialQuestion = 0,
   initialAnswers = {}
 }: UseAssessmentProps) => {
-  // Reference to track initialization
-  const initialized = useRef(false);
+  // Get the questions based on language
+  const { getQuestions } = useAssessmentQuestions(defaultLanguage);
 
-  const getQuestions = useCallback(() => {
-    switch (defaultLanguage) {
-      case 'zh-CN': 
-        return zhCNQuestions;
-      case 'zh-HK':
-        return zhTWQuestions; // Use Traditional Chinese (zh-TW) for Cantonese (zh-HK)
-      case 'en':
-      default:
-        return enQuestions;
-    }
-  }, [defaultLanguage]);
+  // Manage assessment progress state
+  const {
+    currentQuestion, 
+    setCurrentQuestion,
+    answers, 
+    setAnswers,
+    showResults,
+    setShowResults,
+    selectedOption,
+    setSelectedOption,
+    isSubmitting,
+    setIsSubmitting,
+    updateCounter,
+    setUpdateCounter,
+    saveProgressLocally,
+    resetAssessment
+  } = useAssessmentProgress({
+    initialQuestion,
+    initialAnswers,
+    defaultLanguage
+  });
 
-  const [currentQuestion, setCurrentQuestion] = useState(initialQuestion);
-  const [answers, setAnswers] = useState<{ [key: number]: number }>(initialAnswers);
-  const [showResults, setShowResults] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<string>((initialAnswers[initialQuestion + 1]?.toString()) || "");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [updateCounter, setUpdateCounter] = useState(0);
-  
-  // Only save progress locally without triggering any refreshes
-  const saveProgressLocally = useCallback((newQuestion: number, newAnswers: { [key: number]: number }) => {
-    try {
-      localStorage.setItem('assessment_progress', JSON.stringify({
-        currentQuestion: newQuestion,
-        answers: newAnswers,
-        timestamp: Date.now(),
-        language: defaultLanguage
-      }));
-    } catch (error) {
-      console.error('Error saving progress to localStorage:', error);
-      // Silently fail without disrupting user experience
-    }
-  }, [defaultLanguage]);
+  // Handle assessment submission
+  const { handleSubmit } = useAssessmentSubmission({
+    userId,
+    userName,
+    userEmail,
+    defaultLanguage,
+    getQuestions,
+    setIsSubmitting,
+    setShowResults
+  });
 
-  // Add a reset function to completely reset the assessment state
-  const resetAssessment = useCallback(() => {
-    setCurrentQuestion(0);
-    setAnswers({});
-    setSelectedOption("");
-    setShowResults(false);
-    setUpdateCounter(prev => prev + 1);
-    
-    // Clear any saved progress from localStorage
-    localStorage.removeItem('assessment_progress');
-    
-    console.log("Assessment has been reset to initial state");
-    toast.success("Assessment reset successfully");
-  }, []);
+  // Handle navigation between questions
+  const { handleAnswer, handlePrevious } = useAssessmentNavigation({
+    currentQuestion,
+    setCurrentQuestion,
+    answers,
+    selectedOption,
+    setSelectedOption,
+    setUpdateCounter,
+    saveProgressLocally,
+    getQuestions,
+    handleSubmit
+  });
 
-  const handleAnswer = useCallback((value: string) => {
-    const numericValue = parseInt(value);
-    const questionId = currentQuestion + 1;
-    
-    // Always update answers and trigger UI update, even if it's the same value
-    const newAnswers = { ...answers, [questionId]: numericValue };
-    
-    setAnswers(newAnswers);
-    setSelectedOption(value);
-    setUpdateCounter(prev => prev + 1); // Force re-render for selection UI
-    
-    const questions = getQuestions();
-    const questionCount = questions.length;
+  // Initialize assessment
+  useAssessmentInitialization({ initialQuestion });
 
-    if (currentQuestion < questionCount - 1) {
-      const nextQuestion = currentQuestion + 1;
-      setCurrentQuestion(nextQuestion);
-      
-      // Set the next question's selected option if it exists in answers
-      const nextSelectedOption = newAnswers[nextQuestion + 1]?.toString() || "";
-      setSelectedOption(nextSelectedOption);
-      
-      // Save progress locally without triggering refreshes
-      saveProgressLocally(nextQuestion, newAnswers);
-      
-      console.log(`Moving to question ${nextQuestion + 1}/${questionCount}, selected: ${nextSelectedOption}`);
-    } else {
-      handleSubmit(newAnswers);
-    }
-  }, [currentQuestion, answers, getQuestions, saveProgressLocally]);
-
-  const handlePrevious = useCallback(() => {
-    if (currentQuestion > 0) {
-      const prevQuestion = currentQuestion - 1;
-      setCurrentQuestion(prevQuestion);
-      
-      // Set the previous answer as selected
-      const prevSelectedOption = answers[prevQuestion + 1]?.toString() || "";
-      setSelectedOption(prevSelectedOption);
-      
-      // Force UI update to show selection correctly
-      setUpdateCounter(prev => prev + 1);
-      
-      // Update local storage with the current state
-      saveProgressLocally(prevQuestion, answers);
-      
-      console.log(`Moved back to question ${prevQuestion + 1}, selected: ${prevSelectedOption}`);
-    }
-  }, [currentQuestion, answers, saveProgressLocally]);
-
-  const handleSubmit = async (finalAnswers: { [key: number]: number }) => {
-    if (!userId) {
-      toast.error("You must be logged in to submit the assessment");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const questions = getQuestions();
-      const scores = calculateDassScores(finalAnswers);
-      const depressionLevel = determineLevel(scores.depression, 'depression');
-      const anxietyLevel = determineLevel(scores.anxiety, 'anxiety');
-      const stressLevel = determineLevel(scores.stress, 'stress');
-      const satisfactionLevel = determineLevel(scores.lifeSatisfaction, 'satisfaction');
-
-      const result = determineMoodResult(
-        depressionLevel,
-        anxietyLevel,
-        stressLevel,
-        satisfactionLevel,
-        scores.isParent,
-        scores.needsHelp
-      );
-
-      const textAnswers: { [key: string]: string } = {};
-      Object.keys(finalAnswers).forEach(questionNum => {
-        const qNum = parseInt(questionNum);
-        const question = questions.find(q => q.id === qNum);
-        if (question) {
-          const optionIndex = finalAnswers[qNum];
-          textAnswers[qNum] = question.options[optionIndex] || '';
-        }
-      });
-
-      setShowResults(true);
-
-      // Save results without triggering page refreshes
-      try {
-        await saveAssessmentResult(
-          userId,
-          userName || userEmail || '',
-          userEmail || '',
-          {
-            numeric: finalAnswers,
-            text: textAnswers,
-            scores,
-            levels: {
-              depression: depressionLevel.level,
-              anxiety: anxietyLevel.level,
-              stress: stressLevel.level,
-              lifeSatisfaction: satisfactionLevel.level
-            }
-          },
-          result.mood,
-          defaultLanguage,
-          {
-            depression: scores.depression,
-            anxiety: scores.anxiety,
-            stress: scores.stress,
-            lifeSatisfaction: scores.lifeSatisfaction
-          }
-        );
-        
-        // Clear local storage only after successful submission
-        localStorage.removeItem('assessment_progress');
-      } catch (error) {
-        console.error('Error saving assessment:', error);
-        toast.error('Failed to save your assessment results');
-      } finally {
-        setIsSubmitting(false);
-      }
-
-    } catch (error) {
-      console.error('Error processing assessment:', error);
-      toast.error('Failed to process your assessment');
-      setIsSubmitting(false);
-    }
-  };
-
-  // Run initialization only once
-  useEffect(() => {
-    if (!initialized.current) {
-      initialized.current = true;
-      
-      // No auto-refreshes or auto-saving that might cause issues
-      console.log("Assessment initialized with question:", initialQuestion);
-    }
-  }, [initialQuestion]);
-
+  // Return what consumer components need
   return {
     currentQuestion,
     answers,
