@@ -75,6 +75,12 @@ export const determineMoodResult = (
     throw new Error("Missing assessment levels");
   }
   
+  // Set default message fields for cases where the level is empty
+  if (!depressionLevel.message) depressionLevel.message = "normal";
+  if (!anxietyLevel.message) anxietyLevel.message = "normal";
+  if (!stressLevel.message) stressLevel.message = "normal";
+  if (!satisfactionLevel.message) satisfactionLevel.message = "neutral";
+  
   // Determine overall DASS severity rank (highest of the three)
   const dassRank = getHighestSeverityRank(
     depressionLevel,
