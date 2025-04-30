@@ -1,4 +1,3 @@
-
 import { AssessmentResult, AssessmentType, DassScores, SeverityLevel, AssessmentLevels, MoodResult } from './scoring/types';
 
 // Object to map severity levels to numeric ranks (1-5)
@@ -69,10 +68,10 @@ export const determineLevel = (score: number, type: AssessmentType): AssessmentR
       return { score, level: "Very Severe", message: "very severe", rank: 5 };
     
     case 'satisfaction':
-      if (score < 14) return { score, level: "Very dissatisfied", message: "very dissatisfied", rank: 1 };
-      if (score < 20) return { score, level: "Dissatisfied", message: "dissatisfied", rank: 2 };
-      if (score < 27) return { score, level: "Neutral", message: "neutral", rank: 3 };
-      if (score < 33) return { score, level: "Satisfied", message: "satisfied", rank: 4 };
+      if (score <= 5) return { score, level: "Very dissatisfied", message: "very dissatisfied", rank: 1 };
+      if (score < 14) return { score, level: "Dissatisfied", message: "dissatisfied", rank: 2 };
+      if (score < 20) return { score, level: "Neutral", message: "neutral", rank: 3 };
+      if (score < 27) return { score, level: "Satisfied", message: "satisfied", rank: 4 };
       return { score, level: "Very Satisfied", message: "very satisfied", rank: 5 };
   }
 };
@@ -118,10 +117,11 @@ export const getSeverityColor = (level: string): string => {
 };
 
 export const getSatisfactionLevel = (score: number): string => {
-  if (score < 14) return "Very dissatisfied";
-  if (score < 20) return "Dissatisfied";
-  if (score < 27) return "Neutral";
-  if (score < 33) return "Satisfied";
+  // Updated to match the determineLevel function for satisfaction
+  if (score <= 5) return "Very dissatisfied";
+  if (score < 14) return "Dissatisfied";
+  if (score < 20) return "Neutral";
+  if (score < 27) return "Satisfied";
   return "Very Satisfied";
 };
 
