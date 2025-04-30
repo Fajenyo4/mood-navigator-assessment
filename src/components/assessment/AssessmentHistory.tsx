@@ -14,6 +14,8 @@ import { AVAILABLE_LANGUAGES } from '@/constants/languages';
 const AssessmentHistory: React.FC = () => {
   const [selectedAssessment, setSelectedAssessment] = useState<AssessmentRecord | null>(null);
   const [showResults, setShowResults] = useState(false);
+  const [isResultLoading, setIsResultLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
   const { user } = useAuth();
   const { 
     assessments, 
@@ -104,7 +106,14 @@ const AssessmentHistory: React.FC = () => {
 
   const handleViewResults = (assessment: AssessmentRecord) => {
     setSelectedAssessment(assessment);
-    setShowResults(true);
+    setIsResultLoading(true);
+    setHasError(false);
+    
+    // Simulate loading for better UX (similar to the main assessment flow)
+    setTimeout(() => {
+      setIsResultLoading(false);
+      setShowResults(true);
+    }, 500);
   };
 
   return (
@@ -151,6 +160,8 @@ const AssessmentHistory: React.FC = () => {
           result={prepareResultData(selectedAssessment)!}
           onManualRedirect={() => {}}
           language={selectedAssessment.language_code || 'en'}
+          isLoading={isResultLoading}
+          hasError={hasError}
         />
       )}
     </div>
