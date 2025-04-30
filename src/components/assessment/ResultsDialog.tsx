@@ -11,7 +11,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { MoodResult } from '@/utils/scoring';
 import ResultActions from './ResultActions';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { History, Loader2, AlertCircle } from 'lucide-react';
+import { History, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { assessmentResultsTranslations } from '@/translations/assessmentResults';
 import MoodScale from './MoodScale';
@@ -26,6 +26,7 @@ interface ResultsDialogProps {
   hasError: boolean;
   onManualRedirect: () => void;
   language: string;
+  onRetry?: () => void;
 }
 
 const ResultsDialog: React.FC<ResultsDialogProps> = ({
@@ -35,6 +36,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   isLoading,
   hasError,
   language,
+  onRetry,
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -50,10 +52,14 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   };
 
   const handleTryAgain = () => {
-    onOpenChange(false);
-    setTimeout(() => {
-      onOpenChange(true);
-    }, 500);
+    if (onRetry) {
+      onRetry();
+    } else {
+      onOpenChange(false);
+      setTimeout(() => {
+        onOpenChange(true);
+      }, 500);
+    }
   };
 
   const getScorePercentage = (score: number, maxScore: number) => {
@@ -91,7 +97,10 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
           <div className="flex flex-col items-center justify-center p-12">
             <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
             <p className="text-red-500 text-center mb-6">Failed to load results. Please try again.</p>
-            <Button onClick={handleTryAgain}>Close</Button>
+            <Button onClick={handleTryAgain} className="flex items-center gap-2">
+              <RefreshCw className="h-4 w-4" />
+              <span>Retry</span>
+            </Button>
           </div>
         ) : result ? (
           <div className="flex flex-col items-center space-y-8" style={{ paddingBottom: isMobile ? '20px' : '0' }}>
@@ -173,7 +182,7 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
         ) : (
           <div className="p-8 text-center">
             <p className="text-red-500">Failed to load results. Please try again.</p>
-            <Button onClick={handleTryAgain} className="mt-4">Close</Button>
+            <Button onClick={handleTryAgain} className="mt-4">Retry</Button>
           </div>
         )}
       </DialogContent>

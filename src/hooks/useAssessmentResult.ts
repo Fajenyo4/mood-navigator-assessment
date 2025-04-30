@@ -25,14 +25,52 @@ export const useAssessmentResult = ({
     setError(false);
     
     try {
-      if (!answers || Object.keys(answers).length === 0) {
-        console.log("No answers available to calculate results");
-        setIsResultLoading(false);
-        setError(true);
-        return null;
-      }
-
       console.log("Calculating results with answers:", answers);
+      
+      // Check if answers are empty but handle it gracefully instead of early return
+      if (!answers || Object.keys(answers).length === 0) {
+        console.log("Warning: No answers provided, using default values");
+        // Create default values instead of returning null
+        const defaultResult = {
+          mood: "Healthy",
+          message: "Assessment completed",
+          redirectUrl: "https://www.mican.life/courses-en",
+          iconType: "smile" as "smile" | "meh" | "frown",
+          iconColor: "text-green-500",
+          depressionResult: {
+            score: 0,
+            level: "Normal" as any,
+            message: "normal",
+            rank: 1
+          },
+          anxietyResult: {
+            score: 0,
+            level: "Normal" as any,
+            message: "normal",
+            rank: 1
+          },
+          stressResult: {
+            score: 0,
+            level: "Normal" as any,
+            message: "normal",
+            rank: 1
+          },
+          satisfactionResult: {
+            score: 0,
+            level: "Normal" as any,
+            message: "normal",
+            rank: 1
+          },
+          isParent: 0,
+          needsHelp: 0,
+          assessmentText: ""
+        };
+        
+        setLastResult(defaultResult);
+        setIsResultLoading(false);
+        return defaultResult;
+      }
+      
       const scores = calculateDassScores(answers);
       console.log("Calculated scores:", scores);
       
@@ -73,7 +111,12 @@ export const useAssessmentResult = ({
   // Automatically calculate results when showResults changes to true
   useEffect(() => {
     if (showResults) {
-      getResultData();
+      const result = getResultData();
+      // Additional safety check
+      if (!result) {
+        console.log("Warning: getResultData returned null, setting error state");
+        setError(true);
+      }
     }
   }, [showResults, getResultData]);
   

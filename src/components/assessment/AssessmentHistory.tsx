@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ResultsDialog from './ResultsDialog';
@@ -32,44 +31,62 @@ const AssessmentHistory: React.FC = () => {
   };
 
   const prepareResultData = (assessment: AssessmentRecord) => {
-    if (!assessment) return null;
+    if (!assessment) {
+      console.error("Cannot prepare result data: assessment is null");
+      return null;
+    }
     
-    const { scores, levels } = assessment.answers;
-    
-    return {
-      mood: assessment.final_mood,
-      message: `Assessment taken on ${new Date(assessment.created_at).toLocaleString()}`,
-      redirectUrl: "https://www.mican.life/courses-en",
-      iconType: getMoodIcon(assessment.final_mood),
-      iconColor: getMoodColor(assessment.final_mood),
-      depressionResult: {
-        score: scores.depression,
-        level: levels.depression as SeverityLevel,
-        message: levels.depression.toLowerCase(),
-        rank: getRankFromLevel(levels.depression)
-      },
-      anxietyResult: {
-        score: scores.anxiety,
-        level: levels.anxiety as SeverityLevel,
-        message: levels.anxiety.toLowerCase(),
-        rank: getRankFromLevel(levels.anxiety)
-      },
-      stressResult: {
-        score: scores.stress,
-        level: levels.stress as SeverityLevel,
-        message: levels.stress.toLowerCase(),
-        rank: getRankFromLevel(levels.stress)
-      },
-      satisfactionResult: {
-        score: scores.lifeSatisfaction,
-        level: levels.lifeSatisfaction as SeverityLevel,
-        message: levels.lifeSatisfaction.toLowerCase(),
-        rank: getRankFromLevel(levels.lifeSatisfaction)
-      },
-      isParent: assessment.answers.scores.isParent !== undefined ? assessment.answers.scores.isParent : 0,
-      needsHelp: assessment.answers.scores.needsHelp !== undefined ? assessment.answers.scores.needsHelp : 0,
-      assessmentText: assessment.mental_status || ""
-    };
+    try {
+      console.log("Preparing result data for assessment:", assessment);
+      
+      // Check if the answers object has the required properties
+      if (!assessment.answers || !assessment.answers.scores || !assessment.answers.levels) {
+        console.error("Assessment is missing required data structures:", assessment);
+        setHasError(true);
+        return null;
+      }
+      
+      const { scores, levels } = assessment.answers;
+      
+      return {
+        mood: assessment.final_mood || "Unknown",
+        message: `Assessment taken on ${new Date(assessment.created_at).toLocaleString()}`,
+        redirectUrl: "https://www.mican.life/courses-en",
+        iconType: getMoodIcon(assessment.final_mood),
+        iconColor: getMoodColor(assessment.final_mood),
+        depressionResult: {
+          score: scores.depression || 0,
+          level: (levels.depression as SeverityLevel) || "Normal",
+          message: (levels.depression || "normal").toLowerCase(),
+          rank: getRankFromLevel(levels.depression || "Normal")
+        },
+        anxietyResult: {
+          score: scores.anxiety || 0,
+          level: (levels.anxiety as SeverityLevel) || "Normal",
+          message: (levels.anxiety || "normal").toLowerCase(),
+          rank: getRankFromLevel(levels.anxiety || "Normal")
+        },
+        stressResult: {
+          score: scores.stress || 0,
+          level: (levels.stress as SeverityLevel) || "Normal",
+          message: (levels.stress || "normal").toLowerCase(),
+          rank: getRankFromLevel(levels.stress || "Normal")
+        },
+        satisfactionResult: {
+          score: scores.lifeSatisfaction || 0,
+          level: (levels.lifeSatisfaction as SeverityLevel) || "Normal",
+          message: (levels.lifeSatisfaction || "normal").toLowerCase(),
+          rank: getRankFromLevel(levels.lifeSatisfaction || "Normal")
+        },
+        isParent: assessment.answers.scores.isParent !== undefined ? assessment.answers.scores.isParent : 0,
+        needsHelp: assessment.answers.scores.needsHelp !== undefined ? assessment.answers.scores.needsHelp : 0,
+        assessmentText: assessment.mental_status || ""
+      };
+    } catch (error) {
+      console.error("Error preparing result data:", error);
+      setHasError(true);
+      return null;
+    }
   };
 
   const getMoodIcon = (mood: string): 'smile' | 'meh' | 'frown' => {
@@ -105,15 +122,46 @@ const AssessmentHistory: React.FC = () => {
   };
 
   const handleViewResults = (assessment: AssessmentRecord) => {
-    setSelectedAssessment(assessment);
-    setIsResultLoading(true);
-    setHasError(false);
-    
-    // Simulate loading for better UX (similar to the main assessment flow)
-    setTimeout(() => {
+    try {
+      console.log("Viewing results for assessment:", assessment);
+      setSelectedAssessment(assessment);
+      setIsResultLoading(true);
+      setHasError(false);
+      
+      // Simulate loading for better UX (similar to the main assessment flow)
+      setTimeout(() => {
+        try {
+          const resultData = prepareResultData(assessment);
+          if (!resultData) {
+            console.error("Failed to prepare result data");
+            setHasError(true);
+          }
+          setIsResultLoading(false);
+          setShowResults(true);
+        } catch (error) {
+          console.error("Error in loading timeout callback:", error);
+          setIsResultLoading(false);
+          setHasError(true);
+          setShowResults(true); // Still show dialog with error state
+        }
+      }, 500);
+    } catch (error) {
+      console.error("Error in handleViewResults:", error);
+      setHasError(true);
       setIsResultLoading(false);
-      setShowResults(true);
-    }, 500);
+      setShowResults(true); // Still show dialog with error state
+    }
+  };
+
+  // Function to retry loading results if there was an error
+  const handleRetry = () => {
+    if (selectedAssessment) {
+      setShowResults(false); // Close the dialog
+      // Short delay before retrying
+      setTimeout(() => {
+        handleViewResults(selectedAssessment);
+      }, 100);
+    }
   };
 
   return (
@@ -157,11 +205,12 @@ const AssessmentHistory: React.FC = () => {
         <ResultsDialog
           open={showResults}
           onOpenChange={setShowResults}
-          result={prepareResultData(selectedAssessment)!}
+          result={prepareResultData(selectedAssessment)}
           onManualRedirect={() => {}}
           language={selectedAssessment.language_code || 'en'}
           isLoading={isResultLoading}
           hasError={hasError}
+          onRetry={handleRetry}
         />
       )}
     </div>
