@@ -1,4 +1,3 @@
-
 import { determineLevel } from './levelDetermination';
 import { determineMoodResult } from './moodResult';
 import { SeverityLevel, AssessmentResult } from './types';
@@ -100,8 +99,8 @@ export const runTestCases = (): boolean => {
   console.log("Score 14:", determineLevel(14, 'satisfaction').level); // Should be Neutral
   console.log("Score 19:", determineLevel(19, 'satisfaction').level); // Should be Neutral
   console.log("Score 20:", determineLevel(20, 'satisfaction').level); // Should be Satisfied
-  console.log("Score 26:", determineLevel(26, 'satisfaction').level); // Should be Satisfied
-  console.log("Score 27:", determineLevel(27, 'satisfaction').level); // Should be Very Satisfied
+  console.log("Score 24:", determineLevel(24, 'satisfaction').level); // Should be Satisfied
+  console.log("Score 25:", determineLevel(25, 'satisfaction').level); // Should be Very Satisfied
   
   // Test all combinations for Mental Health Status determination
   console.log("\n--- TESTING ALL MOOD COMBINATIONS ---");
