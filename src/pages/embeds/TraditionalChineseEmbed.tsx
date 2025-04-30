@@ -11,32 +11,49 @@ const TraditionalChineseEmbed: React.FC<TraditionalChineseEmbedProps> = ({ sso =
   const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Production domain to use for redirects
+  const PRODUCTION_DOMAIN = 'https://mood-navigator-assessment.lovable.app';
+
   useEffect(() => {
     // Check URL parameters for direct SSO access (run immediately for faster performance)
     const performSsoCheck = () => {
       const urlParams = new URLSearchParams(window.location.search);
-      const email = urlParams.get('email');
-      const name = urlParams.get('name');
+      let rawEmail = urlParams.get('email');
+      let rawName = urlParams.get('name');
       
-      if (email) {
+      // Check and clean up template variables
+      if (rawEmail && (rawEmail.includes('{{') || rawEmail.includes('}}'))) {
+        console.warn("Template variables detected in email:", rawEmail);
+        setError("The URL contains template variables. Please configure LearnWorlds to replace {{USER_EMAIL}} and {{USER_NAME}} with actual values.");
+        return;
+      }
+
+      if (rawName && (rawName.includes('{{') || rawName.includes('}}'))) {
+        rawName = null; // Reset name if it contains template variables
+      }
+
+      if (rawEmail) {
         setIsDirectSso(true);
         setRedirecting(true);
         
         try {
           // Create a simple token by encoding the email and timestamp
-          const simpleToken = btoa(`${email}:${Date.now()}`);
+          const simpleToken = btoa(`${rawEmail}:${Date.now()}`);
           
           // Get actual name or default to email username
-          let displayName = name || email.split('@')[0];
+          let name = rawName || rawEmail.split('@')[0];
           
-          // Redirect to SSO login endpoint with token and language
-          const appDomain = window.location.origin;
-          const redirectUrl = `${appDomain}/sso-login?token=${simpleToken}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(displayName)}&lang=zh-hk`;
+          // Always use the production domain for redirects
+          const redirectUrl = `${PRODUCTION_DOMAIN}/zh-hk`;
           
-          // Redirect immediately - don't wait
-          window.location.href = redirectUrl;
+          // Redirect to SSO login endpoint with token, language and explicit redirectUrl
+          const ssoLoginUrl = `${PRODUCTION_DOMAIN}/sso-login?token=${encodeURIComponent(simpleToken)}&email=${encodeURIComponent(rawEmail)}&name=${encodeURIComponent(name)}&lang=zh-hk&redirectUrl=${encodeURIComponent(redirectUrl)}`;
+          
+          // Immediately redirect - don't wait
+          window.location.href = ssoLoginUrl;
         } catch (error) {
           console.error("Error during SSO redirect:", error);
+          // Show error state instead of infinite loading
           setRedirecting(false);
           setError("登錄處理錯誤。請重試或聯繫支持。");
         }
@@ -49,8 +66,8 @@ const TraditionalChineseEmbed: React.FC<TraditionalChineseEmbedProps> = ({ sso =
 
   // Determine the URL based on whether this is an SSO embed or not
   const embedUrl = sso 
-    ? "https://mood-navigator-assessment.lovable.app/embed/zh-hk-sso.html" 
-    : "https://mood-navigator-assessment.lovable.app/login/zh-hk";
+    ? `${PRODUCTION_DOMAIN}/embed/zh-hk-sso.html` 
+    : `${PRODUCTION_DOMAIN}/login/zh-hk`;
 
   if (error) {
     return (
