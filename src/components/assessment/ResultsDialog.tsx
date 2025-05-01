@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Dialog,
@@ -9,7 +8,7 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Smile, Meh, Frown } from 'lucide-react';
+import { IconMoodHappy, IconMoodNeutral, IconMoodSad } from '@tabler/icons-react';
 import { cn } from "@/lib/utils";
 import ScrollIndicator from './ScrollIndicator';
 
@@ -37,16 +36,16 @@ const ResultsDialog = ({
   const getMoodIcon = (mood: string) => {
     switch(mood.toLowerCase()) {
       case 'healthy':
-        return <Smile className="h-12 w-12 text-green-500" />;
+        return <IconMoodHappy className="h-12 w-12 text-green-500" />;
       case 'medium to high sub-health status':
-        return <Meh className="h-12 w-12 text-blue-500" />;
+        return <IconMoodNeutral className="h-12 w-12 text-blue-500" />;
       case 'moderate sub-health status':
-        return <Meh className="h-12 w-12 text-yellow-500" />;
+        return <IconMoodNeutral className="h-12 w-12 text-yellow-500" />;
       case 'medium-to-low sub-health status':
-        return <Frown className="h-12 w-12 text-orange-500" />;
+        return <IconMoodSad className="h-12 w-12 text-orange-500" />;
       case 'psychological disturbance':
       default:
-        return <Frown className="h-12 w-12 text-red-500" />;
+        return <IconMoodSad className="h-12 w-12 text-red-500" />;
     }
   };
 

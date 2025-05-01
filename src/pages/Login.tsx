@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Loader2, LogIn } from 'lucide-react';
 import { toast } from 'sonner';
 import { loginTranslations } from '@/translations/loginTranslations';
@@ -16,7 +16,6 @@ interface LoginProps {
 const Login = ({ language = 'en' }: LoginProps) => {
   const { signIn, signUp, user, loading: authLoading, setLanguage } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -41,13 +40,8 @@ const Login = ({ language = 'en' }: LoginProps) => {
       // Send message to parent window to notify auth success, but don't show a toast
       window.parent.postMessage({ type: 'AUTH_SUCCESS', user: user.email }, '*');
       
-      // Add a forced refresh indicator to ensure state is clean
-      const url = new URL(window.location.origin);
-      url.pathname = '/';
-      url.searchParams.set('_auth_refresh', 'true');
-      
-      // Navigate to root which will handle the auth check and proper redirection
-      window.location.href = url.toString();
+      // Silently navigate to assessment page
+      navigate(`/${selectedLanguage.toLowerCase()}`);
     }
   }, [user, authLoading, navigate, selectedLanguage]);
 
