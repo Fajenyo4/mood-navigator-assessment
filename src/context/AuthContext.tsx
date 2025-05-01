@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { User, Provider, Session } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,6 +27,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Get language from localStorage or default to 'en'
     return localStorage.getItem('selectedLanguage') || 'en';
   });
+  
+  // Ref to track if toast has been shown to avoid duplicate toasts
+  const authToastShownRef = useRef<Record<string, boolean>>({});
+  // Ref to track if auth state is initialized
+  const authInitializedRef = useRef(false);
 
   useEffect(() => {
     // Store language in localStorage whenever it changes
@@ -69,26 +75,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       setSession(newSession);
       setUser(newSession?.user ?? null);
-      setLoading(false);
       
-      // Handle specific auth events
-      switch (event) {
-        case 'SIGNED_IN':
-          toast.success('Signed in successfully');
-          break;
-        case 'SIGNED_OUT':
-          toast.info('Signed out');
-          break;
-        case 'TOKEN_REFRESHED':
-          console.log('Token refreshed');
-          break;
-        case 'USER_UPDATED':
-          toast.success('Profile updated');
-          break;
-        case 'PASSWORD_RECOVERY':
-          toast.info('Password recovery initiated');
-          break;
+      // Only show toast notifications after initialization and avoid showing duplicates
+      if (authInitializedRef.current && !authToastShownRef.current[event]) {
+        // Handle specific auth events
+        switch (event) {
+          case 'SIGNED_IN':
+            if (!authToastShownRef.current['SIGNED_IN']) {
+              toast.success('Signed in successfully');
+              authToastShownRef.current['SIGNED_IN'] = true;
+            }
+            break;
+          case 'SIGNED_OUT':
+            toast.info('Signed out');
+            // Reset the toast tracking after sign out
+            authToastShownRef.current = {};
+            break;
+          case 'TOKEN_REFRESHED':
+            console.log('Token refreshed');
+            break;
+          case 'USER_UPDATED':
+            toast.success('Profile updated');
+            break;
+          case 'PASSWORD_RECOVERY':
+            toast.info('Password recovery initiated');
+            break;
+        }
       }
+      
+      // Done loading after we get the auth state
+      setLoading(false);
     });
 
     // THEN check for existing session
@@ -108,6 +124,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setSession(existingSession);
           setUser(existingSession?.user ?? null);
           setLoading(false);
+          
+          // Mark auth as initialized so we can start showing toast notifications
+          authInitializedRef.current = true;
         }
       } catch (error) {
         console.error('Error loading auth session:', error);
@@ -139,6 +158,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log(`Attempting to sign in with ${provider}`);
       setLoading(true);
+      
+      // Reset the SIGNED_IN toast tracking flag before signing in
+      authToastShownRef.current['SIGNED_IN'] = false;
       
       if (provider === 'email' && email && password) {
         const { data, error } = await supabase.auth.signInWithPassword({
