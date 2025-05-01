@@ -1,27 +1,21 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { useLocation, useNavigate } from 'react-router-dom';
-import { MoodResult } from '@/utils/scoring';
-import ResultActions from './ResultActions';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { History, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { assessmentResultsTranslations } from '@/translations/assessmentResults';
-import MoodScale from './MoodScale';
-import ResultMessage from './ResultMessage';
-import MoodIcon from './MoodIcon';
+} from "@/components/ui/dialog"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { IconMoodHappy, IconMoodNeutral, IconMoodSad } from '@tabler/icons-react';
+import { cn } from "@/lib/utils";
+import ScrollIndicator from './ScrollIndicator';
 
 interface ResultsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  result: MoodResult | null;
+  result: any;
   isLoading: boolean;
   hasError: boolean;
   onManualRedirect: () => void;
@@ -29,161 +23,147 @@ interface ResultsDialogProps {
   onRetry?: () => void;
 }
 
-const ResultsDialog: React.FC<ResultsDialogProps> = ({
+const ResultsDialog = ({ 
   open,
   onOpenChange,
   result,
   isLoading,
   hasError,
+  onManualRedirect,
   language,
-  onRetry,
-}) => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const isHistoryPage = location.pathname === '/history';
-  const isMobile = useIsMobile();
-  const isChineseLanguage = language.startsWith('zh');
-
-  const REDIRECT_URL = "https://www.mican.life/courses-en";
-
-  const handleViewHistory = () => {
-    onOpenChange(false);
-    navigate(`/history-chart?lang=${language}`);
-  };
-
-  const handleTryAgain = () => {
-    if (onRetry) {
-      onRetry();
-    } else {
-      onOpenChange(false);
-      setTimeout(() => {
-        onOpenChange(true);
-      }, 500);
+  onRetry
+}: ResultsDialogProps) => {
+  const getMoodIcon = (mood: string) => {
+    switch(mood.toLowerCase()) {
+      case 'healthy':
+        return <IconMoodHappy className="h-12 w-12 text-green-500" />;
+      case 'medium to high sub-health status':
+        return <IconMoodNeutral className="h-12 w-12 text-blue-500" />;
+      case 'moderate sub-health status':
+        return <IconMoodNeutral className="h-12 w-12 text-yellow-500" />;
+      case 'medium-to-low sub-health status':
+        return <IconMoodSad className="h-12 w-12 text-orange-500" />;
+      case 'psychological disturbance':
+      default:
+        return <IconMoodSad className="h-12 w-12 text-red-500" />;
     }
   };
 
-  const getScorePercentage = (score: number, maxScore: number) => {
-    return (score / maxScore) * 100;
+  const getScaleColor = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return "bg-green-500";
+      case 2:
+        return "bg-amber-500";
+      case 3:
+        return "bg-orange-500";
+      case 4:
+        return "bg-red-500";
+      case 5:
+        return "bg-red-600";
+      default:
+        return "bg-gray-500";
+    }
   };
+
+  const moodScale = [
+    { label: "Healthy", rank: 1 },
+    { label: "Mild", rank: 2 },
+    { label: "Moderate", rank: 3 },
+    { label: "Severe", rank: 4 },
+    { label: "Extremely Severe", rank: 5 },
+  ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
-        className={`
-          sm:max-w-xl 
-          ${isMobile ? 'h-[85vh] p-4' : 'p-6'}
-        `}
-        style={{
-          overflowY: 'auto',
-          display: 'flex',
-          flexDirection: 'column'
+        className="sm:max-w-md max-h-[90vh] overflow-y-auto" 
+        onInteractOutside={(e) => {
+          // Prevent closing when clicking outside, but only if it's loading or has an error
+          if (isLoading || hasError) {
+            e.preventDefault();
+          }
         }}
       >
-        <DialogHeader>
-          <DialogTitle className="text-3xl font-bold text-center mb-6">
-            {isChineseLanguage ? "你開心嗎？" : "Are you happy?"}
-          </DialogTitle>
-          {open && <DialogDescription className="sr-only">
-            Assessment results showing your mental health status
-          </DialogDescription>}
-        </DialogHeader>
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-700"></div>
+            <p className="text-gray-500">Loading results...</p>
+          </div>
+        )}
+
+        {hasError && (
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <p className="text-red-500">
+              Error loading results. Please try again.
+            </p>
+            {onRetry && (
+              <Button variant="outline" onClick={onRetry}>
+                Retry
+              </Button>
+            )}
+          </div>
+        )}
         
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center p-12">
-            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-            <p className="text-center text-muted-foreground">Loading results...</p>
-          </div>
-        ) : hasError ? (
-          <div className="flex flex-col items-center justify-center p-12">
-            <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-            <p className="text-red-500 text-center mb-6">Failed to load results. Please try again.</p>
-            <Button onClick={handleTryAgain} className="flex items-center gap-2">
-              <RefreshCw className="h-4 w-4" />
-              <span>Retry</span>
-            </Button>
-          </div>
-        ) : result ? (
-          <div className="flex flex-col items-center space-y-8" style={{ paddingBottom: isMobile ? '20px' : '0' }}>
-            <div className="flex items-center justify-center gap-4">
-              <MoodIcon iconType={result.iconType} iconColor={result.iconColor} />
-              <p className="text-xl text-center font-medium text-gray-900 max-w-2xl">
-                {isChineseLanguage ? "精神心理健康狀態: " : "Mental Health Status: "}
-                <span className="font-bold">{result.mood}</span>
-              </p>
-            </div>
+        {!isLoading && !hasError && result && (
+          <>
+            <DialogHeader>
+              <DialogTitle>Assessment Results</DialogTitle>
+              <DialogDescription>
+                Here's a summary of your mental health assessment.
+              </DialogDescription>
+            </DialogHeader>
             
-            {/* Only display the assessment text in Chinese language without mental health status */}
-            {isChineseLanguage && result.assessmentText ? (
-              <ResultMessage message={result.assessmentText} language={language} />
-            ) : (
-              result.message && 
-              <p className="text-xl text-center font-medium text-gray-900 max-w-2xl">
-                {result.message.split('\n\n')[0].replace(/Mental Health Status:.+/g, '').trim()}
-              </p>
-            )}
-            
-            <MoodScale
-              value={result.mood === "Healthy" ? 95 :
-                     result.mood === "Medium to High Sub-Health Status" ? 75 :
-                     result.mood === "Moderate Sub-Health Status" ? 50 :
-                     result.mood === "Medium-to-Low Sub-Health Status" ? 25 : 10}
-              label={isChineseLanguage ? (result.mood === "Healthy" ? "開心" : "不開心") : 
-                     (result.mood === "Healthy" ? "Happy" : "Unhappy")}
-              title={isChineseLanguage ? "整體情緒" : "Overall Mood"}
-              className="mb-8 w-full"
-            />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full mb-8">
-              <MoodScale
-                value={getScorePercentage(result.satisfactionResult.score, 35)}
-                label={result.satisfactionResult.level}
-                title={isChineseLanguage ? "生活滿意度" : "Life Satisfaction"}
-              />
-              <MoodScale
-                value={getScorePercentage(result.anxietyResult.score, 40)}
-                label={result.anxietyResult.level}
-                title={isChineseLanguage ? "焦慮" : "Anxiety"}
-                isNegativeScale={true}
-              />
-              <MoodScale
-                value={getScorePercentage(result.depressionResult.score, 40)}
-                label={result.depressionResult.level}
-                title={isChineseLanguage ? "抑鬱" : "Depression"}
-                isNegativeScale={true}
-              />
-              <MoodScale
-                value={getScorePercentage(result.stressResult.score, 40)}
-                label={result.stressResult.level}
-                title={isChineseLanguage ? "壓力" : "Stress"}
-                isNegativeScale={true}
-              />
-            </div>
-
-            {!isHistoryPage && (
-              <div className={`w-full mt-6 ${isMobile ? 'flex flex-col space-y-4' : 'flex space-x-4'}`}>
-                <ResultActions 
-                  redirectUrl={REDIRECT_URL}
-                  language={language}
-                  className={isMobile ? 'w-full' : 'flex-1'}
-                />
-                <Button 
-                  variant="outline" 
-                  className={`flex items-center justify-center gap-2 ${isMobile ? 'w-full' : 'flex-1'}`}
-                  onClick={handleViewHistory}
-                >
-                  <History className={`${isMobile ? 'w-5 h-5' : 'w-4 h-4'}`} />
-                  <span className="truncate">
-                    {assessmentResultsTranslations[language as keyof typeof assessmentResultsTranslations]?.viewHistory || 'View Assessment History'}
-                  </span>
-                </Button>
+            <div className="flex flex-col items-center text-center space-y-4">
+              {getMoodIcon(result.mood)}
+              <h3 className="text-xl font-semibold">{result.mood}</h3>
+              
+              <p className="text-gray-600">{result.message}</p>
+              
+              {/* Add ScrollIndicator here, after the result message */}
+              <ScrollIndicator />
+              
+              <div className="flex items-center space-x-2">
+                {moodScale.map((item) => (
+                  <div key={item.label} className="flex flex-col items-center">
+                    <Badge className={cn(
+                      "w-6 h-3 rounded-full",
+                      getScaleColor(item.rank),
+                      item.rank === result.depressionResult.rank && "ring-2 ring-white"
+                    )} />
+                    <span className="text-xs text-gray-500 mt-1">{item.label}</span>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
-        ) : (
-          <div className="p-8 text-center">
-            <p className="text-red-500">Failed to load results. Please try again.</p>
-            <Button onClick={handleTryAgain} className="mt-4">Retry</Button>
-          </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold">Depression</h4>
+                  <p>Score: {result.depressionResult.score}</p>
+                  <p>Level: {result.depressionResult.level}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold">Anxiety</h4>
+                  <p>Score: {result.anxietyResult.score}</p>
+                  <p>Level: {result.anxietyResult.level}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold">Stress</h4>
+                  <p>Score: {result.stressResult.score}</p>
+                  <p>Level: {result.stressResult.level}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold">Life Satisfaction</h4>
+                  <p>Score: {result.satisfactionResult.score}</p>
+                  <p>Level: {result.satisfactionResult.level}</p>
+                </div>
+              </div>
+              
+              <Button onClick={onManualRedirect}>
+                View Recommended Courses
+              </Button>
+            </div>
+          </>
         )}
       </DialogContent>
     </Dialog>

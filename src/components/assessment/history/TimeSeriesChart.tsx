@@ -14,6 +14,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import DateRangeFilter from './DateRangeFilter';
 import ChartGuide from './ChartGuide';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TimeSeriesChartProps {
   data: AssessmentRecord[];
@@ -51,6 +52,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
   
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
+  const isMobile = useIsMobile();
 
   const chartData = data
     .map(record => {
@@ -177,15 +179,15 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
     const { payload } = props;
     
     return (
-      <div className="flex justify-center items-center gap-6 pb-2">
+      <div className={`flex ${isMobile ? 'flex-wrap' : ''} justify-center items-center gap-3 pb-2`}>
         {payload.map((entry: any, index: number) => (
-          <div key={`legend-item-${index}`} className="flex items-center">
+          <div key={`legend-item-${index}`} className="flex items-center mb-1">
             <div 
-              className="w-3 h-3 rounded-full mr-1.5" 
+              className="w-2.5 h-2.5 rounded-full mr-1" 
               style={{ backgroundColor: entry.color }}
             />
             <span className="text-xs font-medium">
-              {entry.value === 'lifeSatisfaction' ? 'Life Satisfaction' : 
+              {entry.value === 'lifeSatisfaction' ? (isMobile ? 'Life Sat.' : 'Life Satisfaction') : 
                entry.value.charAt(0).toUpperCase() + entry.value.slice(1)}
             </span>
           </div>
@@ -271,7 +273,7 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
   };
 
   return (
-    <div className="w-full h-auto md:h-[600px] p-4 bg-white rounded-lg shadow">
+    <div className="w-full h-auto md:h-[600px] p-2 md:p-4 bg-white rounded-lg shadow">
       <h2 className="text-xl font-semibold text-gray-700 mb-4 text-center">
         Mental Health Progress Over Time
       </h2>
@@ -285,117 +287,123 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({ data }) => {
         }}
       />
 
-      <div className="h-[450px] min-h-[450px] mb-8">
-        <ChartContainer 
-          config={{
-            depression: { theme: { light: '#f43f5e', dark: '#fb7185' } },
-            anxiety: { theme: { light: '#3b82f6', dark: '#60a5fa' } },
-            stress: { theme: { light: '#facc15', dark: '#fde047' } },
-            satisfaction: { theme: { light: '#14b8a6', dark: '#2dd4bf' } }
-          }}
-        >
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={filteredChartData}
-              margin={{ top: 5, right: 30, left: 20, bottom: 100 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis 
-                dataKey="fullDisplay"
-                stroke="#6b7280"
-                tick={(props) => {
-                  const { x, y, payload } = props;
-                  return (
-                    <g transform={`translate(${x},${y})`}>
-                      <text
-                        x={0}
-                        y={0}
-                        dy={10}
-                        textAnchor="end"
-                        fill="#6b7280"
-                        fontSize={11}
-                        transform="rotate(-45)"
-                      >
-                        {payload.value}
-                      </text>
-                    </g>
-                  );
-                }}
-                tickLine={{ stroke: '#6b7280' }}
-                height={80}
-                minTickGap={10}
-                interval="preserveStartEnd"
-              />
-              <YAxis
-                stroke="#6b7280"
-                tick={{ fill: '#6b7280', fontSize: 12 }}
-                tickLine={{ stroke: '#6b7280' }}
-                domain={[0, 42]}
-                label={{ 
-                  value: 'Score', 
-                  angle: -90, 
-                  position: 'insideLeft',
-                  style: { fill: '#6b7280' }
-                }}
-              />
-              {renderReferenceAreas(severityZones.depression)}
-              {renderDaySeparators()}
-              <Tooltip content={<CustomTooltip />} />
-              <Legend 
-                content={<CustomLegend />}
-                verticalAlign="top"
-                height={36}
-              />
-              <Line
-                type="monotone"
-                dataKey="depression"
-                name="depression"
-                stroke="#f43f5e"
-                strokeWidth={2}
-                dot={{ fill: '#f43f5e', r: 4 }}
-                activeDot={{ r: 6 }}
-                isAnimationActive={true}
-              />
-              <Line
-                type="monotone"
-                dataKey="anxiety"
-                name="anxiety"
-                stroke="#3b82f6"
-                strokeWidth={2}
-                dot={{ fill: '#3b82f6', r: 4 }}
-                activeDot={{ r: 6 }}
-                isAnimationActive={true}
-              />
-              <Line
-                type="monotone"
-                dataKey="stress"
-                name="stress"
-                stroke="#facc15"
-                strokeWidth={2}
-                dot={{ fill: '#facc15', r: 4 }}
-                activeDot={{ r: 6 }}
-                isAnimationActive={true}
-              />
-              <Line
-                type="monotone"
-                dataKey="lifeSatisfaction"
-                name="lifeSatisfaction"
-                stroke="#14b8a6"
-                strokeWidth={2}
-                dot={{ fill: '#14b8a6', r: 4 }}
-                activeDot={{ r: 6 }}
-                isAnimationActive={true}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </ChartContainer>
+      <div className={`${isMobile ? 'h-[350px] min-h-[350px] overflow-x-auto' : 'h-[450px] min-h-[450px]'} mb-4 md:mb-8`}>
+        <div className={`${isMobile ? 'min-w-[500px]' : 'w-full'} h-full`}>
+          <ChartContainer 
+            config={{
+              depression: { theme: { light: '#f43f5e', dark: '#fb7185' } },
+              anxiety: { theme: { light: '#3b82f6', dark: '#60a5fa' } },
+              stress: { theme: { light: '#facc15', dark: '#fde047' } },
+              satisfaction: { theme: { light: '#14b8a6', dark: '#2dd4bf' } }
+            }}
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={filteredChartData}
+                margin={isMobile ? 
+                  { top: 5, right: 5, left: 0, bottom: 80 } : 
+                  { top: 5, right: 30, left: 20, bottom: 100 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis 
+                  dataKey="fullDisplay"
+                  stroke="#6b7280"
+                  tick={(props) => {
+                    const { x, y, payload } = props;
+                    return (
+                      <g transform={`translate(${x},${y})`}>
+                        <text
+                          x={0}
+                          y={0}
+                          dy={10}
+                          textAnchor="end"
+                          fill="#6b7280"
+                          fontSize={isMobile ? 9 : 11}
+                          transform="rotate(-45)"
+                        >
+                          {isMobile ? 
+                            format(new Date(payload.value.split(',')[0]), 'MM/dd HH:mm') : 
+                            payload.value}
+                        </text>
+                      </g>
+                    );
+                  }}
+                  tickLine={{ stroke: '#6b7280' }}
+                  height={80}
+                  minTickGap={isMobile ? 20 : 10}
+                  interval="preserveStartEnd"
+                />
+                <YAxis
+                  stroke="#6b7280"
+                  tick={{ fill: '#6b7280', fontSize: isMobile ? 10 : 12 }}
+                  tickLine={{ stroke: '#6b7280' }}
+                  domain={[0, 42]}
+                  width={isMobile ? 25 : 35}
+                  label={{ 
+                    value: 'Score', 
+                    angle: -90, 
+                    position: 'insideLeft',
+                    style: { fill: '#6b7280', fontSize: isMobile ? 10 : 12 },
+                    offset: isMobile ? -10 : 0
+                  }}
+                />
+                {renderReferenceAreas(severityZones.depression)}
+                {renderDaySeparators()}
+                <Tooltip content={<CustomTooltip />} />
+                <Legend 
+                  content={<CustomLegend />}
+                  verticalAlign="top"
+                  height={36}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="depression"
+                  name="depression"
+                  stroke="#f43f5e"
+                  strokeWidth={2}
+                  dot={{ fill: '#f43f5e', r: isMobile ? 3 : 4 }}
+                  activeDot={{ r: isMobile ? 5 : 6 }}
+                  isAnimationActive={true}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="anxiety"
+                  name="anxiety"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  dot={{ fill: '#3b82f6', r: isMobile ? 3 : 4 }}
+                  activeDot={{ r: isMobile ? 5 : 6 }}
+                  isAnimationActive={true}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="stress"
+                  name="stress"
+                  stroke="#facc15"
+                  strokeWidth={2}
+                  dot={{ fill: '#facc15', r: isMobile ? 3 : 4 }}
+                  activeDot={{ r: isMobile ? 5 : 6 }}
+                  isAnimationActive={true}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="lifeSatisfaction"
+                  name="lifeSatisfaction"
+                  stroke="#14b8a6"
+                  strokeWidth={2}
+                  dot={{ fill: '#14b8a6', r: isMobile ? 3 : 4 }}
+                  activeDot={{ r: isMobile ? 5 : 6 }}
+                  isAnimationActive={true}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </div>
       </div>
       
-      <div className="w-full h-px bg-gray-200 my-6"></div>
+      <div className="w-full h-px bg-gray-200 my-4 md:my-6"></div>
       
-      <div className="mt-8">
-        {renderLatestSummary()}
-      </div>
+      {renderLatestSummary()}
     </div>
   );
 };

@@ -9,6 +9,7 @@ import { useAssessmentSetup } from '@/hooks/useAssessmentSetup';
 import { useBeforeUnload } from '@/hooks/useBeforeUnload';
 import { useAssessmentResult } from '@/hooks/useAssessmentResult';
 import { useResetHandler } from './assessment/ResetHandler';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface AssessmentProps {
   defaultLanguage?: string;
@@ -94,7 +95,7 @@ const Assessment: React.FC<AssessmentProps> = ({ defaultLanguage = 'en' }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-4 md:py-8 px-2 md:px-6 lg:px-8">
       <QuestionDisplay
         currentQuestion={currentQuestion}
         totalQuestions={totalQuestions}
