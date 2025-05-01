@@ -30,16 +30,34 @@ export const CheckAuth = () => {
           // Set ref to prevent duplicate auth checks
           authCheckCompletedRef.current = true;
           
-          // If authenticated, send success message to parent
+          // If authenticated, send success message to parent (for embedded contexts)
           window.parent.postMessage({ type: 'AUTH_STATUS', isAuthenticated: true }, '*');
           
           // Force a full page reload to ensure proper state initialization
-          // Only reload if we're in an iframe (embedded) context
           if (window !== window.parent) {
+            // In embedded context, force reload
             console.log('In embedded context, forcing page reload');
             window.location.reload();
           } else {
-            navigate('/en');
+            // In direct access context, force reload with a special param to prevent navigation loops
+            console.log('In direct context, forcing page reload with refresh param');
+            const url = new URL(window.location.href);
+            
+            // Check if this is already a refresh attempt
+            const isRefresh = url.searchParams.get('_auth_refresh');
+            
+            if (!isRefresh) {
+              // Add a refresh parameter and reload
+              url.searchParams.set('_auth_refresh', 'true');
+              window.location.href = url.toString();
+            } else {
+              // If already refreshed, just navigate normally
+              console.log('Already refreshed, navigating to /en');
+              // Remove the refresh param to avoid it showing in the URL unnecessarily
+              url.searchParams.delete('_auth_refresh');
+              window.history.replaceState({}, '', url.toString());
+              navigate('/en');
+            }
           }
         } else {
           console.log('No active session found');

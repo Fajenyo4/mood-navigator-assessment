@@ -50,7 +50,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Navigate to="/login/en" replace />} />
+            <Route path="/" element={<CheckAuth />} />
             <Route path="/sso-login" element={<SSOLogin />} />
             <Route path="/easy-access" element={<EasyAccess />} />
             <Route path="/generate-links" element={<LinkGenerator />} />
