@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Dialog,
@@ -8,7 +9,7 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { IconMoodHappy, IconMoodNeutral, IconMoodSad } from '@tabler/icons-react';
+import { Smile as IconMoodHappy, Meh as IconMoodNeutral, Frown as IconMoodSad } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import ScrollIndicator from './ScrollIndicator';
 
