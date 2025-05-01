@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Provider, Session } from '@supabase/supabase-js';
 import { toast } from 'sonner';
@@ -14,6 +13,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   signUp: (email: string, password: string, name?: string) => Promise<void>;
   setUser: (user: User | null) => void;
+  refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,23 +32,76 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem('selectedLanguage', language);
   }, [language]);
 
+  // Function to refresh the session
+  const refreshSession = async () => {
+    try {
+      console.log('Refreshing session...');
+      const { data: { session: refreshedSession }, error } = await supabase.auth.refreshSession();
+      
+      if (error) {
+        console.error('Session refresh error:', error);
+        throw error;
+      }
+      
+      if (refreshedSession) {
+        console.log('Session refreshed successfully');
+        setSession(refreshedSession);
+        setUser(refreshedSession.user);
+        return;
+      }
+      
+      console.log('No session to refresh');
+    } catch (error) {
+      console.error('Failed to refresh session:', error);
+      // Clear session if refresh fails
+      setSession(null);
+      setUser(null);
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
     
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
       console.log('Auth state changed:', event, newSession?.user?.email);
-      if (mounted) {
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
-        setLoading(false);
+      if (!mounted) return;
+      
+      setSession(newSession);
+      setUser(newSession?.user ?? null);
+      setLoading(false);
+      
+      // Handle specific auth events
+      switch (event) {
+        case 'SIGNED_IN':
+          toast.success('Signed in successfully');
+          break;
+        case 'SIGNED_OUT':
+          toast.info('Signed out');
+          break;
+        case 'TOKEN_REFRESHED':
+          console.log('Token refreshed');
+          break;
+        case 'USER_UPDATED':
+          toast.success('Profile updated');
+          break;
+        case 'PASSWORD_RECOVERY':
+          toast.info('Password recovery initiated');
+          break;
       }
     });
 
     // THEN check for existing session
     const initSession = async () => {
       try {
-        const { data: { session: existingSession } } = await supabase.auth.getSession();
+        const { data: { session: existingSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error loading auth session:', error);
+          if (mounted) setLoading(false);
+          return;
+        }
+        
         console.log('Got existing session:', existingSession?.user?.email);
         
         if (mounted) {
@@ -66,9 +119,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     initSession();
 
+    // Set up session refresh interval
+    const sessionRefreshInterval = setInterval(() => {
+      if (session) {
+        // Refresh session every 10 minutes to keep it alive
+        refreshSession();
+      }
+    }, 10 * 60 * 1000); // 10 minutes
+
     // Cleanup function to prevent state updates after unmount
     return () => {
       mounted = false;
+      clearInterval(sessionRefreshInterval);
       subscription.unsubscribe();
     };
   }, []);
@@ -76,6 +138,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signIn = async (provider: 'google' | 'github' | 'email', email?: string, password?: string) => {
     try {
       console.log(`Attempting to sign in with ${provider}`);
+      setLoading(true);
       
       if (provider === 'email' && email && password) {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -104,15 +167,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         console.log('OAuth sign in initiated:', data);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Sign in process error:', error);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   const signUp = async (email: string, password: string, name?: string) => {
     try {
       console.log('Attempting to sign up:', email);
+      setLoading(true);
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -134,26 +200,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       // Check if email confirmation is required
       if (data?.user && !data.session) {
-        toast("Please check your email to verify your account");
+        toast.info("Please check your email to verify your account");
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Sign up process error:', error);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   const signOut = async () => {
     try {
+      setLoading(true);
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('Sign out error:', error);
         throw error;
       }
       console.log('User signed out successfully');
-    } catch (error) {
+      
+      // Clear any local state
+      localStorage.removeItem('assessment_progress');
+    } catch (error: any) {
       console.error('Sign out process error:', error);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -167,7 +241,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       signIn, 
       signOut, 
       signUp, 
-      setUser 
+      setUser,
+      refreshSession
     }}>
       {children}
     </AuthContext.Provider>

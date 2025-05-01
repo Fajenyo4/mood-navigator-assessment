@@ -1,7 +1,8 @@
 
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useMemo } from 'react';
 import { calculateDassScores, determineLevel, determineMoodResult } from '@/utils/scoring';
 import type { MoodResult } from '@/utils/scoring';
+import { toast } from 'sonner';
 
 interface UseAssessmentResultProps {
   answers: { [key: number]: number };
@@ -17,8 +18,45 @@ export const useAssessmentResult = ({
   const [isResultLoading, setIsResultLoading] = useState(false);
   const [lastResult, setLastResult] = useState<MoodResult | null>(null);
   const [error, setError] = useState<boolean>(false);
+  const [retryCount, setRetryCount] = useState(0);
 
-  // Calculate scores and results
+  // Create a memoized default result for performance
+  const defaultResult = useMemo(() => ({
+    mood: "Medium to High Sub-Health Status",
+    message: "Assessment completed",
+    redirectUrl: "https://www.mican.life/courses-en",
+    iconType: "meh" as "smile" | "meh" | "frown",
+    iconColor: "text-blue-500",
+    depressionResult: {
+      score: 0,
+      level: "Normal" as any,
+      message: "normal",
+      rank: 1
+    },
+    anxietyResult: {
+      score: 0,
+      level: "Normal" as any,
+      message: "normal",
+      rank: 1
+    },
+    stressResult: {
+      score: 0,
+      level: "Normal" as any,
+      message: "normal",
+      rank: 1
+    },
+    satisfactionResult: {
+      score: 16,
+      level: "Neutral" as any,
+      message: "neutral",
+      rank: 3
+    },
+    isParent: 0,
+    needsHelp: 0,
+    assessmentText: ""
+  }), []);
+
+  // Calculate scores and results with improved error handling and caching
   const getResultData = useCallback((): MoodResult | null => {
     // Set loading state
     setIsResultLoading(true);
@@ -30,42 +68,6 @@ export const useAssessmentResult = ({
       // Check if answers are empty but handle it gracefully instead of early return
       if (!answers || Object.keys(answers).length === 0) {
         console.log("Warning: No answers provided, using default values");
-        // Create default values instead of returning null
-        const defaultResult = {
-          mood: "Medium to High Sub-Health Status", // Changed from "Healthy" to more neutral default
-          message: "Assessment completed",
-          redirectUrl: "https://www.mican.life/courses-en",
-          iconType: "meh" as "smile" | "meh" | "frown", // Changed from smile to meh
-          iconColor: "text-blue-500", // Changed from green to blue
-          depressionResult: {
-            score: 0,
-            level: "Normal" as any,
-            message: "normal",
-            rank: 1
-          },
-          anxietyResult: {
-            score: 0,
-            level: "Normal" as any,
-            message: "normal",
-            rank: 1
-          },
-          stressResult: {
-            score: 0,
-            level: "Normal" as any,
-            message: "normal",
-            rank: 1
-          },
-          satisfactionResult: {
-            score: 16, // Using a middle score for Neutral rank 
-            level: "Neutral" as any,
-            message: "neutral",
-            rank: 3
-          },
-          isParent: 0,
-          needsHelp: 0,
-          assessmentText: ""
-        };
-        
         setLastResult(defaultResult);
         setIsResultLoading(false);
         return defaultResult;
@@ -97,20 +99,39 @@ export const useAssessmentResult = ({
       );
       
       console.log("Final mood result:", result);
+      
+      // Cache the result for future use
       setLastResult(result);
+      // Reset retry count on success
+      setRetryCount(0);
       setIsResultLoading(false);
       return result;
     } catch (error) {
       console.error("Error calculating assessment results:", error);
       setIsResultLoading(false);
       setError(true);
-      return null;
+      
+      // Implement retry logic for transient errors
+      if (retryCount < 3) {
+        console.log(`Retrying calculation (${retryCount + 1}/3)...`);
+        setRetryCount(prev => prev + 1);
+        // Retry after a short delay
+        setTimeout(() => {
+          getResultData();
+        }, 500);
+        return null;
+      }
+      
+      // After max retries, show error and return default
+      toast.error("Unable to calculate your results. Please try again.");
+      return defaultResult;
     }
-  }, [answers, effectiveLanguage]);
+  }, [answers, effectiveLanguage, defaultResult, retryCount]);
 
   // Automatically calculate results when showResults changes to true
   useEffect(() => {
     if (showResults) {
+      console.log("Results requested, calculating...");
       const result = getResultData();
       // Additional safety check
       if (!result) {
