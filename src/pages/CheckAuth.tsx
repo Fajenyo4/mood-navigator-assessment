@@ -29,8 +29,18 @@ export const CheckAuth = () => {
           console.log('User is authenticated:', session.user.email);
           // Set ref to prevent duplicate auth checks
           authCheckCompletedRef.current = true;
+          
           // If authenticated, send success message to parent
           window.parent.postMessage({ type: 'AUTH_STATUS', isAuthenticated: true }, '*');
+          
+          // Force a full page reload to ensure proper state initialization
+          // Only reload if we're in an iframe (embedded) context
+          if (window !== window.parent) {
+            console.log('In embedded context, forcing page reload');
+            window.location.reload();
+          } else {
+            navigate('/en');
+          }
         } else {
           console.log('No active session found');
           // Set ref to prevent duplicate auth checks

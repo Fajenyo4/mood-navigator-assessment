@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 interface EnglishEmbedProps {
   sso?: boolean;
@@ -10,6 +10,7 @@ const EnglishEmbed: React.FC<EnglishEmbedProps> = ({ sso = false }) => {
   const [isDirectSso, setIsDirectSso] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const refreshAttemptedRef = useRef(false);
 
   // Production domain to use for redirects
   const PRODUCTION_DOMAIN = 'https://mood-navigator-assessment.lovable.app';
@@ -60,8 +61,39 @@ const EnglishEmbed: React.FC<EnglishEmbedProps> = ({ sso = false }) => {
       }
     };
 
+    // Add message listener for auth events from embedded content
+    const handleMessage = (event: MessageEvent) => {
+      // Only process auth events
+      if (event.data && event.data.type === 'AUTH_STATUS') {
+        console.log('Received auth status message:', event.data);
+        
+        if (event.data.isAuthenticated && !refreshAttemptedRef.current) {
+          console.log('User authenticated, forcing page reload');
+          refreshAttemptedRef.current = true;
+          
+          // Use a small timeout to ensure any state changes have been processed
+          setTimeout(() => {
+            // Force reload the embedded frame content
+            const iframe = document.getElementById('assessment') as HTMLIFrameElement;
+            if (iframe && iframe.contentWindow) {
+              iframe.contentWindow.location.reload();
+            } else {
+              // Fallback - reload the entire page
+              window.location.reload();
+            }
+          }, 500);
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    
     // Run the check immediately without delay
     performSsoCheck();
+    
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
   }, []);
 
   // Determine the URL based on whether this is an SSO embed or not

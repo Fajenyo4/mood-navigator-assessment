@@ -28,6 +28,27 @@
         window.location.href = accessLink;
       }
     }
+    
+    // Handle auth status messages from the embedded app
+    window.addEventListener('message', function(event) {
+      // Only process messages with auth status
+      if (event.data && event.data.type === 'AUTH_STATUS') {
+        console.log('Received auth status:', event.data);
+        
+        if (event.data.isAuthenticated === true) {
+          console.log('User is authenticated, refreshing content');
+          
+          // Get the iframe and reload its content
+          const iframe = document.getElementById('assessment');
+          if (iframe) {
+            // Force reload the iframe content to ensure proper state
+            setTimeout(function() {
+              iframe.src = iframe.src;
+            }, 500);
+          }
+        }
+      }
+    });
   </script>
 </head>
 <body style="margin:0;padding:0;overflow:hidden;">
