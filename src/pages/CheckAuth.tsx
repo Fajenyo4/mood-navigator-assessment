@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -8,14 +8,8 @@ export const CheckAuth = () => {
   const navigate = useNavigate();
   const [retryCount, setRetryCount] = useState(0);
   const MAX_RETRIES = 3;
-  const authCheckCompletedRef = useRef(false);
 
   useEffect(() => {
-    // Prevent multiple auth checks from running simultaneously
-    if (authCheckCompletedRef.current) {
-      return;
-    }
-
     const checkAuthStatus = async () => {
       try {
         console.log('Checking auth status...');
@@ -27,14 +21,10 @@ export const CheckAuth = () => {
         
         if (session) {
           console.log('User is authenticated:', session.user.email);
-          // Set ref to prevent duplicate auth checks
-          authCheckCompletedRef.current = true;
           // If authenticated, send success message to parent
           window.parent.postMessage({ type: 'AUTH_STATUS', isAuthenticated: true }, '*');
         } else {
           console.log('No active session found');
-          // Set ref to prevent duplicate auth checks
-          authCheckCompletedRef.current = true;
           // If not authenticated, redirect to login
           window.parent.postMessage({ type: 'AUTH_STATUS', isAuthenticated: false }, '*');
           navigate('/login');

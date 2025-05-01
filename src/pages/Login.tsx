@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,7 +21,6 @@ const Login = ({ language = 'en' }: LoginProps) => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const hasNavigatedRef = useRef(false);
 
   // Determine translations
   const selectedLanguage = language || 'en';
@@ -33,13 +32,9 @@ const Login = ({ language = 'en' }: LoginProps) => {
   }, [selectedLanguage, setLanguage]);
 
   useEffect(() => {
-    if (user && !authLoading && !hasNavigatedRef.current) {
-      // Set flag to prevent multiple navigations
-      hasNavigatedRef.current = true;
-      
+    if (user && !authLoading) {
       // Send message to parent window to notify auth success, but don't show a toast
       window.parent.postMessage({ type: 'AUTH_SUCCESS', user: user.email }, '*');
-      
       // Silently navigate to assessment page
       navigate(`/${selectedLanguage.toLowerCase()}`);
     }
