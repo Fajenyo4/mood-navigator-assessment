@@ -3,9 +3,12 @@ import { DassScores } from './types';
 
 /**
  * Calculate DASS scores from the raw questionnaire answers
+ * 
+ * answers object contains question numbers as keys and response values (0-3 for DASS, 1-7 for life satisfaction) as values
  */
 export const calculateDassScores = (answers: { [key: number]: number }): DassScores => {
   // Depression calculation (q3, q5, q10, q13, q16, q17, q21)
+  // Each answer is the selected option value (0-3) for DASS questions
   const depression = ((answers[3] || 0) + (answers[5] || 0) + (answers[10] || 0) + 
                      (answers[13] || 0) + (answers[16] || 0) + (answers[17] || 0) + 
                      (answers[21] || 0)) * 2;
@@ -21,6 +24,7 @@ export const calculateDassScores = (answers: { [key: number]: number }): DassSco
                  (answers[18] || 0)) * 2;
 
   // Life satisfaction calculation (q22-q26)
+  // Each answer is the selected option value (1-7) for life satisfaction questions
   const lifeSatisfaction = (answers[22] || 0) + (answers[23] || 0) + (answers[24] || 0) + 
                           (answers[25] || 0) + (answers[26] || 0);
 
