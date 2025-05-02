@@ -6,6 +6,7 @@ interface UseAssessmentNavigationProps {
   setCurrentQuestion: (question: number) => void;
   answers: { [key: number]: number };
   selectedOption: string;
+  setAnswers: (option: object) => void;
   setSelectedOption: (option: string) => void;
   setUpdateCounter: (cb: (prev: number) => number) => void;
   saveProgressLocally: (question: number, answers: { [key: number]: number }) => void;
@@ -17,6 +18,7 @@ export const useAssessmentNavigation = ({
   currentQuestion,
   setCurrentQuestion,
   answers,
+  setAnswers,
   selectedOption,
   setSelectedOption,
   setUpdateCounter,
@@ -36,6 +38,7 @@ export const useAssessmentNavigation = ({
     
     // Update answers and trigger UI update
     const newAnswers = { ...answers, [questionId]: answerValue };
+    setAnswers(newAnswers)
     
     // Update selected option
     setSelectedOption(value);

@@ -63,6 +63,7 @@ export const useAssessment = ({
     currentQuestion,
     setCurrentQuestion,
     answers,
+    setAnswers,
     selectedOption,
     setSelectedOption,
     setUpdateCounter,
