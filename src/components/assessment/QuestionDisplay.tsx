@@ -35,8 +35,14 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   }, [onAnswer]);
 
   const handleOptionSelection = useCallback((optionIndex: string) => {
-    onAnswer(optionIndex);
-  }, [onAnswer]);
+    // For questions that have explicit values, use the stored value
+    // Otherwise use the index as the value
+    if (question.optionValues) {
+      onAnswer(optionIndex);
+    } else {
+      onAnswer(optionIndex);
+    }
+  }, [onAnswer, question]);
 
   if (!question || !question.text) {
     return (
@@ -94,27 +100,34 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
           className="space-y-4"
           value={selectedOption}
         >
-          {question.options.map((option, index) => (
-            <div 
-              key={`${currentQuestion}_${index}`} 
-              className="transition-all duration-200 ease-in-out"
-              onClick={() => handleOptionSelection(index.toString())}
-            >
-              <div className="flex items-center border border-gray-200 rounded-lg p-4 hover:border-primary hover:bg-gray-50 cursor-pointer">
-                <RadioGroupItem 
-                  value={index.toString()} 
-                  id={`q${currentQuestion}_${index}`} 
-                  className="mr-3"
-                />
-                <Label 
-                  htmlFor={`q${currentQuestion}_${index}`} 
-                  className="text-gray-700 cursor-pointer flex-grow text-base"
-                >
-                  {option}
-                </Label>
+          {question.options.map((option, index) => {
+            // Get option value
+            const optionValue = question.optionValues ? 
+              question.optionValues[index].toString() : 
+              index.toString();
+            
+            return (
+              <div 
+                key={`${currentQuestion}_${index}`} 
+                className="transition-all duration-200 ease-in-out"
+                onClick={() => handleOptionSelection(optionValue)}
+              >
+                <div className="flex items-center border border-gray-200 rounded-lg p-4 hover:border-primary hover:bg-gray-50 cursor-pointer">
+                  <RadioGroupItem 
+                    value={optionValue} 
+                    id={`q${currentQuestion}_${index}`} 
+                    className="mr-3"
+                  />
+                  <Label 
+                    htmlFor={`q${currentQuestion}_${index}`} 
+                    className="text-gray-700 cursor-pointer flex-grow text-base"
+                  >
+                    {option}
+                  </Label>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </RadioGroup>
       </div>
     </div>

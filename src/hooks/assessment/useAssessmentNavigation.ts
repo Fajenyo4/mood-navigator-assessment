@@ -27,16 +27,23 @@ export const useAssessmentNavigation = ({
   
   const handleAnswer = useCallback((value: string) => {
     const numericValue = parseInt(value);
+    const questions = getQuestions();
+    const question = questions[currentQuestion];
     const questionId = currentQuestion + 1;
     
+    // Get the proper value for this option (from optionValues or use the value directly)
+    let answerValue = numericValue;
+    if (question.optionValues && question.optionValues[numericValue] !== undefined) {
+      answerValue = question.optionValues[numericValue];
+    }
+    
     // Always update answers and trigger UI update, even if it's the same value
-    const newAnswers = { ...answers, [questionId]: numericValue };
+    const newAnswers = { ...answers, [questionId]: answerValue };
     
     // Update answers
     setSelectedOption(value);
     setUpdateCounter(prev => prev + 1); // Force re-render for selection UI
     
-    const questions = getQuestions();
     const questionCount = questions.length;
 
     if (currentQuestion < questionCount - 1) {
@@ -50,7 +57,7 @@ export const useAssessmentNavigation = ({
       // Save progress locally without triggering refreshes
       saveProgressLocally(nextQuestion, newAnswers);
       
-      console.log(`Moving to question ${nextQuestion + 1}/${questionCount}, selected: ${nextSelectedOption}`);
+      console.log(`Moving to question ${nextQuestion + 1}/${questionCount}, selected: ${nextSelectedOption}, value: ${answerValue}`);
     } else {
       handleSubmit(newAnswers);
     }
