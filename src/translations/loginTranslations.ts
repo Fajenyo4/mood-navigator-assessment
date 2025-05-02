@@ -14,7 +14,11 @@ export const loginTranslations = {
     loginToContinue: 'Login to continue to the assessment',
     signUpToTake: 'Sign up to take the assessment',
     troubleLogging: 'Having trouble logging in?',
-    contactSupport: 'Please contact support for password reset assistance'
+    contactSupport: 'Please contact support for password reset assistance',
+    errorDefault: 'Authentication failed. Please try again.',
+    errorInvalid: 'Invalid email or password. Please check your credentials and try again.',
+    errorVerify: 'Please verify your email before logging in.',
+    errorExists: 'An account with this email already exists. Try logging in instead.'
   },
   'zh-cn': {
     title: '登录',
@@ -30,7 +34,11 @@ export const loginTranslations = {
     loginToContinue: '登录以继续评估',
     signUpToTake: '注册参加评估',
     troubleLogging: '登录遇到问题？',
-    contactSupport: '请联系支持人员重置密码'
+    contactSupport: '请联系支持人员重置密码',
+    errorDefault: '身份验证失败。请重试。',
+    errorInvalid: '无效的电子邮件或密码。请检查您的凭据并重试。',
+    errorVerify: '登录前请验证您的电子邮件。',
+    errorExists: '使用此电子邮件的账户已存在。请尝试登录。'
   },
   'zh-hk': {
     title: '登入',
@@ -46,6 +54,10 @@ export const loginTranslations = {
     loginToContinue: '登入以繼續評估',
     signUpToTake: '註冊參加評估',
     troubleLogging: '登入遇到問題？',
-    contactSupport: '請聯繫支援人員重置密碼'
+    contactSupport: '請聯繫支援人員重置密碼',
+    errorDefault: '身份驗證失敗。請重試。',
+    errorInvalid: '無效的電子郵件或密碼。請檢查您的憑據並重試。',
+    errorVerify: '登入前請驗證您的電子郵件。',
+    errorExists: '使用此電子郵件的帳戶已存在。請嘗試登入。'
   }
 };

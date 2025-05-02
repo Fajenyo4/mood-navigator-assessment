@@ -29,12 +29,8 @@ const Login = ({ language = 'en' }: LoginProps) => {
   }, [selectedLanguage]);
 
   useEffect(() => {
-    setLanguage((prevLang: string) => {
-      if (prevLang !== selectedLanguage) {
-        return selectedLanguage;
-      }
-      return prevLang;
-    });
+    // Update language directly with the selected language
+    setLanguage(selectedLanguage);
   }, [selectedLanguage, setLanguage]);
 
   useEffect(() => {

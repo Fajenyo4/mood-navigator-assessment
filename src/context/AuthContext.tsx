@@ -8,7 +8,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   language: string;
-  setLanguage: (lang: string) => void;
+  setLanguage: React.Dispatch<React.SetStateAction<string>>;
   signIn: (provider: 'google' | 'github' | 'email', email?: string, password?: string) => Promise<void>;
   signOut: () => Promise<void>;
   signUp: (email: string, password: string, name?: string) => Promise<void>;
@@ -28,7 +28,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   });
   
   const hasHandledSignIn = useRef(false);
-
 
   useEffect(() => {
     // Store language in localStorage whenever it changes
@@ -238,7 +237,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-    // Memoize context value to prevent unnecessary rerenders
+  // Memoize context value to prevent unnecessary rerenders
   const value = useMemo(() => ({
     user, session, loading, language, setLanguage, signIn, signOut, signUp, setUser, refreshSession
   }), [user, session, loading, language]);
