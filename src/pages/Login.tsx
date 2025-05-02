@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -22,23 +21,23 @@ const Login = ({ language = 'en' }: LoginProps) => {
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Determine translations
   const selectedLanguage = language || 'en';
   const t = loginTranslations[selectedLanguage as keyof typeof loginTranslations] || loginTranslations.en;
 
-  // Update language in auth context
   useEffect(() => {
     setLanguage(selectedLanguage);
   }, [selectedLanguage, setLanguage]);
 
   useEffect(() => {
     if (user && !authLoading) {
-      // Send message to parent window to notify auth success, but don't show a toast
       window.parent.postMessage({ type: 'AUTH_SUCCESS', user: user.email }, '*');
-      // Silently navigate to assessment page
       navigate(`/${selectedLanguage.toLowerCase()}`);
     }
   }, [user, authLoading, navigate, selectedLanguage]);
+
+  useEffect(() => {
+    setPassword(''); // Clear password when switching between login/signup
+  }, [isSignUp]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,6 +85,8 @@ const Login = ({ language = 'en' }: LoginProps) => {
     }
   };
 
+  const isFormValid = email && password && (!isSignUp || name);
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -100,7 +101,6 @@ const Login = ({ language = 'en' }: LoginProps) => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>{isSignUp ? t.createAccount : t.title}</CardTitle>
-            {/* Removed language dropdown - language is selected by route only */}
           </div>
           <CardDescription>
             {isSignUp ? t.signUpToTake : t.loginToContinue}
@@ -142,7 +142,7 @@ const Login = ({ language = 'en' }: LoginProps) => {
             <Button
               type="submit"
               className="w-full"
-              disabled={isLoading || !email || !password || (isSignUp && !name)}
+              disabled={isLoading || !isFormValid}
             >
               {isLoading ? (
                 <>
