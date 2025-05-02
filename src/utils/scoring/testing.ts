@@ -94,14 +94,14 @@ export const runTestCases = (): boolean => {
   
   // Test Life Satisfaction boundaries
   console.log("\nLIFE SATISFACTION BOUNDARIES:");
-  console.log("Score 5:", determineLevel(5, 'satisfaction').level); // Should be Very dissatisfied
-  console.log("Score 6:", determineLevel(6, 'satisfaction').level); // Should be Dissatisfied
-  console.log("Score 13:", determineLevel(13, 'satisfaction').level); // Should be Dissatisfied
-  console.log("Score 14:", determineLevel(14, 'satisfaction').level); // Should be Neutral
-  console.log("Score 19:", determineLevel(19, 'satisfaction').level); // Should be Neutral
-  console.log("Score 20:", determineLevel(20, 'satisfaction').level); // Should be Satisfied
-  console.log("Score 24:", determineLevel(24, 'satisfaction').level); // Should be Satisfied
-  console.log("Score 25:", determineLevel(25, 'satisfaction').level); // Should be Very Satisfied
+  console.log("Score 13:", determineLevel(13, 'satisfaction').level); // Should be Very dissatisfied
+  console.log("Score 14:", determineLevel(14, 'satisfaction').level); // Should be Dissatisfied
+  console.log("Score 19:", determineLevel(19, 'satisfaction').level); // Should be Dissatisfied
+  console.log("Score 20:", determineLevel(20, 'satisfaction').level); // Should be Neutral
+  console.log("Score 26:", determineLevel(26, 'satisfaction').level); // Should be Neutral
+  console.log("Score 27:", determineLevel(27, 'satisfaction').level); // Should be Satisfied
+  console.log("Score 32:", determineLevel(32, 'satisfaction').level); // Should be Satisfied
+  console.log("Score 33:", determineLevel(33, 'satisfaction').level); // Should be Very Satisfied
   
   // Test all combinations for Mental Health Status determination
   console.log("\n--- TESTING ALL MOOD COMBINATIONS ---");

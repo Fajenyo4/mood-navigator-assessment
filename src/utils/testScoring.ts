@@ -20,10 +20,11 @@ export const runAllTests = (): void => {
   
   // Additional test for satisfaction level assessment
   console.log("\nTEST SATISFACTION LEVELS:");
-  console.log("Score 5:", determineLevel(5, 'satisfaction').level);  // Should be Very dissatisfied
-  console.log("Score 13:", getSatisfactionLevel(13));  // Should be Dissatisfied
-  console.log("Score 25:", getSatisfactionLevel(25));  // Should be Satisfied
-  console.log("Score 35:", getSatisfactionLevel(35));  // Should be Very Satisfied
+  console.log("Score 13:", determineLevel(13, 'satisfaction').level);  // Should be Very dissatisfied
+  console.log("Score 19:", getSatisfactionLevel(19));  // Should be Dissatisfied
+  console.log("Score 26:", getSatisfactionLevel(26));  // Should be Neutral
+  console.log("Score 32:", getSatisfactionLevel(32));  // Should be Satisfied
+  console.log("Score 33:", getSatisfactionLevel(33));  // Should be Very Satisfied
   
   // Test color functions
   console.log("\nTEST COLOR FUNCTIONS:");
