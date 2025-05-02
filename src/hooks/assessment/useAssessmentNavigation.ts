@@ -31,16 +31,13 @@ export const useAssessmentNavigation = ({
     const question = questions[currentQuestion];
     const questionId = currentQuestion + 1;
     
-    // Get the proper value for this option (from optionValues or use the value directly)
+    // Get the proper value for this option
     let answerValue = numericValue;
-    if (question.optionValues && question.optionValues[numericValue] !== undefined) {
-      answerValue = question.optionValues[numericValue];
-    }
     
-    // Always update answers and trigger UI update, even if it's the same value
+    // Update answers and trigger UI update
     const newAnswers = { ...answers, [questionId]: answerValue };
     
-    // Update answers
+    // Update selected option
     setSelectedOption(value);
     setUpdateCounter(prev => prev + 1); // Force re-render for selection UI
     

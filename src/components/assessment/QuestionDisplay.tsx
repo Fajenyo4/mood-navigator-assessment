@@ -1,3 +1,4 @@
+
 import React, { useCallback } from 'react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -35,14 +36,8 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
   }, [onAnswer]);
 
   const handleOptionSelection = useCallback((optionIndex: string) => {
-    // For questions that have explicit values, use the stored value
-    // Otherwise use the index as the value
-    if (question.optionValues) {
-      onAnswer(optionIndex);
-    } else {
-      onAnswer(optionIndex);
-    }
-  }, [onAnswer, question]);
+    onAnswer(optionIndex);
+  }, [onAnswer]);
 
   if (!question || !question.text) {
     return (
@@ -101,10 +96,25 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
           value={selectedOption}
         >
           {question.options.map((option, index) => {
-            // Get option value
-            const optionValue = question.optionValues ? 
-              question.optionValues[index].toString() : 
-              index.toString();
+            // Define the option value based on question type
+            let optionValue: string;
+            
+            if (question.optionValues) {
+              // If explicit option values are provided, use them
+              optionValue = question.optionValues[index].toString();
+            } else if (question.type === "life-satisfaction") {
+              // Life satisfaction questions (1-7 scale)
+              optionValue = (index + 1).toString();
+            } else if (question.type === "dass") {
+              // DASS questions (0-3 scale)
+              optionValue = index.toString();
+            } else if (question.type === "demographic") {
+              // Demographic questions (binary: Yes=0, No=1)
+              optionValue = index.toString();
+            } else {
+              // Default fallback
+              optionValue = index.toString();
+            }
             
             return (
               <div 
