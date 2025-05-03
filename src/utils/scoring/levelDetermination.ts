@@ -42,22 +42,22 @@ export const determineLevel = (score: number, type: AssessmentType): AssessmentR
 export const getSeverityLevel = (score: number, type: 'depression' | 'anxiety' | 'stress'): string => {
   if (type === 'depression') {
     if (score < 10) return "Normal";
-    if (score < 14) return "Mild";
-    if (score < 21) return "Moderate";
-    if (score < 28) return "Severe";
-    return "Very Severe";
+    else if (score < 14) return "Mild";
+    else if (score < 21) return "Moderate";
+    else if (score < 28) return "Severe";
+    else return "Very Severe";
   } else if (type === 'anxiety') {
     if (score < 11) return "Normal";
-    if (score < 14) return "Mild";
-    if (score < 21) return "Moderate";
-    if (score < 28) return "Severe";
+    else if (score < 14) return "Mild";
+    else if (score < 21) return "Moderate";
+    else if (score < 28) return "Severe";
     return "Very Severe";
-  } else { // stress
+  } else if (type === 'stress') {
     if (score < 17) return "Normal";
-    if (score < 21) return "Mild";
-    if (score < 29) return "Moderate";
-    if (score < 38) return "Severe";
-    return "Very Severe";
+    else if (score < 21) return "Mild";
+    else if (score < 29) return "Moderate";
+    else if (score < 38) return "Severe";
+    else return "Very Severe";
   }
 };
 
@@ -66,8 +66,8 @@ export const getSeverityLevel = (score: number, type: 'depression' | 'anxiety' |
  */
 export const getSatisfactionLevel = (score: number): string => {
   if (score < 14) return "Very dissatisfied";
-  if (score < 20) return "Dissatisfied";
-  if (score < 27) return "Neutral";
-  if (score < 33) return "Satisfied";
-  return "Very Satisfied";
+  else if (score < 20) return "Dissatisfied";
+  else if (score < 27) return "Neutral";
+  else if (score < 33) return "Satisfied";
+  else return "Very Satisfied";
 };
