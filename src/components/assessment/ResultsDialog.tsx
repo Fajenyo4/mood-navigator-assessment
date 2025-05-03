@@ -44,6 +44,8 @@ const ResultsDialog: React.FC<ResultsDialogProps> = ({
   const isMobile = useIsMobile();
   const isChineseLanguage = language.startsWith('zh');
 
+  console.log(result)
+
   const REDIRECT_URL = "https://www.mican.life/courses-en";
 
   const handleViewHistory = () => {

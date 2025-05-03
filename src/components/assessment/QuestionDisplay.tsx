@@ -104,10 +104,12 @@ const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
               optionValue = question.optionValues[index].toString();
             } else if (question.type === "life-satisfaction") {
               // Life satisfaction questions (1-7 scale)
+              // optionValue = (question.options.length - index).toString();
               optionValue = (index + 1).toString();
             } else if (question.type === "dass") {
               // DASS questions (0-3 scale)
-              optionValue = index.toString();
+              // optionValue = index.toString();
+              optionValue = (question.options.length - (index+1)).toString();
             } else if (question.type === "demographic") {
               // Demographic questions (binary: Yes=0, No=1)
               optionValue = index.toString();
