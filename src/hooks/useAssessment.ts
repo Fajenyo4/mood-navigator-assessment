@@ -52,6 +52,7 @@ export const useAssessment = ({
     userId,
     userName,
     userEmail,
+    answers,
     defaultLanguage,
     getQuestions,
     setIsSubmitting,

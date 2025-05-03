@@ -8,7 +8,7 @@ export const saveAssessmentResult = async (
   email: string,
   answers: {
     numeric: Record<string, number>;
-    text: Record<string, string>;
+    text: Record<string, number>;
     scores: {
       depression: number;
       anxiety: number;

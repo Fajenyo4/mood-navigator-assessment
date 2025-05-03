@@ -9,6 +9,7 @@ interface UseAssessmentSubmissionProps {
   userName: string | undefined;
   userEmail: string | undefined;
   defaultLanguage: string;
+  answers: { [key: number]: number };
   getQuestions: () => any[];
   setIsSubmitting: (value: boolean) => void;
   setShowResults: (value: boolean) => void;
@@ -18,6 +19,7 @@ export const useAssessmentSubmission = ({
   userId,
   userName,
   userEmail,
+  answers,
   defaultLanguage,
   getQuestions,
   setIsSubmitting,
@@ -49,17 +51,18 @@ export const useAssessmentSubmission = ({
         defaultLanguage
       );
 
-      const textAnswers: { [key: string]: string } = {};
-      Object.keys(finalAnswers).forEach(questionNum => {
-        const qNum = parseInt(questionNum);
-        const question = questions.find(q => q.id === qNum);
-        if (question) {
-          const optionIndex = finalAnswers[qNum];
-          textAnswers[qNum] = question.options[optionIndex] || '';
-        }
-      });
+      // const textAnswers: { [key: string]: string } = {};
+      // Object.keys(finalAnswers).forEach(questionNum => {
+      //   const qNum = parseInt(questionNum);
+      //   const question = questions.find(q => q.id === qNum);
+      //   if (question) {
+      //     const optionIndex = finalAnswers[qNum];
+      //     textAnswers[qNum] = question.options[optionIndex] || '';
+      //   }
+      // });
 
       setShowResults(true);
+
 
       // Save results without triggering page refreshes
       try {
@@ -69,7 +72,7 @@ export const useAssessmentSubmission = ({
           userEmail || '',
           {
             numeric: finalAnswers,
-            text: textAnswers,
+            text: answers,
             scores,
             levels: {
               depression: depressionLevel.level,
